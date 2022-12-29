@@ -2,11 +2,11 @@
  * "GameOfLife"
  *
  * Program symulujący Życie Conway'a. Program wczytuje początkowy stan oraz w pętli wykonuje polecenia od użytkownika.
- * 
+ *
  * Opcje kompilacji:
  * -D WIERSZE=22 - liczba wierszy
  * -D KOLUMNY=80 - liczba kolumn
- * 
+ *
  * autor: Tomasz Wilkins <tomasz@wilkins.ml>
  * wersja: 1.0.0
  * data: 13 grudnia 2022
@@ -119,9 +119,9 @@ inline static void* _pool_alloc(pool* p, size_t size) {
 
 typedef struct cell {
     /* informacje na temat komórki */
-    bool alive;
-    char neighbors; /* pomiędzy 0 a 8 */
-    int x; int y;
+    bool alive: 1;
+    char neighbors: 4; /* pomiędzy 0 a 8 */
+    int x;
 
     /* informacje na temat elementu listy */
     struct cell* next;
@@ -156,7 +156,7 @@ typedef struct {
 
 void init_board(board* b) {
     b->rows = NULL;
-    
+
     b->window.x = 1;
     b->window.y = 1;
 
@@ -164,12 +164,11 @@ void init_board(board* b) {
     b->pools.cells = new_pool(cell_pool_sz);
 }
 
-cell* new_cell(int x, int y, pool* p) {
-    cell* ncell = pool_alloc(p, cell);   
+cell* new_cell(int x, pool* p) {
+    cell* ncell = pool_alloc(p, cell);
     ncell->alive = false;
     ncell->neighbors = 0;
     ncell->x = x;
-    ncell->y = y;
     ncell->next = NULL;
     return ncell;
 }
@@ -196,9 +195,9 @@ void free_board(board* b) {
         free(curr_row);
         curr_row = next_row;
     }
-    
+
     b->rows = NULL;
-    
+
     free_pool(b->pools.rows);
     free(b->pools.rows);
     free_pool(b->pools.cells);
@@ -215,17 +214,15 @@ void free_board(board* b) {
         - jeśli target != NULL to y==target->null
         - jeśli komórka ma istnieć to musi być target lub jego sąsiadem
 */
-cell* row_push_nexist(cell* target, int x, int y, pool* cell_pool) {
+cell* row_push_nexist(cell* target, int x, pool* cell_pool) {
     if (target == NULL) {
-        return new_cell(x, y, cell_pool);
+        return new_cell(x, cell_pool);
     }
-
-    assert(target->y == y);
 
     if (target->x == x) return target;
 
     if (target->x < x) {
-        cell* ncell = new_cell(x, y, cell_pool);
+        cell* ncell = new_cell(x, cell_pool);
 
         ncell->next = target->next;
         target->next = ncell;
@@ -234,10 +231,10 @@ cell* row_push_nexist(cell* target, int x, int y, pool* cell_pool) {
     }
 
     if (target->x > x) {
-        cell* ncell = new_cell(x, y, cell_pool);
+        cell* ncell = new_cell(x, cell_pool);
 
         ncell->next = target;
-        
+
         return ncell;
     }
 
@@ -249,47 +246,47 @@ cell* row_push_nexist(cell* target, int x, int y, pool* cell_pool) {
     Założenia:
     - (*prev) != NULL
 */
-void row_create_neighbors(cell** prev, int x, int y, pool* cell_pool) {
+void row_create_neighbors(cell** prev, int x, pool* cell_pool) {
     cell* curr = (*prev)->next;
 
     while (curr != NULL && (curr)->x < (x-1)) {
         (*prev) = curr;
         (curr) = (curr)->next;
     }
-    
+
     if (curr == NULL) { /* Doszliśmy do końca listy */
-        (*prev)->next = new_cell(x-1, y, cell_pool);
+        (*prev)->next = new_cell(x-1, cell_pool);
         curr = (*prev)->next;
-        (*prev)->next->next = new_cell(x, y, cell_pool);
-        (*prev)->next->next->next = new_cell(x+1, y, cell_pool);
+        (*prev)->next->next = new_cell(x, cell_pool);
+        (*prev)->next->next->next = new_cell(x+1, cell_pool);
         return;
     }
 
     if (curr->x == (x-1)) {
-        curr->next = row_push_nexist(curr->next, x, y, cell_pool);
-        curr->next->next = row_push_nexist(curr->next->next, x+1, y, cell_pool);
+        curr->next = row_push_nexist(curr->next, x, cell_pool);
+        curr->next->next = row_push_nexist(curr->next->next, x+1, cell_pool);
         return;
     }
 
     if (curr->x == x) { /* x-1 na pewno nie istnieje */
-        cell* ncell = new_cell(x-1, y, cell_pool);
+        cell* ncell = new_cell(x-1, cell_pool);
         ncell->next = curr;
         (*prev)->next = ncell;
-        curr->next = row_push_nexist(curr->next, x+1, y, cell_pool);
+        curr->next = row_push_nexist(curr->next, x+1, cell_pool);
         return;
     }
 
     if (curr->x == x+1) { /* x-1 oraz x na pewno nie istnieją */
-        (*prev)->next = new_cell(x-1, y, cell_pool);
-        (*prev)->next->next = new_cell(x, y, cell_pool);
+        (*prev)->next = new_cell(x-1, cell_pool);
+        (*prev)->next->next = new_cell(x, cell_pool);
         (*prev)->next->next->next = curr;
         return;
     }
 
     if (curr->x > x+1) {/* x-1 oraz x oraz x+1 na pewno nie istnieją */
-        (*prev)->next = new_cell(x-1, y, cell_pool);
-        (*prev)->next->next = new_cell(x, y, cell_pool);
-        (*prev)->next->next->next = new_cell(x+1, y, cell_pool);
+        (*prev)->next = new_cell(x-1, cell_pool);
+        (*prev)->next->next = new_cell(x, cell_pool);
+        (*prev)->next->next->next = new_cell(x+1, cell_pool);
         (*prev)->next->next->next->next = curr;
         return;
     }
@@ -326,7 +323,6 @@ void create_neighbors(board* b) {
         /* atrapa dla listy komórek w obecnym wierszu */
         cells.next = curr_row->cells;
         cells.x = curr_row->cells->x - 2;
-        cells.y = curr_row->cells->y;
         prev_cell = &cells;
 
         curr_cell = curr_row->cells;
@@ -334,29 +330,27 @@ void create_neighbors(board* b) {
         /* atrapa dla listy komórek w poprzednim wierszu */
         prev_cells.next = (prev_row->y == curr_row->y-1) ? prev_row->cells : NULL;
         prev_cells.x = curr_cell->x - 2;
-        prev_cells.y = curr_cell->x - 1;
         prev_row_el = &prev_cells;
 
-        /* atrapa dla listy komórek w następnym wierszu */        
+        /* atrapa dla listy komórek w następnym wierszu */
         next_cells.next = (curr_row->next != NULL && curr_row->next->y == curr_row->y+1) ? curr_row->next->cells : NULL;
         next_cells.x = curr_cell->x - 2;
-        next_cells.y = curr_cell->x + 1;
         next_row_el = &next_cells;
 
 
         while (curr_cell != NULL) {
             if (curr_cell->alive) {
-                row_push_nexist(prev_cell, curr_cell->x-1, curr_cell->y, b->pools.cells); /* lewo */
-                curr_cell->next = row_push_nexist(curr_cell->next, curr_cell->x+1, curr_cell->y, b->pools.cells); /* prawo */
-                row_create_neighbors(&prev_row_el, curr_cell->x, curr_cell->y-1, b->pools.cells); /* góra */
-                row_create_neighbors(&next_row_el, curr_cell->x, curr_cell->y+1, b->pools.cells); /* dół */
+                row_push_nexist(prev_cell, curr_cell->x-1, b->pools.cells); /* lewo */
+                curr_cell->next = row_push_nexist(curr_cell->next, curr_cell->x+1, b->pools.cells); /* prawo */
+                row_create_neighbors(&prev_row_el, curr_cell->x, b->pools.cells); /* góra */
+                row_create_neighbors(&next_row_el, curr_cell->x, b->pools.cells); /* dół */
             }
 
             prev_cell = curr_cell;
             curr_cell = curr_cell->next;
         }
         curr_row->cells = cells.next;
-        
+
         /* aktualizacja poprzedniego wiersza lub tworzenie go jeśli nie istnieje */
         if (prev_row->y == curr_row->y-1)
             prev_row->cells = prev_cells.next;
@@ -367,7 +361,7 @@ void create_neighbors(board* b) {
             nrow->next = prev_row->next;
             prev_row->next = nrow;
         }
-        
+
         /* aktualizacja następnego wiersza lub tworzenie go jeśli nie istnieje */
         if (curr_row->next != NULL && curr_row->next->y == curr_row->y+1)
             curr_row->next->cells = next_cells.next;
@@ -403,16 +397,16 @@ inline static int max(int a, int b) {
     Założenia:
     - a != NULL & b != NULL;
 */
-inline static int dist(cell* a, cell* b) {
+inline static int dist(cell* a, int a_y, cell* b, int b_y) {
     assert(a != NULL && b != NULL);
-    return max(abs_v(a->x - b->x), abs_v(a->y - b->y));
+    return max(abs_v(a->x - b->x), abs_v(a_y - b_y));
 }
 
 /* Funkcja znajduje w liście row pierwszy element, którego można uznać za sąsiada, lub NULL gdy go nie znajdzie */
-cell* find_neighbor(cell* from, cell* curr_row) {
+cell* find_neighbor(cell* from, int y_from, cell* curr_row, int curr_y) {
     if (from == NULL) return NULL;
     while (curr_row != NULL) {
-        if (dist(from, curr_row) > 1) {
+        if (dist(from, y_from, curr_row, curr_y) > 1) {
             curr_row = curr_row->next;
         } else {
             return curr_row;
@@ -424,15 +418,15 @@ cell* find_neighbor(cell* from, cell* curr_row) {
 /*
     Funkcja aktualizuje licznik sąsiadów dla komórki target w wierszu row
     Założenia:
-    - target != NULL i row != NULL 
+    - target != NULL i row != NULL
 */
-void calculate_row_neighbors(cell* target, cell** curr_row) {
+void calculate_row_neighbors(cell* target, int target_y, cell** curr_row, int curr_y) {
     assert(target != NULL && curr_row != NULL);
-    *curr_row = find_neighbor(target, *curr_row);
+    *curr_row = find_neighbor(target, target_y, *curr_row, curr_y);
     assert(*curr_row != NULL);
     cell* curr = *curr_row;
 
-    while (curr != NULL && dist(target, curr) <= 1) {
+    while (curr != NULL && dist(target, target_y, curr, curr_y) <= 1) {
         curr->neighbors += 1;
         curr = curr->next;
     }
@@ -483,14 +477,14 @@ void calculate_neighbors(board* b) {
         curr_el = prev_el->next;
         prev_row_el = prev_row->cells;
         next_row_el = curr_row->next->cells;
-        
+
         while (curr_el->next != NULL) {
             if (curr_el->alive) {
                 prev_el->neighbors += 1; /* lewo */
                 curr_el->next->neighbors += 1; /* prawo */
 
-                calculate_row_neighbors(curr_el, &prev_row_el); /* góra */
-                calculate_row_neighbors(curr_el, &next_row_el); /* dół */
+                calculate_row_neighbors(curr_el, curr_row->y, &prev_row_el, curr_row->y-1); /* góra */
+                calculate_row_neighbors(curr_el, curr_row->y, &next_row_el, curr_row->y+1); /* dół */
             }
             prev_el = curr_el;
             curr_el = curr_el->next;
@@ -498,7 +492,7 @@ void calculate_neighbors(board* b) {
         prev_row = curr_row;
         curr_row = curr_row->next;
     }
-    
+
 }
 #pragma endregion
 
@@ -541,10 +535,10 @@ void clear_alone(board* b) {
             curr_row = curr_row->next;
             continue;
         }
-        cells.y = curr_row->cells->y;
+
         cells.x = curr_row->cells->x - 2;
         cells.next = curr_row->cells;
-        
+
         cell* curr_cell = curr_row->cells;
         cell* prev_cell = &cells;
 
@@ -643,13 +637,13 @@ bool read_row(row* prev_row) {
 
         if (!is_number(stdin_top())) /* Gdyby ktoś złośliwie wpisał pusty wiersz */
             return true;
-        
+
         row* curr_row = new_row(y, NULL);
         cell cells; cell* prev_cell = &cells;
         prev_row->next = curr_row;
         while (is_number(stdin_top())) {
             int x; scanf("%d", &x);
-            prev_cell->next = new_cell(x, y, NULL);
+            prev_cell->next = new_cell(x, NULL);
             prev_cell = prev_cell->next;
             prev_cell->alive = true;
             consume_white();
@@ -697,7 +691,7 @@ void print_alive(board* b) {
 
         while (c != NULL && !c->alive) /* Szuka pierwszej żywej komórki w wierszu */
             c = c->next;
-        
+
         if (c != NULL) { /* Znaleziono takową komórkę */
             printf("/%d", r->y);
             while (c != NULL) {
@@ -722,7 +716,7 @@ void print_window_row(board* b, row* r) {
 
     while (c != NULL && c->x < b->window.x) /* Szuka pierwszej komórki nie jest wcześniej niż okno */
         c = c->next;
-    
+
     if (c == NULL) { /* cale okno nie istnieje w pamieci, zatem sa tylko martwe komorki */
         printn(dead_sym, KOLUMNY);
     } else { /* istnieją żywe komórki */
@@ -748,7 +742,7 @@ void print_window(board* b) {
 
     while (r != NULL && r->y < b->window.y) /* Szuka pierwszego wiersza nie jest wcześniej niż okno */
         r = r->next;
-    
+
     if (r == NULL) { /* cale okno nie istnieje w pamieci, zatem sa tylko martwe komorki */
         for (int y = 0; y < WIERSZE; y++) {
             printn(dead_sym, KOLUMNY);
@@ -774,7 +768,7 @@ void print_window(board* b) {
 void exec_cmd(board* b, char* command) {
     if (command == NULL) return;
 
-    int argv[2]; 
+    int argv[2];
     int argc = sscanf(command, "%d %d", argv, argv+1);
     if (argc < 1)  /* Pusty wiersz, zatem polecenie jednego kroku */
         tick_n(b, 1);
@@ -800,7 +794,7 @@ void loop_cmd(board* b) {
         exec_cmd(b, buffer);
         print_window(b);
     }
-    
+
 }
 
 #pragma endregion
