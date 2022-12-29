@@ -3,13 +3,9 @@
  *
  * Program symulujący Życie Conway'a. Program wczytuje początkowy stan oraz w pętli wykonuje polecenia od użytkownika.
  * 
- *  Opcje kompilacji:
+ * Opcje kompilacji:
  * -D WIERSZE=22 - liczba wierszy
  * -D KOLUMNY=80 - liczba kolumn
- * -D DEBUG=0 - wersja kodu do wysłania
- * -D DEBUG=1 - wyświetlaj martwe, ale zainicjalizowane komórki jako ,
- * -D DEBUG=2 - pokazuj liczbę sąsiadów zamiast stanu
- * -D DEBUG=3 - pokazuj adresy komórek jako znaki od / do ~
  * 
  * autor: Tomasz Wilkins <tomasz@wilkins.ml>
  * wersja: 1.0.0
@@ -66,6 +62,57 @@ const char exit_command = '.';
 const char CF = 0x0D;
 const char LF = 0x0A;
 
+/* Komórki są realokowane o wiele więcej razy, zatem pula dla komórek jest większa */
+const size_t cell_pool_sz = 1024;
+const size_t row_pool_sz = 256;
+
+#pragma endregion
+
+#pragma region Implementcja puli
+
+typedef struct {
+    void** stack;
+    size_t end; /* top = end-1 */
+    size_t size; /* Rozmiar puli */
+} pool;
+
+inline static int pool_empty(pool* p) {
+    return p->end < 1;
+}
+
+/* Funkcja usuwa top stosu */
+void* pool_pop(pool* p) {
+    if (pool_empty(p)) return NULL;
+    return p->stack[--(p->end)];
+}
+
+/* Funkcja dodaje do stosu lub wykonuje free */
+void pool_push(pool* p, void* data) {
+    if (p->end >= p->size)
+        free(data);
+    else
+        p->stack[p->end++] = data;
+}
+
+pool* new_pool(size_t size) {
+    pool* p = (pool*)malloc(sizeof(pool));
+    p->stack = (void**)calloc(size, sizeof(void*));
+    p->end = 0;
+    p->size = size;
+    return p;
+}
+
+void free_pool(pool* p) {
+    while (!pool_empty(p)) free(pool_pop(p));
+    free(p->stack);
+}
+
+#define pool_alloc(p, type) (type *)_pool_alloc(p, sizeof(type))
+inline static void* _pool_alloc(pool* p, size_t size) {
+    if (p == NULL || pool_empty(p)) return malloc(size);
+    else return pool_pop(p);
+}
+
 #pragma endregion
 
 #pragma region Definicje struktur
@@ -97,6 +144,10 @@ typedef struct row {
 typedef struct {
     row* rows;
     struct { int x; int y; } window; /* Oznacza pozycje początku okna */
+    struct {
+        pool* rows;
+        pool* cells;
+    } pools; /* Pule używane do tworzenia nowych elementów list */
 } board;
 
 #pragma endregion
@@ -105,12 +156,16 @@ typedef struct {
 
 void init_board(board* b) {
     b->rows = NULL;
+    
     b->window.x = 1;
     b->window.y = 1;
+
+    b->pools.rows = new_pool(row_pool_sz);
+    b->pools.cells = new_pool(cell_pool_sz);
 }
 
-cell* new_cell(int x, int y) {
-    cell* ncell = (cell*)malloc(sizeof(cell));
+cell* new_cell(int x, int y, pool* p) {
+    cell* ncell = pool_alloc(p, cell);   
     ncell->alive = false;
     ncell->neighbors = 0;
     ncell->x = x;
@@ -119,8 +174,8 @@ cell* new_cell(int x, int y) {
     return ncell;
 }
 
-row* new_row(int y) {
-    row* nrow = (row*)malloc(sizeof(row));
+row* new_row(int y, pool* p) {
+    row* nrow = pool_alloc(p, row);
     nrow->y = y;
     nrow->cells = NULL;
     nrow->next = NULL;
@@ -141,7 +196,13 @@ void free_board(board* b) {
         free(curr_row);
         curr_row = next_row;
     }
+    
     b->rows = NULL;
+    
+    free_pool(b->pools.rows);
+    free(b->pools.rows);
+    free_pool(b->pools.cells);
+    free(b->pools.cells);
 }
 
 #pragma endregion
@@ -154,9 +215,9 @@ void free_board(board* b) {
         - jeśli target != NULL to y==target->null
         - jeśli komórka ma istnieć to musi być target lub jego sąsiadem
 */
-cell* row_push_nexist(cell* target, int x, int y) {
+cell* row_push_nexist(cell* target, int x, int y, pool* cell_pool) {
     if (target == NULL) {
-        return new_cell(x, y);
+        return new_cell(x, y, cell_pool);
     }
 
     assert(target->y == y);
@@ -164,7 +225,7 @@ cell* row_push_nexist(cell* target, int x, int y) {
     if (target->x == x) return target;
 
     if (target->x < x) {
-        cell* ncell = new_cell(x, y);
+        cell* ncell = new_cell(x, y, cell_pool);
 
         ncell->next = target->next;
         target->next = ncell;
@@ -173,7 +234,7 @@ cell* row_push_nexist(cell* target, int x, int y) {
     }
 
     if (target->x > x) {
-        cell* ncell = new_cell(x, y);
+        cell* ncell = new_cell(x, y, cell_pool);
 
         ncell->next = target;
         
@@ -188,7 +249,7 @@ cell* row_push_nexist(cell* target, int x, int y) {
     Założenia:
     - (*prev) != NULL
 */
-void row_create_neighbors(cell** prev, int x, int y) {
+void row_create_neighbors(cell** prev, int x, int y, pool* cell_pool) {
     cell* curr = (*prev)->next;
 
     while (curr != NULL && (curr)->x < (x-1)) {
@@ -197,38 +258,38 @@ void row_create_neighbors(cell** prev, int x, int y) {
     }
     
     if (curr == NULL) { /* Doszliśmy do końca listy */
-        (*prev)->next = new_cell(x-1, y);
+        (*prev)->next = new_cell(x-1, y, cell_pool);
         curr = (*prev)->next;
-        (*prev)->next->next = new_cell(x, y);
-        (*prev)->next->next->next = new_cell(x+1, y);
+        (*prev)->next->next = new_cell(x, y, cell_pool);
+        (*prev)->next->next->next = new_cell(x+1, y, cell_pool);
         return;
     }
 
     if (curr->x == (x-1)) {
-        curr->next = row_push_nexist(curr->next, x, y);
-        curr->next->next = row_push_nexist(curr->next->next, x+1, y);
+        curr->next = row_push_nexist(curr->next, x, y, cell_pool);
+        curr->next->next = row_push_nexist(curr->next->next, x+1, y, cell_pool);
         return;
     }
 
     if (curr->x == x) { /* x-1 na pewno nie istnieje */
-        cell* ncell = new_cell(x-1, y);
+        cell* ncell = new_cell(x-1, y, cell_pool);
         ncell->next = curr;
         (*prev)->next = ncell;
-        curr->next = row_push_nexist(curr->next, x+1, y);
+        curr->next = row_push_nexist(curr->next, x+1, y, cell_pool);
         return;
     }
 
     if (curr->x == x+1) { /* x-1 oraz x na pewno nie istnieją */
-        (*prev)->next = new_cell(x-1, y);
-        (*prev)->next->next = new_cell(x, y);
+        (*prev)->next = new_cell(x-1, y, cell_pool);
+        (*prev)->next->next = new_cell(x, y, cell_pool);
         (*prev)->next->next->next = curr;
         return;
     }
 
     if (curr->x > x+1) {/* x-1 oraz x oraz x+1 na pewno nie istnieją */
-        (*prev)->next = new_cell(x-1, y);
-        (*prev)->next->next = new_cell(x, y);
-        (*prev)->next->next->next = new_cell(x+1, y);
+        (*prev)->next = new_cell(x-1, y, cell_pool);
+        (*prev)->next->next = new_cell(x, y, cell_pool);
+        (*prev)->next->next->next = new_cell(x+1, y, cell_pool);
         (*prev)->next->next->next->next = curr;
         return;
     }
@@ -285,10 +346,10 @@ void create_neighbors(board* b) {
 
         while (curr_cell != NULL) {
             if (curr_cell->alive) {
-                row_push_nexist(prev_cell, curr_cell->x-1, curr_cell->y); /* lewo */
-                curr_cell->next = row_push_nexist(curr_cell->next, curr_cell->x+1, curr_cell->y); /* prawo */
-                row_create_neighbors(&prev_row_el, curr_cell->x, curr_cell->y-1); /* góra */
-                row_create_neighbors(&next_row_el, curr_cell->x, curr_cell->y+1); /* dół */
+                row_push_nexist(prev_cell, curr_cell->x-1, curr_cell->y, b->pools.cells); /* lewo */
+                curr_cell->next = row_push_nexist(curr_cell->next, curr_cell->x+1, curr_cell->y, b->pools.cells); /* prawo */
+                row_create_neighbors(&prev_row_el, curr_cell->x, curr_cell->y-1, b->pools.cells); /* góra */
+                row_create_neighbors(&next_row_el, curr_cell->x, curr_cell->y+1, b->pools.cells); /* dół */
             }
 
             prev_cell = curr_cell;
@@ -300,7 +361,7 @@ void create_neighbors(board* b) {
         if (prev_row->y == curr_row->y-1)
             prev_row->cells = prev_cells.next;
         else {
-            row* nrow = new_row(curr_row->y - 1);
+            row* nrow = new_row(curr_row->y - 1, b->pools.rows);
             nrow->cells = prev_cells.next;
 
             nrow->next = prev_row->next;
@@ -311,7 +372,7 @@ void create_neighbors(board* b) {
         if (curr_row->next != NULL && curr_row->next->y == curr_row->y+1)
             curr_row->next->cells = next_cells.next;
         else if (next_cells.next != NULL) {
-            row* nrow = new_row(curr_row->y + 1);
+            row* nrow = new_row(curr_row->y + 1, b->pools.rows);
             nrow->cells = next_cells.next;
 
             nrow->next = curr_row->next;
@@ -490,7 +551,7 @@ void clear_alone(board* b) {
         while (curr_cell != NULL) {
             if (!curr_cell->alive && curr_cell->neighbors == 0) {
                 prev_cell->next = curr_cell->next;
-                free(curr_cell);
+                pool_push(b->pools.cells, curr_cell); /* Zamiast free wstawiamy pamięć do puli */
                 curr_cell = prev_cell->next;
             }
             else {
@@ -517,7 +578,7 @@ void clear_empty(board* b) {
     while (curr_row != NULL) {
         if (curr_row->cells == NULL) {
             prev_row->next = curr_row->next;
-            free(curr_row);
+            pool_push(b->pools.rows, curr_row); /* Zamiast free wstawiamy pamięć do puli */
             curr_row = prev_row->next;
         }
         else {
@@ -571,6 +632,7 @@ void consume_white() {
     - prev_row->next == NULL
 */
 bool read_row(row* prev_row) {
+    /* Nie kożystamy tutaj z puli, gdyż wiemy że będzie pusta bo jest to początkowe wczytywanie */
     assert(prev_row != NULL);
     assert(prev_row->next == NULL);
     consume_white();
@@ -582,12 +644,12 @@ bool read_row(row* prev_row) {
         if (!is_number(stdin_top())) /* Gdyby ktoś złośliwie wpisał pusty wiersz */
             return true;
         
-        row* curr_row = new_row(y);
+        row* curr_row = new_row(y, NULL);
         cell cells; cell* prev_cell = &cells;
         prev_row->next = curr_row;
         while (is_number(stdin_top())) {
             int x; scanf("%d", &x);
-            prev_cell->next = new_cell(x, y);
+            prev_cell->next = new_cell(x, y, NULL);
             prev_cell = prev_cell->next;
             prev_cell->alive = true;
             consume_white();
