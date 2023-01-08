@@ -107,6 +107,7 @@ void free_pool(pool* p) {
     free(p->stack);
 }
 
+/* Funkcja zwraca top ze stosu lub tworzy nowy element, jeśli stos jest pusty */
 #define pool_alloc(p, type) (type *)_pool_alloc(p, sizeof(type))
 inline static void* _pool_alloc(pool* p, size_t size) {
     if (p == NULL || pool_empty(p)) return malloc(size);
@@ -706,11 +707,15 @@ void print_alive(board* b) {
     printf("/\n");
 }
 
-/* wypisuje dany znak n razy */
+/* Wypisuje dany znak n razy */
 inline static void printn(int c, int n) {
     while(n--) putchar(c);
 }
 
+/* funkcja wypisuje jeden wiersz z okna na stdin
+    Założenia:
+    - r != NULL
+*/ 
 void print_window_row(board* b, row* r) {
     cell* c = r->cells;
 
@@ -737,6 +742,7 @@ void print_window_row(board* b, row* r) {
     }
 }
 
+/* Funkcja wypisuje okno na stdin */
 void print_window(board* b) {
     row* r = b->rows;
 
@@ -764,7 +770,7 @@ void print_window(board* b) {
     printf("\n");
 }
 
-/* Wykonaj jedno polecenie */
+/* Wykonaj jedno polecenie użytkownika */
 void exec_cmd(board* b, char* command) {
     if (command == NULL) return;
 
