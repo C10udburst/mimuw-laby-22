@@ -13,10 +13,10 @@
  */
 
 /* Wymagane, abym mógł używać #pragma region */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 
-#pragma region Biblioteki
+// #pragma region Biblioteki
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +24,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Stałe
+// #pragma region Stałe
 
 #ifndef WIERSZE
 # define WIERSZE 22
@@ -66,9 +66,9 @@ const char LF = 0x0A;
 const size_t cell_pool_sz = 1024;
 const size_t row_pool_sz = 256;
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Implementcja puli
+// #pragma region Implementcja puli
 
 typedef struct {
     void** stack;
@@ -114,9 +114,9 @@ inline static void* _pool_alloc(pool* p, size_t size) {
     else return pool_pop(p);
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Definicje struktur
+// #pragma region Definicje struktur
 
 typedef struct cell {
     /* informacje na temat komórki */
@@ -151,9 +151,9 @@ typedef struct {
     } pools; /* Pule używane do tworzenia nowych elementów list */
 } board;
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Obsługa struktur
+// #pragma region Obsługa struktur
 
 void init_board(board* b) {
     b->rows = NULL;
@@ -205,9 +205,9 @@ void free_board(board* b) {
     free(b->pools.cells);
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Tworzenie sąsiadów
+// #pragma region Tworzenie sąsiadów
 
 /*
     Tworzy komórke, jeśli nie istnieje
@@ -381,9 +381,9 @@ void create_neighbors(board* b) {
     b->rows = rows.next;
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Obliczanie ilości sąsiadów
+// #pragma region Obliczanie ilości sąsiadów
 
 inline static int abs_v(int a) {
     if (a>=0) return a;
@@ -495,9 +495,9 @@ void calculate_neighbors(board* b) {
     }
 
 }
-#pragma endregion
+// #pragma endregion
 
-#pragma region Aktualizowanie stanu
+// #pragma region Aktualizowanie stanu
 
 /*
     Funkcja przechodzi przez planszę i aktualizuje stany kormórek biorąc pod uwagę tylko ilość sąsiadów stosując domyślne zasady gry w życie Conway'a
@@ -515,9 +515,9 @@ void update_state(board* b) {
     }
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Usuwanie komórek bez sąsiadów
+// #pragma region Usuwanie komórek bez sąsiadów
 
 /*
     Funkcja usuwa komórki, które są martwe i nie mają żadnego sąsiada
@@ -584,9 +584,9 @@ void clear_empty(board* b) {
     b->rows = rows.next;
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Wczytywanie początkowego stanu
+// #pragma region Wczytywanie początkowego stanu
 
 /* Zwraca true jeśli od znaku c potencjalnie zaczyna się liczba */
 inline static bool is_number(int c) {
@@ -669,9 +669,9 @@ void read_init(board* b) {
     b->rows = rows.next;
 }
 
-#pragma endregion
+// #pragma endregion
 
-#pragma region Wykonywanie poleceń użytkownika
+// #pragma region Wykonywanie poleceń użytkownika
 
 /* Funkcja liczy stan gry za n generacji */
 void tick_n(board* b, int n) {
@@ -803,7 +803,7 @@ void loop_cmd(board* b) {
 
 }
 
-#pragma endregion
+// #pragma endregion
 
 int main() {
     board b;
@@ -825,4 +825,4 @@ int main() {
     free_board(&b);
 }
 
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
