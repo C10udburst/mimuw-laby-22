@@ -790,11 +790,11 @@ void exec_cmd(board* b, char* command) {
 
 /* Funkcja wczytuje polecenia ze stdin dopóki nie dostanie symbolu kończoncego
     Założenia:
-    - Każde polecenie ma mniej niż 2048 znaków
+    - Każde polecenie ma mniej niż 512 znaków
     - polecenia są poprawne
 */
 void loop_cmd(board* b) {
-    char buffer[2048];
+    char buffer[512];
     while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
         if (buffer[0] == exit_command) return;
         exec_cmd(b, buffer);
@@ -816,6 +816,10 @@ int main() {
 
     print_window(&b);
 
+    /*
+        Założenie, że polecenie ma mniej niż 512 znaków będzie zawsze spełnione, gdyż w specyfikacji napisano, że liczby na wejściu będą mieścić się w int.
+        Napisano także że programy będą uruchamiane na serwerze students, zatem int będzie z przedziału -2147483647 do 2147483647. Oznacza to, że najduże polecenie to "-2147483647 -2147483647"
+    */
     loop_cmd(&b);
 
     free_board(&b);
