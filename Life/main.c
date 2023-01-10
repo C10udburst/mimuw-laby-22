@@ -62,6 +62,8 @@ const char exit_command = '.';
 const char CF = 0x0D;
 const char LF = 0x0A;
 
+const char EOL = '\0';
+
 /* Komórki są realokowane o wiele więcej razy, zatem pula dla komórek jest większa */
 const size_t cell_pool_sz = 1024;
 const size_t row_pool_sz = 256;
@@ -788,19 +790,59 @@ void exec_cmd(board* b, char* command) {
     }
 }
 
-/* Funkcja wczytuje polecenia ze stdin dopóki nie dostanie symbolu kończoncego
+/* Funkcja wczytuje 1 linie z stdin, tzn wczytuje znaki do EOF, CF lub LF.
+    Dodaje EOL na koniec ciągu. W razie potrzeby zwiększa bufor
+    Argumenty:
+    - buffer: miejsce na wczytanie znaków
+    - cap: wskażnik do rozmiaru buforu buffer
+
+    Zwraca:
+    - nowy adres buforu buffer
+
     Założenia:
-    - Każde polecenie ma mniej niż 2048 znaków
+    - cap != NULL
+*/
+char* read_line(char* buffer, size_t* cap) {
+    size_t len = 0;
+
+    if (buffer == NULL) 
+        buffer = (char*)malloc(sizeof(char)*(*cap));
+    
+    char c = (char)getchar();
+    while (c != EOF && c != CF && c != LF) {
+        if (len+1 > *cap) { /* litera nie zmieści się w buforze, należy go rozszerzyć */
+            *cap *= 2;
+            buffer = (char*)realloc(buffer, sizeof(char)*(*cap));
+        }
+
+        /* Wczytaj znak */
+        buffer[len++] = c;
+
+        /* Wczytaj kolejny znak */
+        c = (char)getchar();
+    }
+
+    if (len+1 > *cap) { /* EOL nie zmieści się w buforze, należy go rozszerzyć */
+        *cap += 1;
+        buffer = (char*)realloc(buffer, sizeof(char)*(*cap));
+    }
+    buffer[len] = EOL;
+    return buffer;
+}
+
+/* Funkcja wczytuje polecenia ze stdin dopóki nie dostanie symbolu końcowego
+    Założenia:
     - polecenia są poprawne
 */
 void loop_cmd(board* b) {
-    char buffer[2048];
-    while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-        if (buffer[0] == exit_command) return;
+    size_t cap = 128; /* teoretycznie najdłuższą linią, jaka może być wczytana jest "-2147483647 -2147483647", ale tak jest bezpieczniej.  */
+    char* buffer = read_line(NULL, &cap);
+    while (buffer != NULL && buffer[0] != exit_command) {
         exec_cmd(b, buffer);
         print_window(b);
+        buffer = read_line(buffer, &cap);
     }
-
+    free(buffer);
 }
 
 #pragma endregion
