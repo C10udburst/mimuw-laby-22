@@ -4,8 +4,8 @@
  * Program symulujący Życie Conway'a. Program wczytuje początkowy stan oraz w pętli wykonuje polecenia od użytkownika.
  *
  * Opcje kompilacji:
- * -D WIERSZE=22 - liczba wierszy
- * -D KOLUMNY=80 - liczba kolumn
+ * -D WIERSZE=22 - liczba wierszy okna
+ * -D KOLUMNY=80 - liczba kolumn okna
  *
  * autor: Tomasz Wilkins <tomasz@wilkins.ml>
  * wersja: 1.0.0
