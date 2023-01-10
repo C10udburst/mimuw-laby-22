@@ -9,7 +9,7 @@
  *
  * autor: Tomasz Wilkins <tomasz@wilkins.ml>
  * wersja: 1.0.0
- * data: 13 grudnia 2022
+ * data: 10 stycznia 2023
  */
 
 /* Wymagane, abym mógł używać #pragma region */
