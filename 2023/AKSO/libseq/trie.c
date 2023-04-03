@@ -67,6 +67,7 @@ trie_root_t* trie_init(void) {
 */
 void trie_free(trie_root_t* root) {
     trie_free_nodes(root->root);
+    free(root);
 }
 
 
