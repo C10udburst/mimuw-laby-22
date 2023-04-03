@@ -16,7 +16,6 @@ void           trie_extra_free(trie_extra_t* v);
 
 /* Typy używane przez bibliotekę */
 typedef struct trie_node {
-    char* name;
     trie_extra_t* extra;
     
     struct trie_node* children[3];

@@ -19,7 +19,7 @@
 
 static void trie_free_nodes(trie_node_t* node);
 static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n);
-static inline trie_node_t* trie_malloc_node(const char* name, size_t str_len);
+static inline trie_node_t* trie_malloc_node();
 static size_t trie_node_height(trie_node_t* node);
 
 /*
@@ -54,7 +54,7 @@ trie_root_t* trie_init(void) {
         errno = ENOMEM;
         return NULL;
     }
-    trie->root = trie_malloc_node("", 0);
+    trie->root = trie_malloc_node();
     return trie;
 }
 
@@ -87,11 +87,11 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     bool added_node = false;
     trie_node_t* parent = root->root;
-    for (size_t i = 0; i < n; i++) { // parent->name == name[0..(i-1)]
+    for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
         if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
             parent = parent->children[name[i]-'0'];
         } else { // węzeł nie istnieje
-            trie_node_t* new_node = trie_malloc_node(name, i+1);
+            trie_node_t* new_node = trie_malloc_node();
             if (new_node == NULL) {
                 errno = ENOMEM;
                 return -1;
@@ -172,14 +172,13 @@ static void trie_free_nodes(trie_node_t* node) {
     }
     if (node->extra != NULL)
         trie_extra_free(node->extra);
-    free(node->name);
     free(node);
 }
 
 static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n) {
     if (root == NULL) return NULL;
     trie_node_t* parent = root;
-    for (size_t i = 0; i < n; i++) { // parent->name == name[0..(i-1)]
+    for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
         if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
             parent = parent->children[name[i]-'0'];
         } else { // węzeł nie istnieje
@@ -191,32 +190,15 @@ static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n
 
 /*
     Funkcja tworzy nowy węzeł drzewa trie i zwraca wskaźnik na niego.
-    Parametry funkcji:
-        name – wskaźnik na napis reprezentujący nazwę węzła;
-        str_len – ilość znaków ciągu do skopiowania
     Wynik funkcji:
         wskaźnik na strukturę reprezentującą nowy węzeł lub
         NULL – jeśli nie udało się zaalokować pamięci.
 */
-static inline trie_node_t* trie_malloc_node(const char* name, size_t str_len) {
+static inline trie_node_t* trie_malloc_node(void) {
     trie_node_t* node = malloc(sizeof(trie_node_t));
     if (node == NULL) {
         errno = ENOMEM;
         return NULL;
-    }
-    
-    node->name = malloc(str_len + 1);
-    if (node->name == NULL) {
-        errno = ENOMEM;
-        free(node);
-        return NULL;
-    }
-
-    if (str_len == 0)
-        *(node->name) = '\0';
-    else {
-        memcpy(node->name, name, str_len);
-        node->name[str_len] = '\0';
     }
 
     node->extra = NULL;

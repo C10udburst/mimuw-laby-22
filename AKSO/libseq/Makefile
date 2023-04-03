@@ -31,7 +31,6 @@ trietest.dot: trietest.elf
 trieshow: trietest.dot
 	python -c 'import webbrowser;from urllib.parse import quote;path="$<";webbrowser.open(f"https://dreampuf.github.io/GraphvizOnline/#{quote(open(path).read())}")'
 
-
 test: seqtest.elf
 # TODO: install valgrind
 #	valgrind --leak-check=full -q --error-exitcode=1
