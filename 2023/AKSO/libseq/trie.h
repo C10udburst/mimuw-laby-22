@@ -58,6 +58,7 @@ do {                                                                            
             if (iterated_symbol->children[i] != NULL)                           \
                 stack[stack_size++] = iterated_symbol->children[i];             \
     }                                                                           \
+    free(stack);                                                                \
 } while(0)
 
 #endif // TRIE_H
