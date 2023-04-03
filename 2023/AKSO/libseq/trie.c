@@ -55,6 +55,11 @@ trie_root_t* trie_init(void) {
         return NULL;
     }
     trie->root = trie_malloc_node();
+    if (trie->root == NULL) {
+        errno = ENOMEM;
+        free(trie);
+        return NULL;
+    }
     return trie;
 }
 
@@ -88,10 +93,6 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     bool added_node = false;
     trie_node_t* parent = root->root;
-    if (parent == NULL) { // TODO: wszędzie indziej takie coś
-        errno = ENOMEM;
-        return -1;
-    }
     for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
         if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
             parent = parent->children[name[i]-'0'];
