@@ -19,17 +19,16 @@ void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {
 #define TESTFIND(tree, query)                                                                       \
   do {                                                                                              \
     trie_node_t* result = trie_find(tree, query);                                                   \
-    if (strcmp(result->name, query) != 0)                                                           \
-    printf("\e[31mError:\e[0m result should be %s, but is: %p: %s, [%p, %p, %p]\n",                 \
-    query, result, result->name, result->children[0], result->children[1], result->children[2]);    \
+    if (result == NULL)                                                                             \
+    printf("\e[31mError:\e[0m result should be %s, but is NULL\n", query);                         \
   } while (0)
 
 #define TESTNULL(tree, query)                                                                       \
   do {                                                                                              \
     trie_node_t* result = trie_find(tree, query);                                                   \
     if (result != NULL)                                                                             \
-    printf("\e[31mError:\e[0m %s should be NULL, but is: %p: %s, [%p, %p, %p]\n",                   \
-    query, result, result->name, result->children[0], result->children[1], result->children[2]);    \
+    printf("\e[31mError:\e[0m %s should be NULL, but is: %p: [%p, %p, %p]\n",                       \
+    query, result, result->children[0], result->children[1], result->children[2]);                  \
   } while (0)
 
 #define TESTV(predicate, expected)                                                                  \
@@ -71,7 +70,7 @@ int main(void) {
 
     printf("foreach: ");
     TRIE_FOREACH(tree, node, {
-        printf("%s ", node->name);
+        printf("%p ", node);
     });
     printf("\n");
 

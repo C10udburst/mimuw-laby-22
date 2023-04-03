@@ -14,7 +14,10 @@ void trie_write_dot_node(FILE* fp, trie_node_t* node, trie_node_t* parent, int i
     if (node == NULL) return;
     if (parent != NULL)
         fprintf(fp, "\t\"%p\" -> \"%p\" [label=\"%d\"]\n", parent, node, index);
-    fprintf(fp, "\t\"%p\" [label=\"%s\"]\n", node, node->name);
+    fprintf(fp, "\t\"%p\" [label=\"\n", node);
+    if (node->extra == NULL) fprintf(fp, "NULL");
+    else trie_extra_write_dot(node->extra, fp);
+    fprintf(fp, "\"]\n");
     for (int i = 0; i < 3; i++) {
         trie_write_dot_node(fp, node->children[i], node, i);
     }
