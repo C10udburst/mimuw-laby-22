@@ -27,17 +27,10 @@
     Używane poniżej określenie, że zbiór ciągów się nie zmienił, oznacza, że nie zmienił się obserwowalny stan zbioru ciągów.
 */
 
-typedef struct {
+/* Struktury trie.h */
+struct trie_extra { // W dodatkowych danych drzewa będziemy trzymać dane o klasie abstrakcji
     char* name; // nazwa klasy
     unsigned int refs; // ilość odwołań
-} equiv_class_t;
-
-
-static equiv_class_t* seq_new_equiv_class(const char* name);
-
-/* Struktury trie.h */
-struct trie_extra {
-    equiv_class_t* equiv_class;
 };
 
 /* Struktury seq.h */
@@ -153,56 +146,50 @@ int seq_valid(seq_t *p, char const *s) {
        -1 – jeśli któryś z parametrów jest niepoprawny lub wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
 int seq_set_name(seq_t *p, char const *s, char const *n) {
-    if (p == NULL) {
+    if (p == NULL || n == NULL) {
         errno = EINVAL;
         return -1;
     }
+
+    if (strlen(n) == 0) { // nazwa ma być niepusta
+        errno = EINVAL;
+        return -1;
+    }
+
     trie_node_t* node = trie_find(p->strings, s);
     if (node == NULL)
         return errno != 0 ? -1 : 0;
-    if (node->extra != NULL) {
-        if (node->extra->equiv_class == NULL) {
-            node->extra->equiv_class = seq_new_equiv_class(n);
-            if (node->extra->equiv_class == NULL)
-                return -1;
-            return 1;
-        } else {
-            if (node->extra->equiv_class->name == NULL) {
-                node->extra->equiv_class->name = strdup(n);
-                if (node->extra->equiv_class->name == NULL) {
-                    errno = ENOMEM;
-                    return -1;
-                }
-                return 1;
-            } else {
-                if (strcmp(node->extra->equiv_class->name, n) == 0)
-                    return 0;
-                else {
-                    char* new_name = strdup(n);
-                    if (new_name == NULL) {
-                        errno = ENOMEM;
-                        return -1;
-                    }
-                    free(node->extra->equiv_class->name);
-                    node->extra->equiv_class->name = new_name;
-                    return 1;
-                }
-            }
-        }
-    } else {
+    
+    if (node->extra == NULL) { // jeżeli nie ma jeszcze żadnych danych o klasie abstrakcji
         node->extra = malloc(sizeof(trie_extra_t));
         if (node->extra == NULL) {
             errno = ENOMEM;
             return -1;
         }
-        node->extra->equiv_class = seq_new_equiv_class(n);
-        if (node->extra->equiv_class == NULL) {
-            free(node->extra);
-            node->extra = NULL;
+        node->extra->refs = 1;
+        node->extra->name = NULL;
+    }
+
+    if (node->extra->name == NULL) {
+        node->extra->name = malloc(strlen(n) + 1);
+        if (node->extra->name == NULL) {
+            errno = ENOMEM;
             return -1;
         }
+        strcpy(node->extra->name, n);
         return 1;
     }
+    else if (strcmp(node->extra->name, n) != 0) { // node.extra.name != NULL
+        free(node->extra->name);
+        node->extra->name = malloc(strlen(n)+1);
+        if (node->extra->name == NULL) {
+            errno = ENOMEM;
+            return -1;
+        }
+        strcpy(node->extra->name, n);
+        return 1;
+    }
+    else return 0;
 }
 
 /*
@@ -228,9 +215,7 @@ char const * seq_get_name(seq_t *p, char const *s) {
         return NULL;
     if (found->extra == NULL)
         return NULL;
-    if (found->extra->equiv_class == NULL)
-        return NULL;
-    return found->extra->equiv_class->name;
+    return found->extra->name;
 }
 
 /*
@@ -265,85 +250,69 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     if (found2 == NULL)
         return errno != 0 ? -1 : 0;
     
-    equiv_class_t* class1 = (found1->extra != NULL) ? found1->extra->equiv_class : NULL; // class1 = found1.extra?.equiv_class
-    equiv_class_t* class2 = (found2->extra != NULL) ? found2->extra->equiv_class : NULL; // class2 = found2.extra?.equiv_class
-    equiv_class_t* joined_class = NULL;
+    trie_extra_t* joined_class = NULL;
     bool is_new_class = false;
 
-    if (class1 == NULL && class2 == NULL) {
-        joined_class = seq_new_equiv_class(NULL);
+    if (found1->extra == NULL && found2->extra == NULL) {
+        joined_class = malloc(sizeof(trie_extra_t));
+        joined_class->name = NULL;
+        joined_class->refs = 0;
         if (joined_class == NULL) {
             errno = ENOMEM;
             return -1;
         }
         is_new_class = true;
-    } else if (class1 == NULL && class2 != NULL)
-        joined_class = class2;
-    else if (class1 != NULL && class2 == NULL)
-        joined_class = class1;
-    else if (class1 == class2) // class1 != NULL && class2 != NULL
+    } else if (found1->extra == NULL && found2->extra != NULL)
+        joined_class = found2->extra;
+    else if (found1->extra != NULL && found2->extra == NULL)
+        joined_class = found1->extra;
+    else if (found1->extra == found2->extra) // found1.extra != NULL && found2.extra != NULL
         return 0; // już są w tej samej klasie abstrakcji
 
-    if (found1->extra == NULL) {
-        found1->extra = malloc(sizeof(trie_extra_t));
-        found1->extra->equiv_class = NULL;
-        if (found1->extra == NULL) {
-            if (is_new_class) free(joined_class); // is_new_class => joined_class->name == NULL
-            errno = ENOMEM;
-            return -1;
-        }
-    }
-    if (found2->extra == NULL) {
-        found2->extra = malloc(sizeof(trie_extra_t));
-        if (found2->extra == NULL) {
-            if (is_new_class) free(joined_class); // is_new_class => joined_class->name == NULL
-            errno = ENOMEM;
-            return -1;
-        }
-    }
 
-    if (joined_class != NULL) { // class1 == NULL || class2 == NULL
+    if (joined_class != NULL) { // found1.extra == NULL || found2.extra == NULL
         if (is_new_class) joined_class->refs = 2;
         else joined_class->refs += 1;
 
-        found1->extra->equiv_class = joined_class;
-        found2->extra->equiv_class = joined_class;
+        found1->extra = joined_class;
+        found2->extra = joined_class;
         return 1;
     }
 
     // class1 != NULL && class2 != NULL && class1 != class2
+    // Wybieramy większą klasę abstrakcji i mniejszą klasę abstrakcji.
+    trie_extra_t* bigger = (found1->extra->refs >= found2->extra->refs) ? found1->extra : found2->extra;
+    trie_extra_t* smaller = (found1->extra->refs >= found2->extra->refs) ? found2->extra : found1->extra;
     
-    equiv_class_t* bigger = (class1->refs >= class2->refs) ? class1 : class2;
-    equiv_class_t* smaller = (class1->refs >= class2->refs) ? class2 : class1;
-    
-    if (class1->name == NULL || class2->name == NULL || strcmp(class1->name, class2->name) != 0) { // nazwy klas są rózne
+    if (bigger->name == NULL || smaller->name == NULL || strcmp(smaller->name, bigger->name) != 0) { // nazwy klas są rózne, ustawiamy nazwę wiekszej na ich konkatenacje
         size_t str_len = 0;
-        str_len += (class1->name != NULL) ? strlen(class1->name) : 0; // class1.name?.length ?: 0
-        str_len += (class2->name != NULL) ? strlen(class2->name) : 0; // class2.name?.length ?: 0
+        str_len += (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0; // found1.extra.name?.length
+        str_len += (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0; // found2.extra.name?.length
 
         char* new_name = malloc(str_len + 1);
         if (new_name == NULL) {
             errno = ENOMEM;
             return -1;
         }
+        
+        // new_name = found1.extra.name ?: "" + found2.extra.name ?: ""
         new_name[0] = '\0';
-        if (class1->name != NULL) strcat(new_name, class1->name);
-        if (class2->name != NULL) strcat(new_name, class2->name);
-        free(bigger->name);
+        if (found1->extra->name != NULL) strcat(new_name, found1->extra->name);
+        if (found2->extra->name != NULL) strcat(new_name, found2->extra->name);
+
+        if (bigger->name != NULL) free(bigger->name);
         bigger->name = new_name;
     }
 
     // łączymy mniejszą klasę z większą
     bigger->refs += smaller->refs;
-    if (smaller->refs <= 1) { // tylko found1 lub found2 odwołuje się do mniejszej klasy
-        if (found1->extra->equiv_class == smaller) 
-            found1->extra->equiv_class = bigger;
-        else // found2->extra->equiv_class == smaller
-            found2->extra->equiv_class = bigger;
+    if (smaller->refs <= 1) { // tylko found1 lub found2 odwołuje się do mniejszej klasy, wystarczy więc ustawić oba na bigger
+        found1->extra = bigger;
+        found2->extra = bigger;
     } else { // trzeba zmienić każde odwołanie w strukturze do mniejszej klasy
         TRIE_FOREACH(p->strings, node, { // dla każdego węzła w strukturze trie
-            if (node->extra != NULL && node->extra->equiv_class == smaller)
-                node->extra->equiv_class = bigger;
+            if (node->extra == smaller)
+                node->extra = bigger;
         });
     }
     free(smaller->name);
@@ -352,51 +321,22 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     return 1;
 }
 
-/*
-    Funkcja seq_new_equiv_class tworzy nową klasę abstrakcji i ustala refs na 1
-    Parametry funkcji:
-        name – wskaźnik na napis reprezentujący niepusty ciąg lub NULL.
-    Wynik funkcji:
-        wskaźnik na nową klasę abstrakcji lub
-        NULL – jeśli wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno na ENOMEM.
-*/
-static equiv_class_t* seq_new_equiv_class(const char* name) {
-    equiv_class_t* new_class = malloc(sizeof(equiv_class_t));
-    if (new_class == NULL) {
-        errno = ENOMEM;
-        return NULL;
-    }
-    if (name == NULL) {
-        new_class->name = NULL;
-    } else {
-        new_class->name = strdup(name);
-        if (new_class->name == NULL) {
-            free(new_class);
-            errno = ENOMEM;
-            return NULL;
-        }
-    }
-    new_class->refs = 1;
-    return new_class;
-}
 
 /* funkcje trie.h */
 
 /*
-    Funkcja trie_extra_free zwalnia pamięć zajmowaną przez strukturę trie_extra_t, ewentualnie usuwa klase abstrakcji, jeśli nic się do niej nie odnosi.
+    Funkcja trie_extra_free usuwa odniesienie do klasy abstrakcji
+    i ewentualnie usuwa klasę abstrakcji, jeśli nie ma już żadnych odwołań do niej.
     Parametry funkcji:
         v – wskaźnik na strukturę trie_extra_t lub NULL.
     Funkcja nie zwraca wartości.
 */
 void trie_extra_free(trie_extra_t* v) {
     if (v == NULL) return;
-    if (v->equiv_class != NULL) {
-        v->equiv_class->refs -= 1;
-        if (v->equiv_class->refs < 1) {
-            if (v->equiv_class->name != NULL)
-                free(v->equiv_class->name);
-            free(v->equiv_class);
-        }
+    // v != NULL
+    v->refs -= 1;
+    if (v->refs < 1)  { // nie ma już odwołań do tej klasy abstrakcji, więc ją usuwamy
+        if (v->name != NULL) free(v->name);
+        free(v);
     }
-    free(v);
 }
