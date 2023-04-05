@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+unsigned int allocs[65536];
+
 // Ten plik musi kompilowany z opcjami -std=gnu17 i -fPIC,
 // a linkowany z opcjami -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 // -Wl,--wrap=reallocarray -Wl,--wrap=free -Wl,--wrap=strdup -Wl,--wrap=strndup.
@@ -28,6 +30,7 @@ memory_test_data_t * get_memory_test_data(void) {
 // To jest prosty akcesor potrzebny do testowania.
 char const * get_magic_string(void) {
   static char const * magic = "quite long magic string";
+  print_all();
   return magic;
 }
 
@@ -62,7 +65,7 @@ static bool can_fail(void const *old_ptr, size_t new_size) {
       errno = ENOMEM;                                                    \
       test_data.function_name = name;                                    \
     }                                                                    \
-    printf("%s(%lu): %p\n", name, size, p);                               \
+    on_alloc(p, size, name);                                             \
     return p;                                                            \
   } while (0)
 
@@ -72,6 +75,12 @@ void *__wrap_malloc(size_t size) {
 
 void *__wrap_calloc(size_t nmemb, size_t size) {
   UNRELIABLE_ALLOC(NULL, nmemb * size, __real_calloc(nmemb, size), "calloc");
+}
+
+void on_alloc(void *p, size_t size, const char* name) {
+  if ((unsigned long long)p%65536 == 0)
+  printf("%s(%lu): %p\n", name, size, p);
+  allocs[(unsigned long long )p%65536]++;
 }
 
 void *__wrap_realloc(void *ptr, size_t size) {
@@ -90,9 +99,17 @@ char *__wrap_strndup(const char *s, size_t size) {
   UNRELIABLE_ALLOC(NULL, 0, __real_strndup(s, size), "strndup");
 }
 
+void print_all() {
+  for(int i=0;i<10000; i++) {
+    if (allocs[i]!=0)
+    printf("allocs %x: %d\n", i, allocs[i]);
+  }
+}
+
 // Zwalnianie pamięci zawsze się udaje. Odnotowujemy jedynie fakt zwolnienia.
 void __wrap_free(void *ptr) {
-  printf("free(%lu): %p\n", malloc_usable_size(ptr), ptr);                               
+  printf("free(%lu): %p\n", malloc_usable_size(ptr), ptr);
+  allocs[((unsigned long long)ptr)%65536]--;                             
   test_data.call_total++;
   __real_free(ptr);
   if (ptr)
