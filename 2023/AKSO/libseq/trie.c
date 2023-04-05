@@ -91,23 +91,30 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     size_t n = strlen(name);
 
-    bool added_node = false;
     trie_node_t* parent = root->root;
-    for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
-        if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
-            parent = parent->children[name[i]-'0'];
-        } else { // węzeł nie istnieje
-            trie_node_t* new_node = trie_malloc_node();
-            if (new_node == NULL) {
-                errno = ENOMEM;
-                return -1;
-            }
-            parent->children[name[i]-'0'] = new_node;
-            parent = new_node;
-            added_node = true;
-        }
+    size_t i = 0; // indeks pierwszej nieistnejącej litery ciągu
+    while (parent->children[name[i]-'0'] != NULL && i < n) { // szukamy pierwszego niestniejącego prefiksu nazwy
+        parent = parent->children[name[i]-'0'];
+        i++;
     }
-    return added_node ? 1 : 0;
+
+    if (i == n) // jeśli nazwa jest prefiksem istniejącego ciągu
+        return 0;
+
+    // z założenia struktury trie, jeśli nie istnieje ciąg name[0..n] to nie istnieje także name[0..n+1]
+    trie_node_t* free_parent = parent; // ostatni węzeł którego nie usuwamy.
+    for(size_t j=i; j<n; j++) {
+        parent->children[name[j]-'0'] = trie_malloc_node();
+        if (parent->children[name[j]-'0'] == NULL) {
+            trie_free_nodes(free_parent->children[name[i]-'0']);
+            free_parent->children[name[i]-'0'] = NULL;
+            errno = EINVAL;
+            return -1;
+        }
+        parent = parent->children[name[j]-'0'];
+    }
+    
+    return 1;
 }
 
 /*
