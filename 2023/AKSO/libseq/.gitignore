@@ -5,3 +5,4 @@
 *.dot
 **/mmap_address.bin
 **/*.ipch
+**/.nfs*

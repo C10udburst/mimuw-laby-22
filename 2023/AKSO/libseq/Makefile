@@ -13,7 +13,7 @@ all: libseq.so seqtest.elf trietest.elf
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-libseq.so: seq.o trie.o memory_tests.o
+libseq.so: seq.o trie.o memory_tests_debug.o
 	$(CC) -shared -o $@ $^ $(SOLIBFLAGS)
 
 clean: 
