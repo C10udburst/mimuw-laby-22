@@ -19,6 +19,7 @@
 
 static void trie_free_nodes(trie_node_t* node);
 static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n);
+static inline trie_node_t* trie_malloc_node();
 static size_t trie_node_height(trie_node_t* node);
 
 /*
@@ -53,7 +54,7 @@ trie_root_t* trie_init(void) {
         errno = ENOMEM;
         return NULL;
     }
-    trie->root = calloc(1, sizeof(trie_node_t));
+    trie->root = trie_malloc_node();
     if (trie->root == NULL) {
         errno = ENOMEM;
         free(trie);
@@ -90,30 +91,23 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     size_t n = strlen(name);
 
+    bool added_node = false;
     trie_node_t* parent = root->root;
-    size_t i = 0; // indeks pierwszej nieistnejącej litery ciągu
-    while (parent->children[name[i]-'0'] != NULL && i < n) { // szukamy pierwszego niestniejącego prefiksu nazwy
-        parent = parent->children[name[i]-'0'];
-        i++;
+    for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
+        if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
+            parent = parent->children[name[i]-'0'];
+        } else { // węzeł nie istnieje
+            trie_node_t* new_node = trie_malloc_node();
+            if (new_node == NULL) {
+                errno = ENOMEM;
+                return -1;
+            }
+            parent->children[name[i]-'0'] = new_node;
+            parent = new_node;
+            added_node = true;
+        }
     }
-
-    if (i == n) // jeśli nazwa jest prefiksem istniejącego ciągu
-        return 0;
-
-    // z założenia struktury trie, jeśli nie istnieje ciąg name[0..n] to nie istnieje także name[0..n+1], zatem tworzymy wszystkie jedną allokacją.
-    trie_node_t* new_nodes = calloc(n-i, sizeof(trie_node_t));
-    if (new_nodes == NULL) {
-        errno = ENOMEM;
-        return -1;
-    }
-    trie_node_t* node;
-    for (size_t j = i; j < n; j++) {
-        node = new_nodes + (j-i);
-        parent->children[name[j]-'0'] = node;
-        parent = node;
-    }
-
-    return 1;
+    return added_node ? 1 : 0;
 }
 
 /*
@@ -198,6 +192,25 @@ static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n
         }
     }
     return parent;
+}
+
+/*
+    Funkcja tworzy nowy węzeł drzewa trie i zwraca wskaźnik na niego.
+    Wynik funkcji:
+        wskaźnik na strukturę reprezentującą nowy węzeł lub
+        NULL – jeśli nie udało się zaalokować pamięci.
+*/
+static inline trie_node_t* trie_malloc_node(void) {
+    trie_node_t* node = malloc(sizeof(trie_node_t));
+    if (node == NULL) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    node->extra = NULL;
+    for (int i = 0; i < 3; i++)
+        node->children[i] = NULL;
+    return node;
 }
 
 /*
