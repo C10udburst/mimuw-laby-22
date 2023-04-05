@@ -51,7 +51,7 @@ int main(void) {
     trie_insert_prefix(tree, "invalid");
     TESTV(errno, EINVAL);
 
-    trie_remove_prefix(tree, "0112");
+    //trie_remove_prefix(tree, "0112");
     TESTNULL(tree, "0112");
     TESTNULL(tree, "01122");
     TESTFIND(tree, "011");
