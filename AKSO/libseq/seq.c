@@ -161,6 +161,7 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
         return -1;
     }
 
+    errno = 0;
     trie_node_t* node = trie_find(p->strings, s);
     if (node == NULL)
         return errno != 0 ? -1 : 0;
@@ -263,12 +264,12 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
 
     if (found1->extra == NULL && found2->extra == NULL) {
         joined_class = malloc(sizeof(trie_extra_t));
-        joined_class->name = NULL;
-        joined_class->refs = 0;
         if (joined_class == NULL) {
             errno = ENOMEM;
             return -1;
         }
+        joined_class->name = NULL;
+        joined_class->refs = 0;
         is_new_class = true;
     } else if (found1->extra == NULL && found2->extra != NULL)
         joined_class = found2->extra;

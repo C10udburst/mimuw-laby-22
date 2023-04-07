@@ -19,7 +19,7 @@ libseq.so: seq.o trie.o memory_tests.o
 clean: 
 	rm -f *.o *.so *.a *.elf *.dot
 
-seqtest.elf: seq_example_debug.o libseq.so
+seqtest.elf: seq_test.o libseq.so
 	$(CC) -L. -o $@ $< -lseq
 
 trietest.elf: trie_test.o trie_extra.o trie.o
@@ -38,6 +38,7 @@ test: seqtest.elf
 	@./$< simple && echo -e "simple: \e[32mOK\e[0m" || echo -e "simple: \e[31mFailed\e[0m"
 	@./$< equivalence && echo -e "equivalence: \e[32mOK\e[0m" || echo -e "equivalence: \e[31mFailed\e[0m"
 	@./$< memory && echo -e "memory: \e[32mOK\e[0m" || echo -e "memory: \e[31mFailed\e[0m"
+	@./$< memory_extra && echo -e "memory_extra: \e[32mOK\e[0m" || echo -e "memory_extra: \e[31mFailed\e[0m"
 
 list: Makefile
 	@grep -E "^[a-z0-9.]+: " Makefile | cut -d':' -f1 | sort
