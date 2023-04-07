@@ -53,6 +53,7 @@ seq_t * seq_new(void) {
         errno = ENOMEM;
         return NULL;
     }
+    errno = 0;
     seq->strings = trie_init();
     if (seq->strings == NULL) {
         free(seq);
@@ -73,6 +74,7 @@ seq_t * seq_new(void) {
 */
 void seq_delete(seq_t *p) {
     if (p == NULL) return;
+    errno = 0;
     trie_free(p->strings);
     free(p);
 }
@@ -92,6 +94,7 @@ int seq_add(seq_t *p, char const *s) {
         errno = EINVAL;
         return -1;
     }
+    errno = 0;
     return trie_insert_prefix(p->strings, s);
 }
 
@@ -110,6 +113,7 @@ int seq_remove(seq_t *p, char const *s) {
         errno = EINVAL;
         return -1;
     }
+    errno = 0;
     return trie_remove_prefix(p->strings, s);
 }
 
@@ -128,6 +132,7 @@ int seq_valid(seq_t *p, char const *s) {
         errno = EINVAL;
         return -1;
     }
+    errno = 0;
     trie_node_t* found = trie_find(p->strings, s);
     if (found) return 1;
     else return errno != 0 ? -1 : 0;
@@ -210,6 +215,7 @@ char const * seq_get_name(seq_t *p, char const *s) {
         errno = EINVAL;
         return NULL;
     }
+    errno = 0;
     trie_node_t* found = trie_find(p->strings, s);
     if (found == NULL)
         return NULL;
@@ -234,11 +240,12 @@ char const * seq_get_name(seq_t *p, char const *s) {
        -1 – jeśli któryś z parametrów jest niepoprawny lub wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
 int seq_equiv(seq_t *p, char const *s1, char const *s2) {
-    if (p == NULL) {
+    if (p == NULL || trie_invalid_name(s1) || trie_invalid_name(s2)) {
         errno = EINVAL;
         return -1;
     }
     
+    errno = 0;
     trie_node_t* found1 = trie_find(p->strings, s1);
     if (found1 == NULL)
         return errno != 0 ? -1 : 0;
@@ -246,6 +253,7 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     if (strcmp(s1, s2) == 0)
         return 0;
 
+    errno = 0;
     trie_node_t* found2 = trie_find(p->strings, s2);
     if (found2 == NULL)
         return errno != 0 ? -1 : 0;

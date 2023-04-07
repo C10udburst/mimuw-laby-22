@@ -13,7 +13,7 @@ all: libseq.so seqtest.elf trietest.elf
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-libseq.so: seq.o trie.o memory_tests_debug.o
+libseq.so: seq.o trie.o memory_tests.o
 	$(CC) -shared -o $@ $^ $(SOLIBFLAGS)
 
 clean: 
@@ -34,10 +34,10 @@ trieshow: trietest.dot
 test: seqtest.elf
 # TODO: install valgrind
 #	valgrind --leak-check=full -q --error-exitcode=1
-	@./$< params && echo "params: \e[32mOK\e[0m" || echo "params: \e[31mFailed\e[0m"
-	@./$< simple && echo "simple: \e[32mOK\e[0m" || echo "simple: \e[31mFailed\e[0m"
-	@./$< equivalence && echo "equivalence: \e[32mOK\e[0m" || echo "equivalence: \e[31mFailed\e[0m"
-	@./$< memory && echo "memory: \e[32mOK\e[0m" || echo "memory: \e[31mFailed\e[0m"
+	@./$< params && echo -e "params: \e[32mOK\e[0m" || echo -e "params: \e[31mFailed\e[0m"
+	@./$< simple && echo -e "simple: \e[32mOK\e[0m" || echo -e "simple: \e[31mFailed\e[0m"
+	@./$< equivalence && echo -e "equivalence: \e[32mOK\e[0m" || echo -e "equivalence: \e[31mFailed\e[0m"
+	@./$< memory && echo -e "memory: \e[32mOK\e[0m" || echo -e "memory: \e[31mFailed\e[0m"
 
 list: Makefile
 	@grep -E "^[a-z0-9.]+: " Makefile | cut -d':' -f1 | sort

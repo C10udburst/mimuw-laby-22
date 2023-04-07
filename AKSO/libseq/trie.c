@@ -108,7 +108,7 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
         if (parent->children[name[j]-'0'] == NULL) {
             trie_free_nodes(free_parent->children[name[i]-'0']);
             free_parent->children[name[i]-'0'] = NULL;
-            errno = EINVAL;
+            errno = ENOMEM;
             return -1;
         }
         parent = parent->children[name[j]-'0'];
@@ -134,6 +134,7 @@ trie_node_t* trie_find(trie_root_t* root, const char* name) {
 
     size_t n = strlen(name);
 
+    errno = 0;
     return trie_find_node(root->root, name, n);
 }
 
