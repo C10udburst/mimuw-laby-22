@@ -227,6 +227,42 @@ static int equivalence(void) {
   return PASS;
 }
 
+static int equivalence_extra(void) {
+  seq_t *seq = seq_new();
+
+  TEST_PASS(seq_add(seq, "00"));
+  TEST_PASS(seq_add(seq, "11"));
+  TEST_PASS(seq_add(seq, "01"));
+  TEST_FAIL(seq_add(seq, "0"));
+
+  TEST_PASS(seq_equiv(seq, "00", "11"));
+  TEST_PASS(seq_equiv(seq, "00", "01"));
+  TEST_FAIL(seq_equiv(seq, "11", "01"));
+
+  TEST_PASS(seq_set_name(seq, "00", "k1"));
+  TEST_COMP(seq_get_name(seq, "00"), "k1");
+  TEST_COMP(seq_get_name(seq, "11"), "k1");
+  TEST_COMP(seq_get_name(seq, "01"), "k1");
+
+  TEST_PASS(seq_set_name(seq, "11", "k2"));
+  TEST_COMP(seq_get_name(seq, "00"), "k2");
+  TEST_COMP(seq_get_name(seq, "11"), "k2");
+  TEST_COMP(seq_get_name(seq, "01"), "k2");
+
+  TEST_PASS(seq_remove(seq, "0"));
+
+  TEST_COMP(seq_get_name(seq, "11"), "k2");
+  TEST_NULL_FAIL(seq_get_name(seq, "01"));
+  TEST_NULL_FAIL(seq_get_name(seq, "00"));
+
+  TEST_FAIL(seq_remove(seq, "0"));
+  TEST_PASS(seq_remove(seq, "11"));
+  TEST_FAIL(seq_remove(seq, "11"));
+
+  seq_delete(seq);
+  return PASS;
+}
+
 // Testuje reakcję implementacji na niepowodzenie alokacji pamięci.
 static unsigned long alloc_fail_seq_new_seq_add(void) {
   unsigned long visited = 0;
@@ -387,6 +423,7 @@ static const test_list_t test_list[] = {
   TEST(params),
   TEST(simple),
   TEST(equivalence),
+  TEST(equivalence_extra),
   TEST(memory),
   TEST(memory_extra)
 };
