@@ -14,67 +14,77 @@
 // Oblicza liczbę elementów tablicy x.
 #define SIZE(x) (sizeof x / sizeof x[0])
 
-#define TEST_EINVAL(f)                  \
-  do {                                  \
-    if ((f) != -1 || errno != EINVAL) { \
+#define TEST_EINVAL(f)                                                  \
+  do {                                                                  \
+    if ((f) != -1 || errno != EINVAL) {                                 \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
-#define TEST_NULL_EINVAL(f)             \
-  do {                                  \
-    if ((f) != NULL || errno != EINVAL) { \
+#define TEST_NULL_EINVAL(f)                                             \
+  do {                                                                  \
+    if ((f) != NULL || errno != EINVAL) {                               \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                       \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
-#define TEST_PASS(f)                    \
-  do {                                  \
-    if ((f) != 1) { \
+#define TEST_PASS(f)                                                    \
+  do {                                                                  \
+    if ((f) != 1) {                                                     \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
-#define TEST_FAIL(f)                    \
-  do {                                  \
-    if ((f) != 0) { \
+#define TEST_FAIL(f)                                                    \
+  do {                                                                  \
+    if ((f) != 0) {                                                     \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
-#define TEST_COMP(f, s)                 \
-  do {                                  \
-    if (strcmp((f), (s)) != 0) { \
+#define TEST_COMP(f, s)                                                 \
+  do {                                                                  \
+    if (strcmp((f), (s)) != 0) {                                        \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                    \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
-#define TEST_NULL_FAIL(f)               \
-  do {                                  \
-    if ((f) != NULL || errno != 0) { \
+#define TEST_NULL_FAIL(f)                                               \
+  do {                                                                  \
+    if ((f) != NULL || errno != 0) {                                    \
       printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
+      return FAIL;                                                      \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
   } while (0)
 
 #define V(code, where) (((unsigned long)code) << (3 * where))
+
+#define TEST_VISITED(f)                                                 \
+  do {                                                                  \
+    if ((f) != 1) {                                                     \
+      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+      return visited |= V(4, 1);                                        \
+    } else {                                                            \
+      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
+    }                                                                   \
+  } while (0)
 
 /** WŁAŚCIWE TESTY **/
 
@@ -217,15 +227,6 @@ static int equivalence(void) {
   return PASS;
 }
 
-#define TEST_VISITED(f)                                                 \
-  do {                                                                  \
-    if ((f) != 1) {                                                     \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return visited |= V(4, 1);                                        \
-    } else {                                                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
-    }                                                                   \
-  } while (0)
 // Testuje reakcję implementacji na niepowodzenie alokacji pamięci.
 static unsigned long alloc_fail_seq_new_seq_add(void) {
   unsigned long visited = 0;
@@ -249,6 +250,81 @@ static unsigned long alloc_fail_seq_new_seq_add(void) {
     TEST_VISITED(seq_valid(seq, "012") == 0);
     TEST_VISITED(seq_add(seq, "012") == 1);
     visited |= V(2, 1);
+  }
+
+  seq_delete(seq);
+
+  return visited;
+}
+
+static unsigned long alloc_fail_seq_new_seq_add_seq_set_name(void) {
+  unsigned long visited = 0;
+  seq_t *seq;
+  int result;
+
+  if ((seq = seq_new()) != NULL)
+    visited |= V(1, 0);
+  else if (errno == ENOMEM && (seq = seq_new()) != NULL)
+    visited |= V(2, 0);
+  else
+    return visited |= V(4, 0);
+
+  if ((result = seq_add(seq, "0")) == 1)
+    visited |= V(1, 1);
+  else {
+    TEST_VISITED(result == -1);
+    TEST_VISITED(errno == ENOMEM);
+    TEST_VISITED(seq_valid(seq, "0") == 0);
+    TEST_VISITED(seq_add(seq, "0") == 1);
+    visited |= V(2, 1);
+  }
+
+  if ((result = seq_set_name(seq, "0", "zero")) == 1)
+    visited |= V(1, 2);
+  else {
+    TEST_VISITED(result == -1);
+    TEST_VISITED(errno == ENOMEM);
+    TEST_VISITED(seq_get_name(seq, "0") == NULL);
+    TEST_VISITED(seq_set_name(seq, "0", "zero") == 1);
+    visited |= V(2, 2);
+  }
+
+  seq_delete(seq);
+
+  return visited;
+}
+
+static unsigned long alloc_fail_seq_new_seq_add_seq_equiv(void) {
+  unsigned long visited = 0;
+  seq_t *seq;
+  int result;
+
+  if ((seq = seq_new()) != NULL)
+    visited |= V(1, 0);
+  else if (errno == ENOMEM && (seq = seq_new()) != NULL)
+    visited |= V(2, 0);
+  else
+    return visited |= V(4, 0);
+
+  if ((result = seq_add(seq, "01")) == 1)
+    visited |= V(1, 1);
+  else {
+    TEST_VISITED(result == -1);
+    TEST_VISITED(errno == ENOMEM);
+    TEST_VISITED(seq_valid(seq, "0") == 0);
+    TEST_VISITED(seq_valid(seq, "1") == 0);
+    TEST_VISITED(seq_valid(seq, "01") == 0);
+    TEST_VISITED(seq_add(seq, "01") == 1);
+    visited |= V(2, 1);
+  }
+
+  if ((result = seq_equiv(seq, "0", "01")) == 1)
+    visited |= V(1, 2);
+  else {
+    TEST_VISITED(result == -1);
+    TEST_VISITED(errno == ENOMEM);
+    TEST_VISITED(seq_equiv(seq, "0", "01") == 1);
+    visited |= V(2, 2);
   }
 
   seq_delete(seq);
@@ -292,6 +368,12 @@ static int memory(void) {
   return memory_test(alloc_fail_seq_new_seq_add);
 }
 
+static int memory_extra(void) {
+  int t1 = memory_test(alloc_fail_seq_new_seq_add_seq_set_name);
+  int t2 = memory_test(alloc_fail_seq_new_seq_add_seq_equiv);
+  return t1 || t2;
+}
+
 /** URUCHAMIANIE TESTÓW **/
 
 typedef struct {
@@ -306,6 +388,7 @@ static const test_list_t test_list[] = {
   TEST(simple),
   TEST(equivalence),
   TEST(memory),
+  TEST(memory_extra)
 };
 
 static int do_test(int (*function)(void)) {
