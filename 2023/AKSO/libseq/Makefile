@@ -1,7 +1,7 @@
 CC       = gcc
 CPPFLAGS =
-#CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O0 -g3
-CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O3
+CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O0 -g3
+#CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O3 
 #VALGRIND = valgrind --leak-check=full -q --error-exitcode=1
 VALGRIND = 
 
