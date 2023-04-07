@@ -16,62 +16,38 @@
 
 #define TEST_EINVAL(f)                  \
   do {                                  \
-    if ((f) != -1 || errno != EINVAL) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if ((f) != -1 || errno != EINVAL)   \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
   } while (0)
 
 #define TEST_NULL_EINVAL(f)             \
   do {                                  \
-    if ((f) != NULL || errno != EINVAL) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if ((f) != NULL || errno != EINVAL) \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                       \
   } while (0)
 
 #define TEST_PASS(f)                    \
   do {                                  \
-    if ((f) != 1) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if ((f) != 1)                       \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
   } while (0)
 
 #define TEST_FAIL(f)                    \
   do {                                  \
-    if ((f) != 0) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if ((f) != 0)                       \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
   } while (0)
 
 #define TEST_COMP(f, s)                 \
   do {                                  \
-    if (strcmp((f), (s)) != 0) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if (strcmp((f), (s)) != 0)          \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                    \
   } while (0)
 
 #define TEST_NULL_FAIL(f)               \
   do {                                  \
-    if ((f) != NULL || errno != 0) { \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
+    if ((f) != NULL || errno != 0)      \
       return FAIL;                      \
-    } else {                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f); \
-    }                                   \
   } while (0)
 
 #define V(code, where) (((unsigned long)code) << (3 * where))
@@ -217,15 +193,6 @@ static int equivalence(void) {
   return PASS;
 }
 
-#define TEST_VISITED(f)                                                 \
-  do {                                                                  \
-    if ((f) != 1) {                                                     \
-      printf("[%s:%d]: %s \e[31mFAIL\e[0m\n", __FILE__,  __LINE__, #f); \
-      return visited |= V(4, 1);                                        \
-    } else {                                                            \
-      printf("[%s:%d]: %s \e[32mOK\e[0m\n", __FILE__,  __LINE__, #f);   \
-    }                                                                   \
-  } while (0)
 // Testuje reakcję implementacji na niepowodzenie alokacji pamięci.
 static unsigned long alloc_fail_seq_new_seq_add(void) {
   unsigned long visited = 0;
@@ -241,15 +208,12 @@ static unsigned long alloc_fail_seq_new_seq_add(void) {
 
   if ((result = seq_add(seq, "012")) == 1)
     visited |= V(1, 1);
-  else {
-    TEST_VISITED(result == -1);
-    TEST_VISITED(errno == ENOMEM);
-    TEST_VISITED(seq_valid(seq, "0") == 0);
-    TEST_VISITED(seq_valid(seq, "01") == 0);
-    TEST_VISITED(seq_valid(seq, "012") == 0);
-    TEST_VISITED(seq_add(seq, "012") == 1);
+  else if (result == -1 && errno == ENOMEM && seq_valid(seq, "0") == 0 &&
+           seq_valid(seq, "01") == 0 && seq_valid(seq, "012") == 0 &&
+           seq_add(seq, "012") == 1)
     visited |= V(2, 1);
-  }
+  else
+    return visited |= V(4, 1);
 
   seq_delete(seq);
 

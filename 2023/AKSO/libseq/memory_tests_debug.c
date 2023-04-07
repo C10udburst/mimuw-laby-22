@@ -6,6 +6,9 @@
 
 unsigned int allocs[65536];
 
+void on_alloc(void *p, size_t size, const char* name);
+void print_all();
+
 // Ten plik musi kompilowany z opcjami -std=gnu17 i -fPIC,
 // a linkowany z opcjami -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc
 // -Wl,--wrap=reallocarray -Wl,--wrap=free -Wl,--wrap=strdup -Wl,--wrap=strndup.
@@ -78,9 +81,9 @@ void *__wrap_calloc(size_t nmemb, size_t size) {
 }
 
 void on_alloc(void *p, size_t size, const char* name) {
-  if ((unsigned long long)p%65536 == 0)
+  if (p == NULL) return;
   printf("%s(%lu): %p\n", name, size, p);
-  allocs[(unsigned long long )p%65536]++;
+  allocs[((unsigned long long )p)%65536]++;
 }
 
 void *__wrap_realloc(void *ptr, size_t size) {
@@ -109,7 +112,8 @@ void print_all() {
 // Zwalnianie pamięci zawsze się udaje. Odnotowujemy jedynie fakt zwolnienia.
 void __wrap_free(void *ptr) {
   printf("free(%lu): %p\n", malloc_usable_size(ptr), ptr);
-  allocs[((unsigned long long)ptr)%65536]--;                             
+  print_all();
+  allocs[((unsigned long long)ptr)%65536]--;
   test_data.call_total++;
   __real_free(ptr);
   if (ptr)
