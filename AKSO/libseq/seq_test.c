@@ -298,16 +298,18 @@ static unsigned long alloc_fail_seq_new_seq_add_seq_set_name(void) {
   seq_t *seq;
   int result;
 
-  if ((seq = seq_new()) != NULL)
+  if ((seq = seq_new()) != NULL) {
+    TEST_VISITED(errno == 0);
     visited |= V(1, 0);
-  else if (errno == ENOMEM && (seq = seq_new()) != NULL)
+  } else if (errno == ENOMEM && (seq = seq_new()) != NULL)
     visited |= V(2, 0);
   else
     return visited |= V(4, 0);
 
-  if ((result = seq_add(seq, "0")) == 1)
+  if ((result = seq_add(seq, "0")) == 1) {
+    TEST_VISITED(errno == 0);
     visited |= V(1, 1);
-  else {
+  } else {
     TEST_VISITED(result == -1);
     TEST_VISITED(errno == ENOMEM);
     TEST_VISITED(seq_valid(seq, "0") == 0);
@@ -315,9 +317,10 @@ static unsigned long alloc_fail_seq_new_seq_add_seq_set_name(void) {
     visited |= V(2, 1);
   }
 
-  if ((result = seq_set_name(seq, "0", "zero")) == 1)
+  if ((result = seq_set_name(seq, "0", "zero")) == 1) {
+    TEST_VISITED(errno == 0);
     visited |= V(1, 2);
-  else {
+  } else {
     TEST_VISITED(result == -1);
     TEST_VISITED(errno == ENOMEM);
     TEST_VISITED(seq_get_name(seq, "0") == NULL);
@@ -335,9 +338,10 @@ static unsigned long alloc_fail_seq_new_seq_add_seq_equiv(void) {
   seq_t *seq;
   int result;
 
-  if ((seq = seq_new()) != NULL)
+  if ((seq = seq_new()) != NULL) {
+    TEST_VISITED(errno == 0);
     visited |= V(1, 0);
-  else if (errno == ENOMEM && (seq = seq_new()) != NULL)
+  } else if (errno == ENOMEM && (seq = seq_new()) != NULL)
     visited |= V(2, 0);
   else
     return visited |= V(4, 0);
@@ -354,9 +358,10 @@ static unsigned long alloc_fail_seq_new_seq_add_seq_equiv(void) {
     visited |= V(2, 1);
   }
 
-  if ((result = seq_equiv(seq, "0", "01")) == 1)
+  if ((result = seq_equiv(seq, "0", "01")) == 1) {
+    TEST_VISITED(errno == 0);
     visited |= V(1, 2);
-  else {
+  } else {
     TEST_VISITED(result == -1);
     TEST_VISITED(errno == ENOMEM);
     TEST_VISITED(seq_equiv(seq, "0", "01") == 1);
