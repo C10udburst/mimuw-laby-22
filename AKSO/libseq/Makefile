@@ -1,9 +1,9 @@
 CC       = gcc
 CPPFLAGS =
 CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O0 -g3
-#CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O3 
-#TESTER = valgrind --leak-check=full -q --error-exitcode=1
-TESTER = 
+#CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O2
+TESTER = valgrind --leak-check=full -q --error-exitcode=1
+#TESTER = 
 LINT_TARGETS = seq.c trie.c seq_test.c trie_test.c trie_extra.c trie.h trie_extra.h
 
 SOLIBFLAGS = -shared -Wl,--wrap=malloc -Wl,--wrap=calloc -Wl,--wrap=realloc -Wl,--wrap=reallocarray -Wl,--wrap=free -Wl,--wrap=strdup -Wl,--wrap=strndup

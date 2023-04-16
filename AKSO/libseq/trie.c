@@ -93,7 +93,7 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     trie_node_t* parent = root->root;
     size_t i = 0; // indeks pierwszej nieistnejącej litery ciągu
-    while (parent->children[name[i]-'0'] != NULL && i < n) { // szukamy pierwszego niestniejącego prefiksu nazwy
+    while (i < n && parent->children[name[i]-'0'] != NULL) { // szukamy pierwszego niestniejącego prefiksu nazwy
         parent = parent->children[name[i]-'0'];
         i++;
     }
