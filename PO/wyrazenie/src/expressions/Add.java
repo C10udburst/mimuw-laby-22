@@ -35,7 +35,7 @@ public class Add extends Operator {
     @Override
     public double integrate(double a, double b, int n) {
         // Całka z sumy jest sumą całek
-        return arg1.integrate(a, b, n/2) + arg2.integrate(a, b, (n+1)/2);
+        return arg1.integrate(a, b, n) + arg2.integrate(a, b, n);
     }
 
     // endregion
