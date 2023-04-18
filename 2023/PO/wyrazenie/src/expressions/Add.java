@@ -1,8 +1,12 @@
 package expressions;
 
 public class Add extends Operator {
+    // region dane
+
+    // end region
 
     // region techniczne
+
     protected Add(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
@@ -21,6 +25,7 @@ public class Add extends Operator {
 
 
     // region operacje
+
     @Override
     public double evaluate(double x) {
         return arg1.evaluate(x)+ arg2.evaluate(x);
@@ -37,6 +42,6 @@ public class Add extends Operator {
         // Całka z sumy jest sumą całek
         return arg1.integrate(a, b, n) + arg2.integrate(a, b, n);
     }
-
+    
     // endregion
 }

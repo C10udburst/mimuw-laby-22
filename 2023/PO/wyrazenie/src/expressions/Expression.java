@@ -2,6 +2,7 @@ package expressions;
 
 public abstract class Expression {
     // region dane
+
     // endregion
 
     // region techniczne
@@ -9,6 +10,16 @@ public abstract class Expression {
     // wymuszenie implementacji metody toString() w klasach dziedziczących
     @Override
     public abstract String toString();
+
+    /**
+     * Zwraca priorytet wyrażenia, czyli kolejność wykonywania operacji.
+     * Im większy priorytet, tym wyrażenie jest wykonywane wcześniej w zwykłej notacji.
+     * @return priorytet wyrażenia
+     */
+    public int priority() {
+        return 1_000;
+    }
+
     // endregion
 
     // region operacje
@@ -39,15 +50,6 @@ public abstract class Expression {
         for (int i = 1; i <= n-1; i++)
             sum += evaluate(i*h + a);
         return (evaluate(a) + evaluate(b) + 2*sum)*h/2;
-    }
-
-    /**
-     * Zwraca priorytet wyrażenia, czyli kolejność wykonywania operacji.
-     * Im większy priorytet, tym wyrażenie jest wykonywane wcześniej.
-     * @return priorytet wyrażenia
-     */
-    public int priority() {
-        return 1_000;
     }
 
     /**

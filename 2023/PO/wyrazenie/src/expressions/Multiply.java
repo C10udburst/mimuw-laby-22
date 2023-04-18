@@ -1,9 +1,29 @@
 package expressions;
 
 public class Multiply extends Operator {
+    // region dane
+
+    // endregion
+
+    // region techniczne
+
     protected Multiply(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
+
+    @Override
+    public int priority() {
+        return 500;
+    }
+
+    @Override
+    public String symbol() {
+        return "*";
+    }
+
+    // endregion
+
+    // region operacje
 
     @Override
     public double evaluate(double x) {
@@ -16,13 +36,5 @@ public class Multiply extends Operator {
         return arg1.multiply(arg2.derivative()).add(arg2.multiply(arg1.derivative()));
     }
 
-    @Override
-    public int priority() {
-        return 500;
-    }
-
-    @Override
-    public String symbol() {
-        return "*";
-    }
+    // endregion
 }

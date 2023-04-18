@@ -2,6 +2,7 @@ package expressions;
 
 public class Constant extends Expression {
     // region dane
+    
     double value;
 
     // endregion

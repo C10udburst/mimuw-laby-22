@@ -1,6 +1,12 @@
 package expressions;
 
 public class One extends Constant {
+    // region dane
+
+    // endregion
+
+    // region techniczne
+
     public One() {
         super(1.0);
     }
@@ -9,6 +15,10 @@ public class One extends Constant {
     public String toString() {
         return "1";
     }
+
+    // endregion
+
+    // region operacje
 
     @Override
     public Expression multiply(Expression e) {
@@ -19,4 +29,6 @@ public class One extends Constant {
     protected Expression multiply2(Expression e) {
         return e;
     }
+
+    // endregion
 }
