@@ -1,6 +1,12 @@
 package expressions;
 
 public class Sine extends Function {
+    // region dane
+
+    // endregion
+
+    // region techniczne 
+
     public Sine(Expression arg) {
         super(arg);
     }
@@ -9,6 +15,10 @@ public class Sine extends Function {
     public String toString() {
         return "sin(" + arg.toString() + ")";
     }
+
+    // endregion
+
+    // region operacje
 
     @Override
     public double evaluate(double x) {
@@ -19,4 +29,6 @@ public class Sine extends Function {
     public Expression derivative() {
         return (new Cosine(arg)).multiply(arg.derivative());
     }
+
+    // endregion
 }

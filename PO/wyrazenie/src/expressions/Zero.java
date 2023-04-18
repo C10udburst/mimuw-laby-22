@@ -2,9 +2,24 @@ package expressions;
 
 public class Zero extends Constant {
 
+    // region dane
+
+    // endregion
+
+    // region techniczne
+
     public Zero() {
         super(0.0);
     }
+
+    @Override
+    public String toString() {
+        return "0";
+    }
+
+    // endregion
+
+    // region operacje
 
     @Override
     public Expression multiply(Expression e) {
@@ -26,8 +41,5 @@ public class Zero extends Constant {
         return e;
     }
 
-    @Override
-    public String toString() {
-        return "0";
-    }
+    // endregion
 }
