@@ -2,6 +2,7 @@
 #define TRIE_H
 
 #include <stdlib.h>
+#include <errno.h>
 
 /*
     Biblioteka obsługująca drzewo trie składające się z ciągów znaków '0','1' lub '2'.
@@ -38,6 +39,7 @@ int             trie_invalid_name(const char* str);
 
 /*
     Makro wywołuje kod w każdym węźle drzewa, w obiegu DFS preorder.
+    Ustawia errno na ENOMEM jeśli nie udało się zaalkować stosu.
     Parametry:
         trie_root - struktura drzewa
         iterated_symbol - nazwa węzła
@@ -47,18 +49,22 @@ int             trie_invalid_name(const char* str);
 do {                                                                            \
     trie_node_t* iterated_symbol;                                               \
     trie_node_t** stack = calloc(trie_height(trie_root), sizeof(trie_node_t*)); \
-    size_t stack_size = 1;                                                      \
-    stack[0] = trie_root->root;                                                 \
-    while (stack_size > 0) {                                                    \
-        iterated_symbol = stack[--stack_size];                                  \
-        if (iterated_symbol == NULL)                                            \
-            continue;                                                           \
-        code;                                                                   \
-        for (int i = 0; i < 3; i++)                                             \
-            if (iterated_symbol->children[i] != NULL)                           \
-                stack[stack_size++] = iterated_symbol->children[i];             \
+    if (stack == NULL)                                                          \
+        errno = ENOMEM;                                                         \
+    else {                                                                      \
+        size_t stack_size = 1;                                                  \
+        stack[0] = trie_root->root;                                             \
+        while (stack_size > 0) {                                                \
+            iterated_symbol = stack[--stack_size];                              \
+            if (iterated_symbol == NULL)                                        \
+                continue;                                                       \
+            code;                                                               \
+            for (int i = 0; i < 3; i++)                                         \
+                if (iterated_symbol->children[i] != NULL)                       \
+                    stack[stack_size++] = iterated_symbol->children[i];         \
+        }                                                                       \
+        free(stack);                                                            \
     }                                                                           \
-    free(stack);                                                                \
 } while(0)
 
 #endif // TRIE_H

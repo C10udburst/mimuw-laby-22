@@ -292,11 +292,12 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     // Wybieramy większą klasę abstrakcji i mniejszą klasę abstrakcji.
     trie_extra_t* bigger = (found1->extra->refs >= found2->extra->refs) ? found1->extra : found2->extra;
     trie_extra_t* smaller = (found1->extra->refs >= found2->extra->refs) ? found2->extra : found1->extra;
-    
+
+    char* new_name = bigger->name;
     if (bigger->name == NULL || smaller->name == NULL || strcmp(smaller->name, bigger->name) != 0) { // nazwy klas są rózne, ustawiamy nazwę wiekszej na ich konkatenacje
         size_t str_len = 0;
-        str_len += (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0; // found1.extra.name?.length
-        str_len += (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0; // found2.extra.name?.length
+        str_len += (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0; // += found1.extra.name?.length ?: 0
+        str_len += (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0; // += found2.extra.name?.length ?: 0
 
         char* new_name = malloc(str_len + 1);
         if (new_name == NULL) {
@@ -308,13 +309,8 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
         new_name[0] = '\0';
         if (found1->extra->name != NULL) strcat(new_name, found1->extra->name);
         if (found2->extra->name != NULL) strcat(new_name, found2->extra->name);
-
-        if (bigger->name != NULL) free(bigger->name);
-        bigger->name = new_name;
     }
 
-    // łączymy mniejszą klasę z większą
-    bigger->refs += smaller->refs;
     if (smaller->refs <= 1) { // tylko found1 lub found2 odwołuje się do mniejszej klasy, wystarczy więc ustawić oba na bigger
         found1->extra = bigger;
         found2->extra = bigger;
@@ -323,13 +319,23 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
             if (node->extra == smaller)
                 node->extra = bigger;
         });
+        if (errno == ENOMEM) { // przejście pętli nie powiodło się z powodu błędu alokacji pamięci, przywracamy stan początkowy
+            if (new_name != bigger->name) free(new_name);
+            return -1;
+        }
     }
+
+    bigger->refs += smaller->refs;
+    if (new_name != bigger->name) {
+        free(bigger->name);
+        bigger->name = new_name;
+    }
+
     free(smaller->name);
     free(smaller);
 
     return 1;
 }
-
 
 /* funkcje trie.h */
 
