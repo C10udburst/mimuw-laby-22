@@ -2,7 +2,7 @@ CC       = gcc
 CPPFLAGS =
 CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O0 -g3
 #CFLAGS   = -Wall -Wextra -Wno-implicit-fallthrough -std=gnu17 -fPIC -O2
-TESTER = valgrind --leak-check=full -q --error-exitcode=1
+TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
 #TESTER = 
 LINT_TARGETS = seq.c trie.c seq_test.c trie_test.c trie_extra.c trie.h trie_extra.h
 
