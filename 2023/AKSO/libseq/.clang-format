@@ -20,10 +20,13 @@ AlwaysBreakBeforeMultilineStrings: 'true'
 AlwaysBreakTemplateDeclarations: 'Yes'
 BinPackArguments: 'true'
 BinPackParameters: 'true'
+BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: 'true'
 BreakStringLiterals: 'true'
 ColumnLimit: '80'
 ContinuationIndentWidth: '4'
+ExperimentalAutoDetectBinPacking: 'true'
 IncludeBlocks: Merge
 IndentCaseLabels: 'true'
 IndentPPDirectives: AfterHash
@@ -40,6 +43,6 @@ SpaceBeforeAssignmentOperators: 'true'
 SpaceInEmptyParentheses: 'false'
 SpacesBeforeTrailingComments: '1'
 SpacesInCStyleCastParentheses: 'false'
-Standard: Auto
+Standard: Cpp03
 TabWidth: '4'
 UseTab: Never
