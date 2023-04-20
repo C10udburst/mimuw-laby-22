@@ -8,8 +8,10 @@
 /*
     "Drzewo trie 012"
 
-    Biblioteka obsługująca drzewo trie mające składające się z ciągów znaków '0','1' lub '2'.
-    Zakładamy, że użytkownik zaimplementuje struct trie_extra oraz trie_extra_free()
+    Biblioteka obsługująca drzewo trie
+    mające składające się z ciągów znaków '0','1' lub '2'.
+    Zakładamy, że użytkownik zaimplementuje
+    struct trie_extra oraz trie_extra_free()
 
     autor: Tomasz Wilkins <tomasz@wilkins.ml>
     wersja: 1.0.0
@@ -18,12 +20,14 @@
 
 
 static void trie_free_nodes(trie_node_t* node);
-static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n);
+static trie_node_t* trie_find_node(
+    trie_node_t* root, const char* name, size_t n);
 static inline trie_node_t* trie_malloc_node();
 static size_t trie_node_height(trie_node_t* node);
 
 /*
-    Funkcja trie_invalid_name sprawdza, czy podany napis jest poprawną reprezentacją ciągu.
+    Funkcja trie_invalid_name sprawdza,
+    czy podany napis jest poprawną reprezentacją ciągu.
     Parametr funkcji:
         str – wskaźnik na napis reprezentujący nazwę ciągu.
     Wynik funkcji:
@@ -46,7 +50,8 @@ int trie_invalid_name(const char* str) {
     Funkcja trie_init tworzy nowe puste drzewo trie.
     Wynik funkcji:
         wskaźnik na strukturę reprezentującą trie lub
-        NULL – jeśli wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno na ENOMEM.
+        NULL – jeśli wystąpił błąd alokowania pamięci;
+            funkcja ustawia wtedy errno na ENOMEM.
 */
 trie_root_t* trie_init(void) {
     trie_root_t* trie = malloc(sizeof(trie_root_t));
@@ -64,7 +69,8 @@ trie_root_t* trie_init(void) {
 }
 
 /*
-    Funkcja trie_free usuwa drzewo trie i zwalnia całą używaną przez niego pamięć.
+    Funkcja trie_free usuwa drzewo trie
+    i zwalnia całą używaną przez niego pamięć.
     Nic nie robi, jeśli zostanie wywołana ze wskaźnikiem NULL.
     Po wykonaniu tej funkcji przekazany jej wskaźnik staje się nieważny.
     Parametr funkcji:
@@ -77,7 +83,8 @@ void trie_free(trie_root_t* root) {
 
 
 /*
-    Funkcja dodaje do drzewa trie wszystkie niepuste prefiksy podanego łańcucha.
+    Funkcja dodaje do drzewa trie
+    wszystkie niepuste prefiksy podanego łańcucha.
     Zwraca:
        -1 w przypadku błędu,
         1 jeśli dodano przynajmniej jeden nowy węzeł
@@ -93,7 +100,8 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     trie_node_t* parent = root->root;
     size_t i = 0; // indeks pierwszej nieistnejącej litery ciągu
-    while (i < n && parent->children[name[i]-'0'] != NULL) { // szukamy pierwszego niestniejącego prefiksu nazwy
+    while (i < n && parent->children[name[i]-'0'] != NULL) {
+        // szukamy pierwszego niestniejącego prefiksu nazwy
         parent = parent->children[name[i]-'0'];
         i++;
     }
@@ -101,7 +109,8 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
     if (i == n) // jeśli nazwa jest prefiksem istniejącego ciągu
         return 0;
 
-    // z założenia struktury trie, jeśli nie istnieje ciąg name[0..n] to nie istnieje także name[0..n+1]
+    // z założenia struktury trie, jeśli nie istnieje ciąg name[0..n]
+    // to nie istnieje także name[0..n+1]
     trie_node_t* free_parent = parent; // ostatni węzeł którego nie usuwamy.
     for(size_t j=i; j<n; j++) {
         parent->children[name[j]-'0'] = trie_malloc_node();
@@ -139,7 +148,8 @@ trie_node_t* trie_find(trie_root_t* root, const char* name) {
 }
 
 /*
-    Funkcja trie_remove usuwa z drzewa trie węzeł o podanej nazwie oraz wszystkie ciągi których prefiksem jest name.
+    Funkcja trie_remove usuwa z drzewa trie węzeł
+    o podanej nazwie oraz wszystkie ciągi których prefiksem jest name.
     Parametry funkcji:
         root – wskaźnik na strukturę reprezentującą trie;
         name – wskaźnik na napis reprezentujący nazwę węzła.
@@ -154,14 +164,16 @@ int trie_remove_prefix(trie_root_t* root, const char* name) {
         return -1;
     }
     size_t n = strlen(name);
-    trie_node_t* parent = trie_find_node(root->root, name, n - 1); // szukamy ojca
+    // szukamy ojca, aby zmienić mu potem synów
+    trie_node_t* parent = trie_find_node(root->root, name, n - 1);
     if (parent == NULL)
         return errno == EINVAL ? -1 : 0;
     trie_node_t* main = parent->children[name[n-1]-'0'];
     if (main == NULL) 
         return 0;
     trie_free_nodes(main); // usuwamy żądany węzeł
-    parent->children[name[n-1]-'0'] = NULL; // usuwamy wskaźnik na usuwany węzeł
+    // usuwamy wskaźnik na usuwany węzeł
+    parent->children[name[n-1]-'0'] = NULL;
     return 1;
 }
 
@@ -189,7 +201,8 @@ static void trie_free_nodes(trie_node_t* node) {
     free(node);
 }
 
-static trie_node_t* trie_find_node(trie_node_t* root, const char* name, size_t n) {
+static trie_node_t* trie_find_node(
+    trie_node_t* root, const char* name, size_t n) {
     if (root == NULL) return NULL;
     trie_node_t* parent = root;
     for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]

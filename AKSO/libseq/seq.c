@@ -2,7 +2,7 @@
     "Zbiory równoważnych ciągów"
 
     Biblioteka obsługująca zbiory ciągów z relacją równoważności.
-    Elementami zbiorów są niepuste ciągi, których elementami są liczby 0, 1 i 2.
+    Elementami zbiorów są niepuste ciągi, których elementami są liczby 0,1 i 2.
     W implementacji ciąg reprezentujemy jako napis.
     Na przykład ciąg {0, 1, 2} reprezentujemy jako napis "012".
     Klasom abstrakcji można nadawać nazwy.
@@ -21,14 +21,22 @@
 #include <stdbool.h>
 
 /*
-    Poprawna reprezentacja ciągu jest niepustym napisem składającym się ze znaków 0, 1 lub 2 i jest zakończona terminalnym zerem.
-    Poprawna nazwa klasy abstrakcji jest niepustym napisem zakończonym terminalnym zerem.
+    Poprawna reprezentacja ciągu jest:
+        - niepustym napisem
+        - składającym się ze znaków 0, 1 lub 2
+        - zakończona terminalnym zerem.
+    Poprawna nazwa klasy abstrakcji jest
+        - niepustym napisem
+        - zakończonym terminalnym zerem.
     Napisy reprezentujące ciągi mogą przestać istnieć po zakończeniu funkcji.
-    Używane poniżej określenie, że zbiór ciągów się nie zmienił, oznacza, że nie zmienił się obserwowalny stan zbioru ciągów.
+    Używane poniżej określenie, że zbiór ciągów się nie zmienił oznacza,
+    że nie zmienił się obserwowalny stan zbioru ciągów.
 */
 
 /* Struktury trie.h */
-struct trie_extra { // W dodatkowych danych drzewa będziemy trzymać dane o klasie abstrakcji
+
+// W dodatkowych danych drzewa będziemy trzymać dane o klasie abstrakcji
+struct trie_extra {
     char* name; // nazwa klasy
     unsigned int refs; // ilość odwołań
 };
@@ -45,7 +53,8 @@ struct seq {
     Funkcja seq_new tworzy nowy pusty zbiór ciągów.
     Wynik funkcji:
         wskaźnik na strukturę reprezentującą zbiór ciągów lub
-        NULL – jeśli wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno na ENOMEM.
+        NULL – jeśli wystąpił błąd alokowania pamięci;
+            funkcja ustawia wtedy errno na ENOMEM.
 */
 seq_t * seq_new(void) {
     seq_t* seq = malloc(sizeof(seq_t));
@@ -65,7 +74,8 @@ seq_t * seq_new(void) {
 
 
 /*
-    Funkcja seq_delete usuwa zbiór ciągów i zwalnia całą używaną przez niego pamięć.
+    Funkcja seq_delete usuwa zbiór ciągów
+    i zwalnia całą używaną przez niego pamięć.
     Nic nie robi, jeśli zostanie wywołana ze wskaźnikiem NULL.
     Po wykonaniu tej funkcji przekazany jej wskaźnik staje się nieważny.
     Parametr funkcji:
@@ -80,14 +90,18 @@ void seq_delete(seq_t *p) {
 }
 
 /*
-    Funkcja seq_add dodaje do zbioru ciągów podany ciąg i wszystkie niepuste podciągi będące jego prefiksem.
+    Funkcja seq_add dodaje do zbioru ciągów podany ciąg
+    i wszystkie niepuste podciągi będące jego prefiksem.
     Parametry funkcji:
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s – wskaźnik na napis reprezentujący niepusty ciąg.
     Wynik funkcji:
-        1 – jeśli co najmniej jeden nowy ciąg został dodany do zbioru;
-        0 – jeśli zbiór ciągów się nie zmienił;
-       -1 – jeśli któryś z parametrów jest niepoprawny lub wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
+        1 – jeśli co najmniej jeden nowy ciąg został dodany do zbioru
+        0 – jeśli zbiór ciągów się nie zmienił
+       -1 – jeśli któryś z parametrów jest
+            - niepoprawny lub
+            - wystąpił błąd alokowania pamięci
+            funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
 int seq_add(seq_t *p, char const *s) {
     if (p == NULL) {
@@ -99,14 +113,16 @@ int seq_add(seq_t *p, char const *s) {
 }
 
 /*
-    Funkcja seq_remove usuwa ze zbioru ciągów podany ciąg i wszystkie ciągi, których jest on prefiksem.
+    Funkcja seq_remove usuwa ze zbioru ciągów
+    podany ciąg i wszystkie ciągi, których jest on prefiksem.
     Parametry funkcji:
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s – wskaźnik na napis reprezentujący niepusty ciąg.
     Wynik funkcji:
-        1 – jeśli co najmniej jeden ciąg został usunięty ze zbioru;
-        0 – jeśli zbiór ciągów się nie zmienił;
-       -1 – jeśli któryś z parametrów jest niepoprawny; funkcja ustawia wtedy errno na EINVAL.
+        1 – jeśli co najmniej jeden ciąg został usunięty ze zbioru
+        0 – jeśli zbiór ciągów się nie zmienił
+       -1 – jeśli któryś z parametrów jest niepoprawny
+            funkcja ustawia wtedy errno na EINVAL.
 */
 int seq_remove(seq_t *p, char const *s) {
     if (p == NULL) {
@@ -123,9 +139,10 @@ int seq_remove(seq_t *p, char const *s) {
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s – wskaźnik na napis reprezentujący niepusty ciąg.
     Wynik funkcji:
-        1 – jeśli ciąg należy do zbioru ciągów;
-        0 – jeśli ciąg nie należy do zbioru ciągów;
-       -1 – jeśli któryś z parametrów jest niepoprawny; funkcja ustawia wtedy errno na EINVAL.
+        1 – jeśli ciąg należy do zbioru ciągów
+        0 – jeśli ciąg nie należy do zbioru ciągów
+       -1 – jeśli któryś z parametrów jest niepoprawny
+            funkcja ustawia wtedy errno na EINVAL.
 */
 int seq_valid(seq_t *p, char const *s) {
     if (p == NULL) {
@@ -139,16 +156,22 @@ int seq_valid(seq_t *p, char const *s) {
 }
 
 /*
-    Funkcja seq_set_name ustawia lub zmienia nazwę klasy abstrakcji, do której należy podany ciąg.
-    Podaną nazwę należy skopiować, gdyż napis wskazywany przez wskaźnik n może przestać istnieć po zakończeniu tej funkcji.
+    Funkcja seq_set_name ustawia lub zmienia nazwę klasy abstrakcji,
+    do której należy podany ciąg.
+    Podaną nazwę należy skopiować, gdyż napis wskazywany przez wskaźnik n
+    może przestać istnieć po zakończeniu tej funkcji.
     Parametry funkcji:
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s – wskaźnik na napis reprezentujący niepusty ciąg;
         n – wskaźnik na napis z nową niepustą nazwą.
     Wynik funkcji:
         1 – jeśli nazwa klasy abstrakcji została przypisana lub zmieniona;
-        0 – jeśli ciąg nie należy do zbioru ciągów lub nazwa klasy abstrakcji nie została zmieniona;
-       -1 – jeśli któryś z parametrów jest niepoprawny lub wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
+        0 – jeśli ciąg nie należy do zbioru ciągów
+            lub nazwa klasy abstrakcji nie została zmieniona
+       -1 – jeśli
+            - któryś z parametrów jest niepoprawny
+            - lub wystąpił błąd alokowania pamięci
+            funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
 int seq_set_name(seq_t *p, char const *s, char const *n) {
     if (p == NULL || n == NULL) {
@@ -166,7 +189,8 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
     if (node == NULL)
         return errno != 0 ? -1 : 0;
     
-    if (node->extra == NULL) { // jeżeli nie ma jeszcze żadnych danych o klasie abstrakcji
+    if (node->extra == NULL) {
+        // nie ma jeszcze żadnych danych o klasie abstrakcji
         node->extra = malloc(sizeof(trie_extra_t));
         if (node->extra == NULL) {
             errno = ENOMEM;
@@ -177,38 +201,41 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
     }
 
     if (node->extra->name == NULL) {
-        node->extra->name = malloc(strlen(n) + 1);
+        node->extra->name = strdup(n);
         if (node->extra->name == NULL) {
             errno = ENOMEM;
             return -1;
         }
-        strcpy(node->extra->name, n);
         return 1;
     }
     else if (strcmp(node->extra->name, n) != 0) { // node.extra.name != NULL
         free(node->extra->name);
-        node->extra->name = malloc(strlen(n)+1);
+        node->extra->name = strdup(n);
         if (node->extra->name == NULL) {
             errno = ENOMEM;
             return -1;
         }
-        strcpy(node->extra->name, n);
         return 1;
     }
     else return 0;
 }
 
 /*
-    Funkcja seq_get_name daje wskaźnik na napis zawierający nazwę klasy abstrakcji, do której należy podany ciąg.
+    Funkcja seq_get_name daje wskaźnik na napis
+    zawierający nazwę klasy abstrakcji, do której należy podany ciąg.
     Nie wolno modyfikować pamięci wskazywanej przez ten wskaźnik.
-    Wskaźnik ten może zostać unieważniony po jakiejkolwiek zmianie w strukturze zbioru ciągów.
+    Wskaźnik ten może zostać unieważniony
+    po jakiejkolwiek zmianie w strukturze zbioru ciągów.
     Parametry funkcji:
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s – wskaźnik na napis reprezentujący niepusty ciąg.
     Wynik funkcji:
         wskaźnik na napis zawierający nazwę lub
-        NULL – jeśli ciąg nie należy do zbioru ciągów lub klasa abstrakcji zawierająca ten ciąg nie ma przypisanej nazwy; funkcja ustawia wtedy errno na 0.
-        NULL – jeśli któryś z parametrów jest niepoprawny; funkcja ustawia wtedy errno na EINVAL.
+        NULL – jeśli ciąg nie należy do zbioru ciągów
+            lub klasa abstrakcji zawierająca ten ciąg nie ma przypisanej nazwy;
+            funkcja ustawia wtedy errno na 0.
+        NULL – jeśli któryś z parametrów jest niepoprawny
+            funkcja ustawia wtedy errno na EINVAL.
 
 */
 char const * seq_get_name(seq_t *p, char const *s) {
@@ -226,19 +253,28 @@ char const * seq_get_name(seq_t *p, char const *s) {
 }
 
 /*
-    Funkcja seq_equiv łączy w jedną klasę abstrakcji klasy abstrakcji reprezentowane przez podane ciągi.
-    Jeśli obie klasy abstrakcji nie mają przypisanej nazwy, to nowa klasa abstrakcji też nie ma przypisanej nazwy.
-    Jeśli dokładnie jedna z klas abstrakcji ma przypisaną nazwę, to nowa klasa abstrakcji dostaje tę nazwę.
-    Jeśli obie klasy abstrakcji mają przypisane różne nazwy, to nazwa nowej klasy abstrakcji powstaje przez połączenie tych nazw.
-    Jeśli obie klasy abstrakcji mają przypisane taką same nazwę, to ta nazwa pozostaje nazwą nowej klasy abstrakcji.
+    Funkcja seq_equiv łączy w jedną klasę abstrakcji
+    klasy abstrakcji reprezentowane przez podane ciągi.
+    Jeśli obie klasy abstrakcji nie mają przypisanej nazwy,
+    to nowa klasa abstrakcji też nie ma przypisanej nazwy.
+    Jeśli dokładnie jedna z klas abstrakcji ma przypisaną nazwę,
+    to nowa klasa abstrakcji dostaje tę nazwę.
+    Jeśli obie klasy abstrakcji mają przypisane różne nazwy,
+    to nazwa nowej klasy abstrakcji powstaje przez połączenie tych nazw.
+    Jeśli obie klasy abstrakcji mają przypisane taką same nazwę,
+    to ta nazwa pozostaje nazwą nowej klasy abstrakcji.
     Parametry funkcji:
         p – wskaźnik na strukturę reprezentującą zbiór ciągów;
         s1 – wskaźnik na napis reprezentujący niepusty ciąg;
         s2 – wskaźnik na napis reprezentujący niepusty ciąg.
     Wynik funkcji:
         1 – jeśli powstała nowa klasa abstrakcji;
-        0 – jeśli nie powstała nowa klasa abstrakcji, bo podane ciągi należą już do tej samej klasy abstrakcji lub któryś z nich nie należy do zbioru ciągów;
-       -1 – jeśli któryś z parametrów jest niepoprawny lub wystąpił błąd alokowania pamięci; funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
+        0 – jeśli nie powstała nowa klasa abstrakcji,
+            bo podane ciągi należą już do tej samej klasy abstrakcji
+            lub któryś z nich nie należy do zbioru ciągów
+       -1 – jeśli któryś z parametrów jest niepoprawny
+            lub wystąpił błąd alokowania pamięci
+            funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
 int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     if (p == NULL || trie_invalid_name(s1) || trie_invalid_name(s2)) {
@@ -275,7 +311,8 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
         joined_class = found2->extra;
     else if (found1->extra != NULL && found2->extra == NULL)
         joined_class = found1->extra;
-    else if (found1->extra == found2->extra) // found1.extra != NULL && found2.extra != NULL
+    // found1.extra != NULL && found2.extra != NULL
+    else if (found1->extra == found2->extra)
         return 0; // już są w tej samej klasie abstrakcji
 
 
@@ -290,14 +327,20 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
 
     // class1 != NULL && class2 != NULL && class1 != class2
     // Wybieramy większą klasę abstrakcji i mniejszą klasę abstrakcji.
-    trie_extra_t* bigger = (found1->extra->refs >= found2->extra->refs) ? found1->extra : found2->extra;
-    trie_extra_t* smaller = (found1->extra->refs >= found2->extra->refs) ? found2->extra : found1->extra;
+    trie_extra_t* bigger = (found1->extra->refs >= found2->extra->refs)
+            ? found1->extra : found2->extra;
+    trie_extra_t* smaller = (found1->extra->refs >= found2->extra->refs)
+            ? found2->extra : found1->extra;
 
     char* new_name = bigger->name;
-    if (bigger->name == NULL || smaller->name == NULL || strcmp(smaller->name, bigger->name) != 0) { // nazwy klas są rózne, ustawiamy nazwę wiekszej na ich konkatenacje
+    if (bigger->name == NULL || smaller->name == NULL
+        || strcmp(smaller->name, bigger->name) != 0) {
+        // nazwy klas są rózne, ustawiamy nazwę wiekszej na ich konkatenacje
         size_t str_len = 0;
-        str_len += (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0; // += found1.extra.name?.length ?: 0
-        str_len += (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0; // += found2.extra.name?.length ?: 0
+        str_len += (found1->extra->name != NULL)
+                ? strlen(found1->extra->name) : 0;
+        str_len += (found2->extra->name != NULL)
+                ? strlen(found2->extra->name) : 0;
 
         new_name = malloc(str_len + 1);
         if (new_name == NULL) {
@@ -311,7 +354,9 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
         if (found2->extra->name != NULL) strcat(new_name, found2->extra->name);
     }
 
-    if (smaller->refs <= 1) { // tylko found1 lub found2 odwołuje się do mniejszej klasy, wystarczy więc ustawić oba na bigger
+    if (smaller->refs <= 1) {
+        // tylko found1 lub found2 odwołuje się do mniejszej klasy,
+        // wystarczy więc ustawić oba na bigger
         found1->extra = bigger;
         found2->extra = bigger;
     } else { // trzeba zmienić każde odwołanie w strukturze do mniejszej klasy
@@ -319,7 +364,9 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
             if (node->extra == smaller)
                 node->extra = bigger;
         });
-        if (errno == ENOMEM) { // przejście pętli nie powiodło się z powodu błędu alokacji pamięci, przywracamy stan początkowy
+        if (errno == ENOMEM) {
+            // przejście pętli nie powiodło się z powodu błędu alokacji pamięci
+            // przywracamy stan początkowy
             if (new_name != bigger->name) free(new_name);
             return -1;
         }
@@ -341,7 +388,8 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
 
 /*
     Funkcja trie_extra_free usuwa odniesienie do klasy abstrakcji
-    i ewentualnie usuwa klasę abstrakcji, jeśli nie ma już żadnych odwołań do niej.
+    i ewentualnie usuwa klasę abstrakcji,
+    jeśli nie ma już żadnych odwołań do niej.
     Parametry funkcji:
         v – wskaźnik na strukturę trie_extra_t lub NULL.
     Funkcja nie zwraca wartości.
@@ -350,7 +398,8 @@ void trie_extra_free(trie_extra_t* v) {
     if (v == NULL) return;
     // v != NULL
     v->refs -= 1;
-    if (v->refs < 1)  { // nie ma już odwołań do tej klasy abstrakcji, więc ją usuwamy
+    if (v->refs < 1) {
+        // nie ma już odwołań do tej klasy abstrakcji,więc ją usuwamy
         if (v->name != NULL) free(v->name);
         free(v);
     }
