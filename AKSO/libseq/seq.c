@@ -299,7 +299,7 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
         str_len += (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0; // += found1.extra.name?.length ?: 0
         str_len += (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0; // += found2.extra.name?.length ?: 0
 
-        char* new_name = malloc(str_len + 1);
+        new_name = malloc(str_len + 1);
         if (new_name == NULL) {
             errno = ENOMEM;
             return -1;
