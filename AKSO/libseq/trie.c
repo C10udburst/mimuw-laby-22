@@ -1,9 +1,9 @@
 #include "trie.h"
-#include <string.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
     "Drzewo trie 012"
@@ -18,10 +18,9 @@
     data: 02.04.2023
 */
 
-
 static void trie_free_nodes(trie_node_t* node);
-static trie_node_t* trie_find_node(
-    trie_node_t* root, const char* name, size_t n);
+static trie_node_t* trie_find_node(trie_node_t* root, const char* name,
+                                   size_t n);
 static inline trie_node_t* trie_malloc_node();
 static size_t trie_node_height(trie_node_t* node);
 
@@ -37,8 +36,8 @@ static size_t trie_node_height(trie_node_t* node);
 int trie_invalid_name(const char* str) {
     if (str == NULL) return true;
     size_t len = 0;
-    while(*str != '\0') {
-        if  (*str < '0' || *str > '2') // *str rożne od '0', '1' i '2'
+    while (*str != '\0') {
+        if (*str < '0' || *str > '2') // *str rożne od '0', '1' i '2'
             return true;
         str++;
         len++;
@@ -81,7 +80,6 @@ void trie_free(trie_root_t* root) {
     free(root);
 }
 
-
 /*
     Funkcja dodaje do drzewa trie
     wszystkie niepuste prefiksy podanego łańcucha.
@@ -100,9 +98,9 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
 
     trie_node_t* parent = root->root;
     size_t i = 0; // indeks pierwszej nieistnejącej litery ciągu
-    while (i < n && parent->children[name[i]-'0'] != NULL) {
+    while (i < n && parent->children[name[i] - '0'] != NULL) {
         // szukamy pierwszego niestniejącego prefiksu nazwy
-        parent = parent->children[name[i]-'0'];
+        parent = parent->children[name[i] - '0'];
         i++;
     }
 
@@ -112,17 +110,17 @@ int trie_insert_prefix(trie_root_t* root, const char* name) {
     // z założenia struktury trie, jeśli nie istnieje ciąg name[0..n]
     // to nie istnieje także name[0..n+1]
     trie_node_t* free_parent = parent; // ostatni węzeł którego nie usuwamy.
-    for(size_t j=i; j<n; j++) {
-        parent->children[name[j]-'0'] = trie_malloc_node();
-        if (parent->children[name[j]-'0'] == NULL) {
-            trie_free_nodes(free_parent->children[name[i]-'0']);
-            free_parent->children[name[i]-'0'] = NULL;
+    for (size_t j = i; j < n; j++) {
+        parent->children[name[j] - '0'] = trie_malloc_node();
+        if (parent->children[name[j] - '0'] == NULL) {
+            trie_free_nodes(free_parent->children[name[i] - '0']);
+            free_parent->children[name[i] - '0'] = NULL;
             errno = ENOMEM;
             return -1;
         }
-        parent = parent->children[name[j]-'0'];
+        parent = parent->children[name[j] - '0'];
     }
-    
+
     return 1;
 }
 
@@ -164,16 +162,17 @@ int trie_remove_prefix(trie_root_t* root, const char* name) {
         return -1;
     }
     size_t n = strlen(name);
+    
     // szukamy ojca, aby zmienić mu potem synów
     trie_node_t* parent = trie_find_node(root->root, name, n - 1);
-    if (parent == NULL)
-        return errno == EINVAL ? -1 : 0;
-    trie_node_t* main = parent->children[name[n-1]-'0'];
-    if (main == NULL) 
-        return 0;
+    if (parent == NULL) return errno == EINVAL ? -1 : 0;
+    
+    trie_node_t* main = parent->children[name[n - 1] - '0'];
+    if (main == NULL) return 0;
     trie_free_nodes(main); // usuwamy żądany węzeł
+
     // usuwamy wskaźnik na usuwany węzeł
-    parent->children[name[n-1]-'0'] = NULL;
+    parent->children[name[n - 1] - '0'] = NULL;
     return 1;
 }
 
@@ -184,30 +183,25 @@ int trie_remove_prefix(trie_root_t* root, const char* name) {
     Wynik funkcji:
         liczba węzłów w drzewie trie.
 */
-size_t trie_height(trie_root_t* root) {
-    return trie_node_height(root->root);
-}
+size_t trie_height(trie_root_t* root) { return trie_node_height(root->root); }
 
 /*
     Funkcja rekurencyjnie usuwa węzeł i jego synów
 */
 static void trie_free_nodes(trie_node_t* node) {
     if (node == NULL) return;
-    for (int i = 0; i < 3; i++) {
-        trie_free_nodes(node->children[i]);
-    }
-    if (node->extra != NULL)
-        trie_extra_free(node->extra);
+    for (int i = 0; i < 3; i++) { trie_free_nodes(node->children[i]); }
+    if (node->extra != NULL) trie_extra_free(node->extra);
     free(node);
 }
 
-static trie_node_t* trie_find_node(
-    trie_node_t* root, const char* name, size_t n) {
+static trie_node_t* trie_find_node(trie_node_t* root, const char* name,
+                                   size_t n) {
     if (root == NULL) return NULL;
     trie_node_t* parent = root;
     for (size_t i = 0; i < n; i++) { // parent.name == name[0..(i-1)]
-        if (parent->children[name[i]-'0'] != NULL) { // węzeł istnieje
-            parent = parent->children[name[i]-'0'];
+        if (parent->children[name[i] - '0'] != NULL) { // węzeł istnieje
+            parent = parent->children[name[i] - '0'];
         } else { // węzeł nie istnieje
             return NULL;
         }
@@ -229,8 +223,7 @@ static inline trie_node_t* trie_malloc_node(void) {
     }
 
     node->extra = NULL;
-    for (int i = 0; i < 3; i++)
-        node->children[i] = NULL;
+    for (int i = 0; i < 3; i++) node->children[i] = NULL;
     return node;
 }
 
@@ -247,8 +240,7 @@ static size_t trie_node_height(trie_node_t* node) {
     size_t max_height = 0;
     for (int i = 0; i < 3; i++) {
         size_t height = trie_node_height(node->children[i]);
-        if (height > max_height)
-            max_height = height;
+        if (height > max_height) max_height = height;
     }
 
     return max_height + 1;

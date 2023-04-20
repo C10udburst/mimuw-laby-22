@@ -1,42 +1,40 @@
 #include "trie.h"
 #include "trie_extra.h"
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
-struct trie_extra {
+struct trie_extra {};
 
-};
+void trie_extra_free(trie_extra_t* v) {}
 
-void trie_extra_free(trie_extra_t* v) {
+void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {}
 
-}
+#define TESTFIND(tree, query)                                                  \
+    do {                                                                       \
+        trie_node_t* result = trie_find(tree, query);                          \
+        if (result == NULL)                                                    \
+            printf("\e[31mError:\e[0m result should be %s, but is NULL\n",     \
+                   query);                                                     \
+    } while (0)
 
-void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {
+#define TESTNULL(tree, query)                                                  \
+    do {                                                                       \
+        trie_node_t* result = trie_find(tree, query);                          \
+        if (result != NULL)                                                    \
+            printf(                                                            \
+                "\e[31mError:\e[0m %s should be NULL, but is: %p: [%p, %p, "   \
+                "%p]\n",                                                       \
+                query, result, result->children[0], result->children[1],       \
+                result->children[2]);                                          \
+    } while (0)
 
-}
-
-#define TESTFIND(tree, query)                                                                       \
-  do {                                                                                              \
-    trie_node_t* result = trie_find(tree, query);                                                   \
-    if (result == NULL)                                                                             \
-    printf("\e[31mError:\e[0m result should be %s, but is NULL\n", query);                         \
-  } while (0)
-
-#define TESTNULL(tree, query)                                                                       \
-  do {                                                                                              \
-    trie_node_t* result = trie_find(tree, query);                                                   \
-    if (result != NULL)                                                                             \
-    printf("\e[31mError:\e[0m %s should be NULL, but is: %p: [%p, %p, %p]\n",                       \
-    query, result, result->children[0], result->children[1], result->children[2]);                  \
-  } while (0)
-
-#define TESTV(predicate, expected)                                                                  \
-  do {                                                                                              \
-    if (predicate != expected)                                                                      \
-    printf("\e[31mError:\e[0m %s should be %s\n",                                                   \
-    #predicate, #expected);                                                                         \
-  } while (0)
+#define TESTV(predicate, expected)                                             \
+    do {                                                                       \
+        if (predicate != expected)                                             \
+            printf("\e[31mError:\e[0m %s should be %s\n", #predicate,          \
+                   #expected);                                                 \
+    } while (0)
 
 int main(void) {
     trie_root_t* tree = trie_init();
@@ -69,9 +67,7 @@ int main(void) {
     fclose(f);
 
     printf("foreach: ");
-    TRIE_FOREACH(tree, node, {
-        printf("%p ", node);
-    });
+    TRIE_FOREACH(tree, node, { printf("%p ", node); });
     printf("\n");
 
     trie_free(tree);

@@ -14,11 +14,11 @@
 
 #include "seq.h"
 #include "trie.h"
-#include <stdio.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 /*
     Poprawna reprezentacja ciągu jest:
@@ -56,7 +56,7 @@ struct seq {
         NULL – jeśli wystąpił błąd alokowania pamięci;
             funkcja ustawia wtedy errno na ENOMEM.
 */
-seq_t * seq_new(void) {
+seq_t* seq_new(void) {
     seq_t* seq = malloc(sizeof(seq_t));
     if (seq == NULL) {
         errno = ENOMEM;
@@ -72,7 +72,6 @@ seq_t * seq_new(void) {
     return seq;
 }
 
-
 /*
     Funkcja seq_delete usuwa zbiór ciągów
     i zwalnia całą używaną przez niego pamięć.
@@ -82,7 +81,7 @@ seq_t * seq_new(void) {
         p – wskaźnik na strukturę reprezentującą zbiór ciągów.
 
 */
-void seq_delete(seq_t *p) {
+void seq_delete(seq_t* p) {
     if (p == NULL) return;
     errno = 0;
     trie_free(p->strings);
@@ -103,7 +102,7 @@ void seq_delete(seq_t *p) {
             - wystąpił błąd alokowania pamięci
             funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
-int seq_add(seq_t *p, char const *s) {
+int seq_add(seq_t* p, char const* s) {
     if (p == NULL) {
         errno = EINVAL;
         return -1;
@@ -124,7 +123,7 @@ int seq_add(seq_t *p, char const *s) {
        -1 – jeśli któryś z parametrów jest niepoprawny
             funkcja ustawia wtedy errno na EINVAL.
 */
-int seq_remove(seq_t *p, char const *s) {
+int seq_remove(seq_t* p, char const* s) {
     if (p == NULL) {
         errno = EINVAL;
         return -1;
@@ -144,15 +143,17 @@ int seq_remove(seq_t *p, char const *s) {
        -1 – jeśli któryś z parametrów jest niepoprawny
             funkcja ustawia wtedy errno na EINVAL.
 */
-int seq_valid(seq_t *p, char const *s) {
+int seq_valid(seq_t* p, char const* s) {
     if (p == NULL) {
         errno = EINVAL;
         return -1;
     }
     errno = 0;
     trie_node_t* found = trie_find(p->strings, s);
-    if (found) return 1;
-    else return errno != 0 ? -1 : 0;
+    if (found)
+        return 1;
+    else
+        return errno != 0 ? -1 : 0;
 }
 
 /*
@@ -173,7 +174,7 @@ int seq_valid(seq_t *p, char const *s) {
             - lub wystąpił błąd alokowania pamięci
             funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
-int seq_set_name(seq_t *p, char const *s, char const *n) {
+int seq_set_name(seq_t* p, char const* s, char const* n) {
     if (p == NULL || n == NULL) {
         errno = EINVAL;
         return -1;
@@ -186,9 +187,8 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
 
     errno = 0;
     trie_node_t* node = trie_find(p->strings, s);
-    if (node == NULL)
-        return errno != 0 ? -1 : 0;
-    
+    if (node == NULL) return errno != 0 ? -1 : 0;
+
     if (node->extra == NULL) {
         // nie ma jeszcze żadnych danych o klasie abstrakcji
         node->extra = malloc(sizeof(trie_extra_t));
@@ -207,8 +207,7 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
             return -1;
         }
         return 1;
-    }
-    else if (strcmp(node->extra->name, n) != 0) { // node.extra.name != NULL
+    } else if (strcmp(node->extra->name, n) != 0) { // node.extra.name != NULL
         free(node->extra->name);
         node->extra->name = strdup(n);
         if (node->extra->name == NULL) {
@@ -216,8 +215,8 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
             return -1;
         }
         return 1;
-    }
-    else return 0;
+    } else
+        return 0;
 }
 
 /*
@@ -238,17 +237,15 @@ int seq_set_name(seq_t *p, char const *s, char const *n) {
             funkcja ustawia wtedy errno na EINVAL.
 
 */
-char const * seq_get_name(seq_t *p, char const *s) {
+char const* seq_get_name(seq_t* p, char const* s) {
     if (p == NULL) {
         errno = EINVAL;
         return NULL;
     }
     errno = 0;
     trie_node_t* found = trie_find(p->strings, s);
-    if (found == NULL)
-        return NULL;
-    if (found->extra == NULL)
-        return NULL;
+    if (found == NULL) return NULL;
+    if (found->extra == NULL) return NULL;
     return found->extra->name;
 }
 
@@ -276,25 +273,22 @@ char const * seq_get_name(seq_t *p, char const *s) {
             lub wystąpił błąd alokowania pamięci
             funkcja ustawia wtedy errno odpowiednio na EINVAL lub ENOMEM.
 */
-int seq_equiv(seq_t *p, char const *s1, char const *s2) {
+int seq_equiv(seq_t* p, char const* s1, char const* s2) {
     if (p == NULL || trie_invalid_name(s1) || trie_invalid_name(s2)) {
         errno = EINVAL;
         return -1;
     }
-    
+
     errno = 0;
     trie_node_t* found1 = trie_find(p->strings, s1);
-    if (found1 == NULL)
-        return errno != 0 ? -1 : 0;
+    if (found1 == NULL) return errno != 0 ? -1 : 0;
 
-    if (strcmp(s1, s2) == 0)
-        return 0;
+    if (strcmp(s1, s2) == 0) return 0;
 
     errno = 0;
     trie_node_t* found2 = trie_find(p->strings, s2);
-    if (found2 == NULL)
-        return errno != 0 ? -1 : 0;
-    
+    if (found2 == NULL) return errno != 0 ? -1 : 0;
+
     trie_extra_t* joined_class = NULL;
     bool is_new_class = false;
 
@@ -315,10 +309,11 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     else if (found1->extra == found2->extra)
         return 0; // już są w tej samej klasie abstrakcji
 
-
     if (joined_class != NULL) { // found1.extra == NULL || found2.extra == NULL
-        if (is_new_class) joined_class->refs = 2;
-        else joined_class->refs += 1;
+        if (is_new_class)
+            joined_class->refs = 2;
+        else
+            joined_class->refs += 1;
 
         found1->extra = joined_class;
         found2->extra = joined_class;
@@ -328,26 +323,28 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
     // class1 != NULL && class2 != NULL && class1 != class2
     // Wybieramy większą klasę abstrakcji i mniejszą klasę abstrakcji.
     trie_extra_t* bigger = (found1->extra->refs >= found2->extra->refs)
-            ? found1->extra : found2->extra;
+                               ? found1->extra
+                               : found2->extra;
     trie_extra_t* smaller = (found1->extra->refs >= found2->extra->refs)
-            ? found2->extra : found1->extra;
+                                ? found2->extra
+                                : found1->extra;
 
     char* new_name = bigger->name;
-    if (bigger->name == NULL || smaller->name == NULL
-        || strcmp(smaller->name, bigger->name) != 0) {
+    if (bigger->name == NULL || smaller->name == NULL ||
+        strcmp(smaller->name, bigger->name) != 0) {
         // nazwy klas są rózne, ustawiamy nazwę wiekszej na ich konkatenacje
         size_t str_len = 0;
-        str_len += (found1->extra->name != NULL)
-                ? strlen(found1->extra->name) : 0;
-        str_len += (found2->extra->name != NULL)
-                ? strlen(found2->extra->name) : 0;
+        str_len +=
+            (found1->extra->name != NULL) ? strlen(found1->extra->name) : 0;
+        str_len +=
+            (found2->extra->name != NULL) ? strlen(found2->extra->name) : 0;
 
         new_name = malloc(str_len + 1);
         if (new_name == NULL) {
             errno = ENOMEM;
             return -1;
         }
-        
+
         // new_name = found1.extra.name ?: "" + found2.extra.name ?: ""
         new_name[0] = '\0';
         if (found1->extra->name != NULL) strcat(new_name, found1->extra->name);
@@ -361,8 +358,7 @@ int seq_equiv(seq_t *p, char const *s1, char const *s2) {
         found2->extra = bigger;
     } else { // trzeba zmienić każde odwołanie w strukturze do mniejszej klasy
         TRIE_FOREACH(p->strings, node, { // dla każdego węzła w strukturze trie
-            if (node->extra == smaller)
-                node->extra = bigger;
+            if (node->extra == smaller) node->extra = bigger;
         });
         if (errno == ENOMEM) {
             // przejście pętli nie powiodło się z powodu błędu alokacji pamięci
