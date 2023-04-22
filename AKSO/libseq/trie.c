@@ -161,11 +161,11 @@ int trie_remove_prefix(trie_root_t* root, const char* name) {
         return -1;
     }
     size_t n = strlen(name);
-    
+
     // szukamy ojca, aby zmienić mu potem synów
     trie_node_t* parent = trie_find_node(root->root, name, n - 1);
     if (parent == NULL) return errno == EINVAL ? -1 : 0;
-    
+
     trie_node_t* main = parent->children[name[n - 1] - '0'];
     if (main == NULL) return 0;
     trie_free_nodes(main); // usuwamy żądany węzeł
