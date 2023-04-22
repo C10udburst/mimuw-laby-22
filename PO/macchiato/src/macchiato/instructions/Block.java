@@ -5,7 +5,6 @@ import macchiato.Declaration;
 import macchiato.Variables;
 import macchiato.exceptions.MacchiatoException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Block extends Instruction {
@@ -16,6 +15,11 @@ public class Block extends Instruction {
 
     // endregion dane
 
+    /**
+     * Tworzy blok instrukcji.
+     * @param declarations deklaracje zmiennych, które mają być zadeklarowane w tym bloku przed wykonaniem instrukcji
+     * @param instructions instrukcje do wykonania
+     */
     public Block(List<Declaration> declarations, List<Instruction> instructions) {
         super(new Variables());
 
@@ -51,7 +55,7 @@ public class Block extends Instruction {
     @Override
     public void debugExecute(Debugger debugger) throws MacchiatoException {
         debugger.beforeExecute(this);
-        for (Declaration declaration : declarations) // TODO: czy deklaracja ma być debugowalna?
+        for (Declaration declaration : declarations)
             vars.declare(declaration.getName(), declaration.execute(this));
         for (Instruction instruction : instructions)
             instruction.debugExecute(debugger);
