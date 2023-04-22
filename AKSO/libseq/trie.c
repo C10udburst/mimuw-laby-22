@@ -141,7 +141,6 @@ trie_node_t* trie_find(trie_root_t* root, const char* name) {
 
     size_t n = strlen(name);
 
-    errno = 0;
     return trie_find_node(root->root, name, n);
 }
 
