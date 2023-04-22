@@ -1,4 +1,3 @@
-import macchiato.Debugger;
 import macchiato.Declaration;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.Constant;

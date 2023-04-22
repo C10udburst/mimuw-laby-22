@@ -2,9 +2,9 @@ package macchiato.exceptions;
 
 import macchiato.expressions.Expression;
 
-public class DivideByZeroException extends ExpressionException {
+public class DivideByZeroException extends MacchiatoException {
 
-    public DivideByZeroException() {
-        super("Division by zero.");
+    public DivideByZeroException(Expression expression) {
+        super("Division by zero in expression: " + expression.toString() + ".");
     }
 }

@@ -30,7 +30,7 @@ public class Divide extends Operator {
     public int evaluate(Instruction context) throws MacchiatoException {
         int arg2Value = arg2.evaluate(context);
         if (arg2Value == 0)
-            throw new DivideByZeroException();
+            throw new DivideByZeroException(this);
         return arg1.evaluate(context) / arg2Value;
     }
 }
