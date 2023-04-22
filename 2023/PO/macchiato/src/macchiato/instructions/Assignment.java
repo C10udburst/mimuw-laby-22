@@ -25,7 +25,7 @@ public class Assignment extends Instruction {
 
     @Override
     public void execute() throws MacchiatoException {
-        vars.set(variable, expression.evaluate(this));
+        setVariable(variable, expression.evaluate(this));
     }
 
     @Override
