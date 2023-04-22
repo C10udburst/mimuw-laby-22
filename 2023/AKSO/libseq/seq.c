@@ -62,7 +62,6 @@ seq_t* seq_new(void) {
         errno = ENOMEM;
         return NULL;
     }
-    errno = 0;
     seq->strings = trie_init();
     if (seq->strings == NULL) {
         free(seq);
@@ -83,7 +82,6 @@ seq_t* seq_new(void) {
 */
 void seq_delete(seq_t* p) {
     if (p == NULL) return;
-    errno = 0;
     trie_free(p->strings);
     free(p);
 }
@@ -107,7 +105,6 @@ int seq_add(seq_t* p, char const* s) {
         errno = EINVAL;
         return -1;
     }
-    errno = 0;
     return trie_insert_prefix(p->strings, s);
 }
 
@@ -128,7 +125,6 @@ int seq_remove(seq_t* p, char const* s) {
         errno = EINVAL;
         return -1;
     }
-    errno = 0;
     return trie_remove_prefix(p->strings, s);
 }
 
@@ -148,12 +144,12 @@ int seq_valid(seq_t* p, char const* s) {
         errno = EINVAL;
         return -1;
     }
-    errno = 0;
+    if (trie_invalid_name(s)) {
+        errno = EINVAL;
+        return -1;
+    }
     trie_node_t* found = trie_find(p->strings, s);
-    if (found)
-        return 1;
-    else
-        return errno != 0 ? -1 : 0;
+    return found == NULL ? 0 : 1;
 }
 
 /*
@@ -185,9 +181,13 @@ int seq_set_name(seq_t* p, char const* s, char const* n) {
         return -1;
     }
 
-    errno = 0;
+    if (trie_invalid_name(s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
     trie_node_t* node = trie_find(p->strings, s);
-    if (node == NULL) return errno != 0 ? -1 : 0;
+    if (node == NULL) return 0;
 
     if (node->extra == NULL) {
         // nie ma jeszcze żadnych danych o klasie abstrakcji
@@ -238,14 +238,15 @@ int seq_set_name(seq_t* p, char const* s, char const* n) {
 
 */
 char const* seq_get_name(seq_t* p, char const* s) {
-    if (p == NULL) {
+    if (p == NULL || trie_invalid_name(s)) {
         errno = EINVAL;
         return NULL;
     }
-    errno = 0;
     trie_node_t* found = trie_find(p->strings, s);
-    if (found == NULL) return NULL;
-    if (found->extra == NULL) return NULL;
+    if (found == NULL || found->extra == NULL) {
+        errno = 0;
+        return NULL;
+    }
     return found->extra->name;
 }
 
@@ -279,15 +280,13 @@ int seq_equiv(seq_t* p, char const* s1, char const* s2) {
         return -1;
     }
 
-    errno = 0;
-    trie_node_t* found1 = trie_find(p->strings, s1);
-    if (found1 == NULL) return errno != 0 ? -1 : 0;
-
     if (strcmp(s1, s2) == 0) return 0;
 
-    errno = 0;
+    trie_node_t* found1 = trie_find(p->strings, s1);
+    if (found1 == NULL) return 0;
+
     trie_node_t* found2 = trie_find(p->strings, s2);
-    if (found2 == NULL) return errno != 0 ? -1 : 0;
+    if (found2 == NULL) return 0;
 
     trie_extra_t* joined_class = NULL;
     bool is_new_class = false;
