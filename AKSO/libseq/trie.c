@@ -22,7 +22,6 @@ static void trie_free_nodes(trie_node_t* node);
 static trie_node_t* trie_find_node(trie_node_t* root, const char* name,
                                    size_t n);
 static inline trie_node_t* trie_malloc_node();
-static size_t trie_node_height(trie_node_t* node);
 
 /*
     Funkcja trie_invalid_name sprawdza,
@@ -176,22 +175,22 @@ int trie_remove_prefix(trie_root_t* root, const char* name) {
 }
 
 /*
-    Funkcja zwraca liczbę węzłów w drzewie trie.
-    Parametr funkcji:
-        root – wskaźnik na strukturę reprezentującą trie.
-    Wynik funkcji:
-        liczba węzłów w drzewie trie.
+    Funkcja iteracyjnie usuwa wszystkie węzły drzewa trie
+    i zwalnia całą używaną przez niego pamięć. Próbuje to robić
+    w sposób niezawodny, czyli w przypadku braku pamięci
+    ponawia usunięcie od początku.
 */
-size_t trie_height(trie_root_t* root) { return trie_node_height(root->root); }
-
-/*
-    Funkcja rekurencyjnie usuwa węzeł i jego synów
-*/
-static void trie_free_nodes(trie_node_t* node) {
-    if (node == NULL) return;
-    for (int i = 0; i < 3; i++) { trie_free_nodes(node->children[i]); }
-    if (node->extra != NULL) trie_extra_free(node->extra);
-    free(node);
+static void trie_free_nodes(trie_node_t* root_node) {
+    if (root_node == NULL) return;
+    int prev_errno = errno;
+    do {
+        errno = 0;
+        TRIE_FOREACH(root_node, node, {
+            if (node->extra != NULL) trie_extra_free(node->extra);
+            free(node);
+        });
+    } while (errno == ENOMEM);
+    errno = prev_errno;
 }
 
 static trie_node_t* trie_find_node(trie_node_t* root, const char* name,
@@ -227,20 +226,53 @@ static inline trie_node_t* trie_malloc_node(void) {
 }
 
 /*
-    Funkcja zwraca wysokość drzewa trie.
+    Funkcja zwraca rozmiar stosu potrzebny do przejścia DFS od danego
+   wierzchołka. Aby uniknąć przepełnienia stosu, stos jest alokowany
+   dynamicznie. Pdejście iteracyjne, zwraca -1 przy błędzie alokacji pamięci
     Parametr funkcji:
-        root – wskaźnik na strukturę reprezentującą trie.
+        node - wskaźnik na węzeł od którego zaczynamy DFS
     Wynik funkcji:
-        wysokość drzewa trie.
+        rozmiar stosu potrzebny do przejścia DFS od danego wierzchołka
+        -1 w przypadku błędu alokacji pamięci
 */
-static size_t trie_node_height(trie_node_t* node) {
+size_t trie_stack_size(trie_node_t* node) {
     if (node == NULL) return 0;
 
-    size_t max_height = 0;
-    for (int i = 0; i < 3; i++) {
-        size_t height = trie_node_height(node->children[i]);
-        if (height > max_height) max_height = height;
+    size_t stack_size = 4;
+    size_t stack_end = 1;
+    trie_node_t** stack = malloc(stack_size * sizeof(trie_node_t*));
+    if (stack == NULL) {
+        errno = ENOMEM;
+        return -1;
+    }
+    stack[0] = node;
+
+    size_t max_stack = 0;
+    while (stack_end > 0) {
+        trie_node_t* current = stack[--stack_end];
+        if (current == NULL) continue;
+
+        // dodajemy dzieci do stosu
+        for (int i = 0; i < 3; i++) {
+            if (current->children[i] != NULL) {
+                if (stack_end >= stack_size) {
+                    // zwiększamy rozmiar stosu
+                    stack_size *= 2;
+                    trie_node_t** new_stack =
+                        realloc(stack, stack_size * sizeof(trie_node_t*));
+                    if (new_stack == NULL) { // błąd alokacji pamięci
+                        free(stack);
+                        errno = ENOMEM;
+                        return -1;
+                    }
+                    stack = new_stack;
+                }
+                stack[stack_end++] = current->children[i];
+                if (stack_end > max_stack) max_stack = stack_end;
+            }
+        }
     }
 
-    return max_height + 1;
+    free(stack);
+    return max_stack + 1;
 }
