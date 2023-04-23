@@ -4,11 +4,22 @@
 #include <stdio.h>
 #include <string.h>
 
-struct trie_extra {};
+struct trie_extra {
+    char* name;
+};
 
-void trie_extra_free(trie_extra_t* v) {}
+void trie_extra_free(trie_extra_t* v) {
+    if (v->name != NULL) free(v->name);
+    free(v);
+}
 
-void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {}
+void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {
+    if (v->name != NULL) {
+        printf("%s", v->name);
+        fprintf(fp, "%s", v->name);
+    } else
+        fprintf(fp, "null");
+}
 
 #define TESTFIND(tree, query)                                                  \
     do {                                                                       \
@@ -16,6 +27,18 @@ void trie_extra_write_dot(const trie_extra_t* v, FILE* fp) {}
         if (result == NULL)                                                    \
             printf("\e[31mError:\e[0m result should be %s, but is NULL\n",     \
                    query);                                                     \
+    } while (0)
+
+#define RENAME(tree, query)                                                    \
+    do {                                                                       \
+        trie_node_t* result = trie_find(tree, query);                          \
+        if (result == NULL)                                                    \
+            printf("\e[31mError:\e[0m result should be %s, but is NULL\n",     \
+                   query);                                                     \
+        else {                                                                 \
+            result->extra = malloc(sizeof(trie_extra_t));                      \
+            result->extra->name = strdup(query);                               \
+        }                                                                      \
     } while (0)
 
 #define TESTNULL(tree, query)                                                  \
@@ -60,6 +83,9 @@ int main(void) {
     trie_insert_prefix(tree, "011211");
     trie_insert_prefix(tree, "011121");
     trie_insert_prefix(tree, "012121");
+
+    RENAME(tree, "000000");
+    RENAME(tree, "011");
 
     // Write to file
     FILE* f = fopen("trietest.dot", "w");
