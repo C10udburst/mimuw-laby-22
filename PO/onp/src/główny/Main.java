@@ -26,13 +26,15 @@ public class Main {
                 System.out.println("Podaj wyrażenie w ONP");
                 dane = sc.nextLine();
             } catch (NiepoprawneWyrażenie niepoprawneWyrażenie) {
-                System.out.println(ANSI_RED+"Niepoprawne wyrażenie"+ANSI_RESET);
-                System.exit(0xA);
+                System.out.println(ANSI_RED + "Niepoprawne wyrażenie" + ANSI_RESET);
+                System.out.println("Podaj wyrażenie w ONP");
+                dane = sc.nextLine();
             } catch (BrakMiejsca e) {
-                System.out.println(ANSI_RED+e.getLocalizedMessage()+ANSI_RESET);
-                System.exit(0xB);
+                System.out.println(ANSI_RED + e.getMessage() + ANSI_RESET);
+                System.out.println("Podaj wyrażenie w ONP");
+                dane = sc.nextLine();
             } catch (Exception e) {
-                System.out.println(ANSI_RED+"Nieznany błąd: "+e.getLocalizedMessage()+ANSI_RESET);
+                System.out.println(ANSI_RED + "Nieznany błąd: "+e.getLocalizedMessage() + ANSI_RESET);
                 System.exit(0xF);
             }
         }
