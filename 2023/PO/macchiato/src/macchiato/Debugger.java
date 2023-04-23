@@ -17,7 +17,7 @@ public class Debugger {
 
     // endregion dane
 
-    public Debugger() {
+    protected Debugger() {
 
     }
 
@@ -26,8 +26,8 @@ public class Debugger {
      * @param instruction instrukcja, która zostanie wykonana.
      */
     public void beforeExecute(Instruction instruction) {
-        if (shouldBreak()) {
-            printDebug(instruction.toString());
+        if (shouldBreak()) printDebug(instruction.toString());
+        while (shouldBreak()) {
             handleUserInput(instruction);
         } // kontynuujemy wykonywanie programu
         steps--;
@@ -76,7 +76,7 @@ public class Debugger {
      * @return dane od użytkownika.
      */
     private String[] getUserInput() {
-        System.out.println("> ");
+        System.out.print("> ");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
             return br.readLine().split(" ");
@@ -111,7 +111,8 @@ public class Debugger {
             case 'd':
                 try {
                     printDebug(currentInstruction.getParent(Integer.parseInt(input[1])).dumpVars());
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                } catch (NumberFormatException | ArrayIndexOutOfBoundsException | NullPointerException e) {
+                    handleError(e);
                     handleUserInput(currentInstruction);
                 }
                 break;

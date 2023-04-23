@@ -1,6 +1,12 @@
 package macchiato.comparators;
 
-public class MoreEqual extends Comparator {
+import macchiato.expressions.Expression;
+
+public class GreaterEqual extends Comparator {
+    public GreaterEqual(Expression left, Expression right) {
+        super(left, right);
+    }
+
     @Override
     protected String symbol() {
         return ">=";

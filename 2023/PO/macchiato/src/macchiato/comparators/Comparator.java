@@ -12,6 +12,11 @@ public abstract class Comparator {
 
     // endregion dane
 
+    public Comparator(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
+    }
+
 
     @Override
     public String toString() {

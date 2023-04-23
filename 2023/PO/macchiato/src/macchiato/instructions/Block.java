@@ -54,9 +54,9 @@ public class Block extends Instruction {
 
     @Override
     public void debugExecute(Debugger debugger) throws MacchiatoException {
-        debugger.beforeExecute(this);
         for (Declaration declaration : declarations)
             vars.declare(declaration.getName(), declaration.execute(this));
+        debugger.beforeExecute(this);
         for (Instruction instruction : instructions)
             instruction.debugExecute(debugger);
     }

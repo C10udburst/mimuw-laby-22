@@ -10,7 +10,7 @@ public class Add extends Operator {
 
     // region techniczne
 
-    protected Add(Expression arg1, Expression arg2) {
+    public Add(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
 

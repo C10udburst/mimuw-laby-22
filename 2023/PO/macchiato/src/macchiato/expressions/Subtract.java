@@ -10,7 +10,7 @@ public class Subtract extends Operator {
 
     // region techniczne
 
-    protected Subtract(Expression arg1, Expression arg2) {
+    public Subtract(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
 
