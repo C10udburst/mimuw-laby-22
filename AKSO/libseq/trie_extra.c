@@ -16,7 +16,7 @@ void trie_write_dot_node(FILE* fp, trie_node_t* node, trie_node_t* parent,
     if (node == NULL) return;
     if (parent != NULL)
         fprintf(fp, "\t\"%p\" -> \"%p\" [label=\"%d\"]\n", parent, node, index);
-    fprintf(fp, "\t\"%p\" [label=\"\n", node);
+    fprintf(fp, "\t\"%p\" [label=\"", node);
     if (node->extra == NULL)
         fprintf(fp, "NULL");
     else
