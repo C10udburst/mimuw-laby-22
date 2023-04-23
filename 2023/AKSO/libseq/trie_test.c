@@ -93,7 +93,7 @@ int main(void) {
     fclose(f);
 
     printf("foreach: ");
-    TRIE_FOREACH(tree, node, { printf("%p ", node); });
+    TRIE_FOREACH(tree->root, node, { printf("%p ", node); });
     printf("\n");
 
     trie_free(tree);
