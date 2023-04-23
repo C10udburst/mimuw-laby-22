@@ -1,6 +1,5 @@
 package macchiato.expressions;
 
-import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
 
 public class Constant extends Expression {
