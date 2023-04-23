@@ -10,7 +10,7 @@ public class Multiply extends Operator {
 
     // region techniczne
 
-    protected Multiply(Expression arg1, Expression arg2) {
+    public Multiply(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
 
