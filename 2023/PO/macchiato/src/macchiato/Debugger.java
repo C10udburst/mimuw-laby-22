@@ -1,5 +1,6 @@
 package macchiato;
 
+import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
 
 import java.io.BufferedReader;
@@ -88,7 +89,7 @@ public class Debugger {
 
     /**
      * Obsługuje komendy użytkownika. Jeśli komenda nie jest rozpoznana, ponawia pobieranie danych.
-     * @param currentInstruction
+     * @param currentInstruction instrukcja, która będzie wykonana jako następna.
      */
     private void handleUserInput(Instruction currentInstruction) {
         String[] input = getUserInput();
@@ -143,7 +144,6 @@ public class Debugger {
      */
     public void handleError(Exception e) {
         System.err.println(ANSI_RED + e.getMessage() + ANSI_RESET);
-        e.printStackTrace();
         exit(1);
     }
 }

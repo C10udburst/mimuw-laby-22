@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class Parser {
     private static final Pattern CONDITION_PATTERN = Pattern.compile("\\( ?(?<exp1>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\) ?(?<sgn>=|<>|>|<|>=|<=) ?\\( ?(?<exp2>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");
     private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("(?<name>[a-z]) ?= ?\\( ?(?<exp>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");
-
     private static final Pattern FOR_PATTERN = Pattern.compile("(?<name>[a-z]) ?=? 0\\.\\.?\\( ?(?<exp>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");
 
     private final List<String> lines;

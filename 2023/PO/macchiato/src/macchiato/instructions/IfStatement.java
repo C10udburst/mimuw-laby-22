@@ -4,14 +4,14 @@ import macchiato.Debugger;
 import macchiato.Variables;
 import macchiato.comparators.Comparator;
 import macchiato.exceptions.MacchiatoException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IfStatement extends Instruction {
     // region dane
 
     protected Comparator comparator;
-    @Nullable
-    protected Instruction thenInstruction;
+    @NotNull Instruction thenInstruction;
     @Nullable
     protected Instruction elseInstruction;
 
@@ -23,28 +23,26 @@ public class IfStatement extends Instruction {
      * @param thenInstruction instrukcja, która ma być wykonana, jeśli warunek jest prawdziwy
      * @param elseInstruction instrukcja, która ma być wykonana, jeśli warunek jest fałszywy
      */
-    public IfStatement(Comparator comparator, @Nullable Instruction thenInstruction, @Nullable Instruction elseInstruction) {
+    public IfStatement(Comparator comparator, @NotNull Instruction thenInstruction, @Nullable Instruction elseInstruction) {
         super(null);
         this.comparator = comparator;
         this.thenInstruction = thenInstruction;
         this.elseInstruction = elseInstruction;
 
-        if (thenInstruction != null)
-            thenInstruction.parent = this;
+        thenInstruction.parent = this;
         if (elseInstruction != null)
             elseInstruction.parent = this;
     }
 
     @Override
     public String toString() {
-        return "if " + comparator.toString() + "";
+        return "if " + comparator.toString() + (elseInstruction != null ? " else" : "");
     }
 
     @Override
     public void execute() throws MacchiatoException {
         if (comparator.execute(this)) {
-            if (thenInstruction != null)
-                thenInstruction.execute();
+            thenInstruction.execute();
         } else {
             if (elseInstruction != null)
                 elseInstruction.execute();
@@ -53,9 +51,9 @@ public class IfStatement extends Instruction {
 
     @Override
     public void debugExecute(Debugger debugger) throws MacchiatoException {
+        debugger.beforeExecute(this);
         if (comparator.execute(this)) {
-            if (thenInstruction != null)
-                thenInstruction.debugExecute(debugger);
+            thenInstruction.debugExecute(debugger);
         } else {
             if (elseInstruction != null)
                 elseInstruction.debugExecute(debugger);
