@@ -1,6 +1,5 @@
 package macchiato.parser;
 
-import com.sun.tools.javac.Main;
 import macchiato.Declaration;
 import macchiato.comparators.*;
 import macchiato.comparators.Comparator;
