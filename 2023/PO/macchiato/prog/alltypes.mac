@@ -14,7 +14,7 @@ do
             a = (c 3 5 c * * *)
             d = (1)
         do {
-            # od 0 do 10
+            # od 1 do 6
             for: i = 0..(5): block; do {
                 set: d = (a i 1 + %)
                 if: (d) <> (0)
