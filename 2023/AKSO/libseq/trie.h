@@ -33,44 +33,38 @@ void trie_free(trie_root_t* root);
 int trie_insert_prefix(trie_root_t* root, const char* name);
 trie_node_t* trie_find(trie_root_t* root, const char* name);
 int trie_remove_prefix(trie_root_t* root, const char* name);
-size_t trie_stack_size(trie_node_t* node);
+size_t trie_height(trie_root_t* root);
 int trie_invalid_name(const char* str);
 
 /* Definicje makr */
 
 /*
-    Makro wywołuje kod w każdym węźle drzewa, w obiegu DFS postorder.
+    Makro wywołuje kod w każdym węźle drzewa, w obiegu DFS preorder.
     Ustawia errno na ENOMEM jeśli nie udało się zaalkować stosu.
-    Kod będzie wykonywany również dla start_node.
-    Jeśli wystąpi błąd alokacji, to kod nie wykona się ani razu.
     Parametry:
-        start_node - węzeł, od którego zaczynamy
+        trie_root - struktura drzewa
         iterated_symbol - nazwa węzła
         code - kod wykonywany w każdym węźle
 */
-#define TRIE_FOREACH(start_node, iterated_symbol, code)                        \
+#define TRIE_FOREACH(trie_root, iterated_symbol, code)                         \
     do {                                                                       \
         trie_node_t* iterated_symbol;                                          \
-        size_t height = trie_stack_size(start_node);                           \
-        if (height > 0) {                                                      \
-            trie_node_t** stack = calloc(height, sizeof(trie_node_t*));        \
-            if (stack == NULL)                                                 \
-                errno = ENOMEM;                                                \
-            else {                                                             \
-                size_t stack_size = 1;                                         \
-                stack[0] = start_node;                                         \
-                while (stack_size > 0) {                                       \
-                    iterated_symbol = stack[--stack_size];                     \
-                    if (iterated_symbol == NULL) continue;                     \
-                    for (int i = 0; i < 3; i++) {                              \
-                        if (iterated_symbol->children[i] != NULL)              \
-                            stack[stack_size++] =                              \
-                                iterated_symbol->children[i];                  \
-                    }                                                          \
-                    code;                                                      \
-                }                                                              \
-                free(stack);                                                   \
+        trie_node_t** stack =                                                  \
+            calloc(trie_height(trie_root), sizeof(trie_node_t*));              \
+        if (stack == NULL)                                                     \
+            errno = ENOMEM;                                                    \
+        else {                                                                 \
+            size_t stack_size = 1;                                             \
+            stack[0] = trie_root->root;                                        \
+            while (stack_size > 0) {                                           \
+                iterated_symbol = stack[--stack_size];                         \
+                if (iterated_symbol == NULL) continue;                         \
+                code;                                                          \
+                for (int i = 0; i < 3; i++)                                    \
+                    if (iterated_symbol->children[i] != NULL)                  \
+                        stack[stack_size++] = iterated_symbol->children[i];    \
             }                                                                  \
+            free(stack);                                                       \
         }                                                                      \
     } while (0)
 
