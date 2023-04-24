@@ -33,13 +33,13 @@ void trie_free(trie_root_t* root);
 int trie_insert_prefix(trie_root_t* root, const char* name);
 trie_node_t* trie_find(trie_root_t* root, const char* name);
 int trie_remove_prefix(trie_root_t* root, const char* name);
-size_t trie_height(trie_root_t* root);
+size_t trie_stack_size(trie_root_t* root);
 int trie_invalid_name(const char* str);
 
 /* Definicje makr */
 
 /*
-    Makro wywołuje kod w każdym węźle drzewa, w obiegu DFS preorder.
+    Makro wywołuje kod w każdym węźle drzewa, w obiegu DFS postorder.
     Ustawia errno na ENOMEM jeśli nie udało się zaalkować stosu.
     Parametry:
         trie_root - struktura drzewa
@@ -49,22 +49,26 @@ int trie_invalid_name(const char* str);
 #define TRIE_FOREACH(trie_root, iterated_symbol, code)                         \
     do {                                                                       \
         trie_node_t* iterated_symbol;                                          \
-        trie_node_t** stack =                                                  \
-            calloc(trie_height(trie_root), sizeof(trie_node_t*));              \
-        if (stack == NULL)                                                     \
-            errno = ENOMEM;                                                    \
-        else {                                                                 \
-            size_t stack_size = 1;                                             \
-            stack[0] = trie_root->root;                                        \
-            while (stack_size > 0) {                                           \
-                iterated_symbol = stack[--stack_size];                         \
-                if (iterated_symbol == NULL) continue;                         \
-                code;                                                          \
-                for (int i = 0; i < 3; i++)                                    \
-                    if (iterated_symbol->children[i] != NULL)                  \
-                        stack[stack_size++] = iterated_symbol->children[i];    \
+        size_t height = trie_stack_size(trie_root);                            \
+        if (height > 0) {                                                      \
+            trie_node_t** stack = calloc(height, sizeof(trie_node_t*));        \
+            if (stack == NULL)                                                 \
+                errno = ENOMEM;                                                \
+            else {                                                             \
+                size_t stack_size = 1;                                         \
+                stack[0] = trie_root->root;                                    \
+                while (stack_size > 0) {                                       \
+                    iterated_symbol = stack[--stack_size];                     \
+                    if (iterated_symbol == NULL) continue;                     \
+                    for (int i = 0; i < 3; i++) {                              \
+                        if (iterated_symbol->children[i] != NULL)              \
+                            stack[stack_size++] =                              \
+                                iterated_symbol->children[i];                  \
+                    }                                                          \
+                    code;                                                      \
+                }                                                              \
+                free(stack);                                                   \
             }                                                                  \
-            free(stack);                                                       \
         }                                                                      \
     } while (0)
 
