@@ -227,8 +227,8 @@ static inline trie_node_t* trie_malloc_node(void) {
 
 /*
     Funkcja zwraca rozmiar stosu potrzebny do przejścia DFS od danego
-   wierzchołka. Aby uniknąć przepełnienia stosu, stos jest alokowany
-   dynamicznie. Pdejście iteracyjne, zwraca -1 przy błędzie alokacji pamięci
+    wierzchołka. Aby uniknąć przepełnienia stosu, stos jest alokowany
+    dynamicznie. Pdejście iteracyjne, zwraca -1 przy błędzie alokacji pamięci
     Parametr funkcji:
         node - wskaźnik na węzeł od którego zaczynamy DFS
     Wynik funkcji:
