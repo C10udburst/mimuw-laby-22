@@ -356,8 +356,7 @@ int seq_equiv(seq_t* p, char const* s1, char const* s2) {
         found1->extra = bigger;
         found2->extra = bigger;
     } else { // trzeba zmienić każde odwołanie w strukturze do mniejszej klasy
-        TRIE_FOREACH(p->strings->root, node, {
-            // dla każdego węzła w strukturze trie
+        TRIE_FOREACH(p->strings, node, { // dla każdego węzła w strukturze trie
             if (node->extra == smaller) node->extra = bigger;
         });
         if (errno == ENOMEM) {
