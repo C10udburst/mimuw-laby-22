@@ -96,6 +96,8 @@ int main(void) {
     TRIE_FOREACH(tree, node, { printf("%p ", node); });
     printf("\n");
 
+    printf("tree stack size: %lu\n", trie_stack_size(tree));
+
     trie_free(tree);
 
     return 0;
