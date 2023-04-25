@@ -4,12 +4,14 @@ import macchiato.instructions.Instruction;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 public class Debugger {
     // region dane
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
 
     private boolean debugging = true;
     private int steps = 0;
@@ -78,7 +80,7 @@ public class Debugger {
         System.out.print("> ");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
-            return br.readLine().split(" ");
+            return Arrays.stream(br.readLine().split(" ")).map(String::trim).toArray(String[]::new);
         } catch (Exception e) {
             handleError(e);
             return null;
@@ -91,31 +93,37 @@ public class Debugger {
      */
     private void handleUserInput(Instruction currentInstruction) {
         String[] input = getUserInput();
-        if (input == null || input.length == 0)
-            return;
+        while (input == null || input.length == 0 || input[0].length() < 1)
+            input = getUserInput();
         switch (input[0].codePointAt(0)) {
-            case 'c':
+            case 'c': // (c)ontinue
                 stopDebugging();
                 break;
-            case 's':
+            case 's': // (s)tep
                 try {
                     addSteps(Integer.parseInt(input[1]));
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                    System.err.println(ANSI_RED+"Niepoprawna liczba kroków"+ANSI_RESET);
                     handleUserInput(currentInstruction);
                 }
                 break;
-            case 'e':
+            case 'e': // (e)xit
                 exit(0);
                 break;
-            case 'd':
+            case 'd': // (d)isplay
                 try {
-                    printDebug(currentInstruction.getParent(Integer.parseInt(input[1])).dumpVars());
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException | NullPointerException e) {
-                    handleError(e);
+                    Instruction requested = currentInstruction.getParent(Integer.parseInt(input[1]));
+                    if (requested == null)
+                        System.out.println(ANSI_YELLOW+"Nie znaleziono rodzica o podanej głębokości: "+input[1]+ANSI_RESET);
+                    else
+                        System.out.println(requested.dumpVars());
+                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                    System.err.println(ANSI_RED+"Niepoprawna głębokość"+ANSI_RESET);
                     handleUserInput(currentInstruction);
                 }
                 break;
             default:
+                System.err.println(ANSI_RED+"Nie rozpoznano komendy."+ANSI_RESET);
                 handleUserInput(currentInstruction); // nie rozpoznano komendy, pobieramy ponownie
         }
     }

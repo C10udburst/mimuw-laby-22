@@ -34,7 +34,7 @@ public class IfStatement extends Instruction {
 
     @Override
     public String toString() {
-        return "if " + comparator.toString() + (elseInstruction != null ? "... else ..." : "...");
+        return "if " + comparator.toString() + (elseInstruction != null ? " ... else ..." : " ...");
     }
     // endregion techniczne
 
