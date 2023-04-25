@@ -5,12 +5,10 @@ import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
 
 public class Modulo extends Operator {
-    // region dane
-
+    // region dan
     // endregion
 
     // region techniczne
-
     public Modulo(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
@@ -24,8 +22,9 @@ public class Modulo extends Operator {
     public String symbol() {
         return "%";
     }
+    // endregion
 
-
+    // region operacje
     @Override
     public int evaluate(Instruction context) throws MacchiatoException {
         int arg2Value = arg2.evaluate(context);
@@ -33,4 +32,5 @@ public class Modulo extends Operator {
             throw new DivideByZeroException(this);
         return arg1.evaluate(context) % arg2Value;
     }
+    // endregion
 }

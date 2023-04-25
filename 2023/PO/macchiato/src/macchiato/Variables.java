@@ -22,7 +22,7 @@ public class Variables {
         for (char i = 'a'; i <= 'z'; i++) {
             if (vars[i - 'a'] != null) {
                 if (!sb.isEmpty())
-                    sb.append("\n");
+                    sb.append(", ");
                 sb.append(i).append(": ").append(vars[i - 'a']);
             }
         }

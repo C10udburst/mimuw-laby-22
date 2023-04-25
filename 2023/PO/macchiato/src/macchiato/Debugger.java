@@ -1,10 +1,8 @@
 package macchiato;
 
-import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class Debugger {
@@ -132,7 +130,6 @@ public class Debugger {
 
     /**
      * Kończy pracę debuggera.
-     * @param status
      */
     private void exit(int status) {
         System.exit(status);

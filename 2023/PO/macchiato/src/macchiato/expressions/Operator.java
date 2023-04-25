@@ -2,14 +2,11 @@ package macchiato.expressions;
 
 public abstract class Operator extends Expression {
     // region dane
-
     protected Expression arg1;
     protected Expression arg2;
-
     // endregion
 
     // region techniczne
-
     public Operator(Expression arg1, Expression arg2) {
         this.arg1 = arg1;
         this.arg2 = arg2;
@@ -34,7 +31,6 @@ public abstract class Operator extends Expression {
      * @return symbol operatora
      */
     public abstract String symbol();
-
     // endregion
 
     // region operacje

@@ -3,22 +3,28 @@ package macchiato.instructions;
 import macchiato.Debugger;
 import macchiato.Declaration;
 import macchiato.exceptions.MacchiatoException;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * Klasa reprezentująca blok główny programu.
+ * Od zwykłego bloku różni się tym, że po wykonaniu wypisuje na standardowe wyjście wartości wszystkich zmiennych.
  */
 public class MainBlock extends Block {
+    // region dane
+    // endregion dane
 
+    // region techniczne
     /**
      * Tworzy nowy blok główny.
      * @param declarations deklaracje zmiennych.
      * @param instructions instrukcje.
      */
-    public MainBlock(List<Declaration> declarations, List<Instruction> instructions) {
+    public MainBlock(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
         super(declarations, instructions);
     }
+    // endregion techniczne
 
     @Override
     public void execute() throws MacchiatoException {
@@ -27,7 +33,7 @@ public class MainBlock extends Block {
     }
 
     @Override
-    public void debugExecute(Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
         super.debugExecute(debugger);
         System.out.println(dumpVars());
     }

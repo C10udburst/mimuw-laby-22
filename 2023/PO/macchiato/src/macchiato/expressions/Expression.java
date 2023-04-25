@@ -5,7 +5,6 @@ import macchiato.instructions.Instruction;
 
 public abstract class Expression {
     // region dane
-
     // endregion
 
     // region techniczne
@@ -22,17 +21,14 @@ public abstract class Expression {
     public int priority() {
         return 1_000;
     }
-
     // endregion
 
     // region operacje
-
     /**
      * Oblicza wartość wyrażenia dla podanej wartości zmiennej.
      *
      * @return wartość wyrażenia
      */
     public abstract int evaluate(Instruction context) throws MacchiatoException;
-
     // endregion
 }
