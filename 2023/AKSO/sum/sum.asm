@@ -17,21 +17,24 @@ sum:
   je .ostatnie_przejscie ; n=1
 
 .petla_for:
-  ; rax = i*i*64
   mov rax, r8
-  imul rax, r8
+
+  test rax, rax
+  jz .reszta_fora ; jeśli i*i*64/n == 0 to nie potęgujemy
+
+  mul r8
   shl rax, 6 ; 2**6 = 64
+  ; rax = i*i*64
   
   xor rdx, rdx ; rdx = 0, czy potrzebne?
   div r9 ; rax = i*i*64/n
-  jz .reszta_fora
 
 .liczenie_potegi:
   shl qword [rdi+r8*8], 1 ; x[i] *= 2
   adc qword [rdi+8+r8*8], 0 ; x[i+1] += CF
   dec rax
   jnz .liczenie_potegi
-  
+
 .reszta_fora:
   inc r8
   mov rax, r9
@@ -41,7 +44,11 @@ sum:
 
 .ostatnie_przejscie:
   mov rax, r8
-  imul rax, r8
+  
+  test rax, rax
+  jz .end
+
+  mul r8
   shl rax, 6 ; 2**6 = 64
   
   xor rdx, rdx ; rdx = 0, czy potrzebne?
@@ -52,3 +59,5 @@ sum:
   dec rax
   jnz .liczenie_potegi_2
   
+.end:
+  ret
