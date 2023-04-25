@@ -29,7 +29,6 @@ public class Declaration {
      * Ewaluuje wyrażenie i zwraca jego wartość.
      * @param parent instrukcja, która zawiera tę deklarację
      * @return wartość wyrażenia
-     * @throws MacchiatoException
      */
     public int execute(Instruction parent) throws MacchiatoException {
         return expression.evaluate(parent);

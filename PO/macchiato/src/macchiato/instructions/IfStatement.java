@@ -1,7 +1,6 @@
 package macchiato.instructions;
 
 import macchiato.Debugger;
-import macchiato.Variables;
 import macchiato.comparators.Comparator;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
@@ -9,14 +8,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class IfStatement extends Instruction {
     // region dane
-
     protected Comparator comparator;
     @NotNull Instruction thenInstruction;
     @Nullable
     protected Instruction elseInstruction;
-
     // endregion dane
 
+    // region techniczne
     /**
      * Tworzy instrukcję warunkową. Jeśli instrukcja warunkowa nie ma instrukcji else, to należy przekazać null.
      * @param comparator warunek, który ma być sprawdzony
@@ -36,9 +34,11 @@ public class IfStatement extends Instruction {
 
     @Override
     public String toString() {
-        return "if " + comparator.toString() + (elseInstruction != null ? " else" : "");
+        return "if " + comparator.toString() + (elseInstruction != null ? "... else ..." : "...");
     }
+    // endregion techniczne
 
+    // region operacje
     @Override
     public void execute() throws MacchiatoException {
         if (comparator.execute(this)) {
@@ -50,7 +50,7 @@ public class IfStatement extends Instruction {
     }
 
     @Override
-    public void debugExecute(Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
         debugger.beforeExecute(this);
         if (comparator.execute(this)) {
             thenInstruction.debugExecute(debugger);
@@ -59,4 +59,5 @@ public class IfStatement extends Instruction {
                 elseInstruction.debugExecute(debugger);
         }
     }
+    // endregion operacje
 }

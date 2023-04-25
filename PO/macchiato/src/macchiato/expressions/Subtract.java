@@ -9,7 +9,6 @@ public class Subtract extends Operator {
     // end region
 
     // region techniczne
-
     public Subtract(Expression arg1, Expression arg2) {
         super(arg1, arg2);
     }
@@ -23,16 +22,13 @@ public class Subtract extends Operator {
     public String symbol() {
         return "-";
     }
-
     // endregion
 
 
     // region operacje
-
     @Override
     public int evaluate(Instruction context) throws MacchiatoException {
         return arg1.evaluate(context) - arg2.evaluate(context);
     }
-
     // endregion
 }

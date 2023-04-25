@@ -8,7 +8,9 @@ public class Variable extends Expression {
 
     // region dane
     private final char name;
+    // endregion
 
+    // region techniczne
     public Variable(char name) {
         this.name = name;
     }
@@ -17,13 +19,12 @@ public class Variable extends Expression {
     public String toString() {
         return name + "";
     }
+    // endregion
 
+    // region operacje
     @Override
     public int evaluate(Instruction context) throws UndeclaredVariableException, InvalidVariableNameException {
         return context.getVariable(name);
     }
-
     // endregion
-
-
 }
