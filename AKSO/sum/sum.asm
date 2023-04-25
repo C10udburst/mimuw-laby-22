@@ -24,6 +24,7 @@ sum:
   
   xor rdx, rdx ; rdx = 0, czy potrzebne?
   div r9 ; rax = i*i*64/n
+  jz .reszta_fora
 
 .liczenie_potegi:
   shl qword [rdi+r8*8], 1 ; x[i] *= 2
@@ -31,7 +32,7 @@ sum:
   dec rax
   jnz .liczenie_potegi
   
-; reszta fora
+.reszta_fora:
   inc r8
   mov rax, r9
   sub rax, r8
