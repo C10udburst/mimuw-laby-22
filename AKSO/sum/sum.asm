@@ -6,58 +6,47 @@
 
 global sum
 sum:
-  xor r8, r8
-  mov r9, rdx
+  mov r8, 1
 
-  ; x := rcx
-  ; n := r9
-  ; i := r8 = 0
+  ; x := rdi
+  ; n := rsi
+  ; i := r8 = 1
 
-  cmp r9, 1
-  je .ostatnie_przejscie ; n=1
+.for_start:
+  ; for (r8 = 0; r8 < rsi)
+  cmp r8, rsi
+  je .for_end
 
-.petla_for:
   mov rax, r8
-
-  test rax, rax
-  jz .reszta_fora ; jeśli i*i*64/n == 0 to nie potęgujemy
-
   mul r8
-  shl rax, 6 ; 2**6 = 64
-  ; rax = i*i*64
-  
-  xor rdx, rdx ; rdx = 0, czy potrzebne?
-  div r9 ; rax = i*i*64/n
+  shl rax, 6
+  div rsi
 
-.liczenie_potegi:
-  shl qword [rdi+r8*8], 1 ; x[i] *= 2
-  adc qword [rdi+8+r8*8], 0 ; x[i+1] += CF
+.potegowanie_start:
+  cmp rax, 0
+  je .potegowanie_end
+
+  shl dword [rdi + 8*r8], 1
+
+  mov r9, r8
+  inc r9
+
+.przesuwanie_bitow_start:
+  jnc .przesuwanie_bitow_end
+  cmp r9, rsi
+  je .przesuwanie_bitow_end
+
+  add dword [rdi + 8*r9], 1
+
+  inc r9
+  jmp .przesuwanie_bitow_start
+.przesuwanie_bitow_end:
+
   dec rax
-  jnz .liczenie_potegi
+  jmp .potegowanie_start
+.potegowanie_end:
 
-.reszta_fora:
   inc r8
-  mov rax, r9
-  sub rax, r8
-  cmp rax, 2
-  jne .petla_for
-
-.ostatnie_przejscie:
-  mov rax, r8
-  
-  test rax, rax
-  jz .end
-
-  mul r8
-  shl rax, 6 ; 2**6 = 64
-  
-  xor rdx, rdx ; rdx = 0, czy potrzebne?
-  div r9 ; rax = i*i*64/n
-
-.liczenie_potegi_2:
-  shl qword [rdi+r8*8], 1 ; x[i] *= 2
-  dec rax
-  jnz .liczenie_potegi_2
-  
-.end:
+  jmp .for_start
+.for_end:
   ret
