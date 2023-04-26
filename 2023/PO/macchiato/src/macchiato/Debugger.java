@@ -7,17 +7,28 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 
 public class Debugger {
-    // region dane
 
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
+    // region dane
+    protected enum LogLevel {
+
+        INFO("\u001B[0m"),
+        WARN("\u001B[33m"),
+        ERROR("\u001B[31m")
+        ;
+
+        public final String color;
+
+        LogLevel(String s) {
+            this.color = s;
+        }
+    }
+
+    protected static final String ANSI_RESET = "\u001B[0m";
 
     private boolean debugging = true;
     private int steps = 0;
 
     private boolean didFail = false;
-
     // endregion dane
 
     protected Debugger() {
@@ -30,7 +41,7 @@ public class Debugger {
      */
     public void beforeExecute(Instruction instruction) {
         if (shouldBreak())
-            System.out.println(instruction.toString());
+            printConsole(instruction.toString(), LogLevel.INFO);
         while (shouldBreak()) {
             handleUserInput(instruction, false);
         } // kontynuujemy wykonywanie programu
@@ -79,7 +90,7 @@ public class Debugger {
      * Pobiera dane od użytkownika, argumenty oddzielone spacją.
      * @return dane od użytkownika.
      */
-    private String[] getUserInput() {
+    protected String[] getUserInput() {
         System.out.print("> ");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
@@ -103,18 +114,18 @@ public class Debugger {
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue
                 if (finished)
-                    System.out.println(ANSI_YELLOW + "Program już się zakończył." + ANSI_RESET);
+                    printConsole( "Program już się zakończył.", LogLevel.WARN);
                 else
                     stopDebugging();
                 break;
             case 's': // (s)tep
                 if (finished)
-                    System.out.println(ANSI_YELLOW + "Program już się zakończył." + ANSI_RESET);
+                    printConsole( "Program już się zakończył.", LogLevel.WARN);
                 else
                     try {
                         addSteps(Integer.parseInt(input[1]));
                     } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                        System.err.println(ANSI_RED+"Niepoprawna liczba kroków"+ANSI_RESET);
+                        printConsole("Niepoprawna liczba kroków", LogLevel.ERROR);
                         handleUserInput(currentInstruction, false);
                     }
                 break;
@@ -125,25 +136,38 @@ public class Debugger {
                 try {
                     Instruction requested = currentInstruction.getParent(Integer.parseInt(input[1]));
                     if (requested == null)
-                        System.out.println(ANSI_YELLOW+"Nie znaleziono rodzica o podanej głębokości: "+input[1]+ANSI_RESET);
+                        printConsole("Nie znaleziono rodzica o podanej głębokości: "+input[1], LogLevel.WARN);
                     else
-                        System.out.println(requested.dumpVars());
+                        printConsole(requested.dumpVars(), LogLevel.INFO);
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    System.err.println(ANSI_RED+"Niepoprawna głębokość"+ANSI_RESET);
+                    printConsole("Niepoprawna głębokość", LogLevel.ERROR);
                     handleUserInput(currentInstruction, finished);
                 }
                 break;
             default:
-                System.err.println(ANSI_RED+"Nie rozpoznano komendy."+ANSI_RESET);
+                printConsole("Nie rozpoznano komendy.", LogLevel.ERROR);
                 handleUserInput(currentInstruction, finished); // nie rozpoznano komendy, pobieramy ponownie
         }
         if (finished)
             handleUserInput(currentInstruction, true);
     }
 
-    public void onFinish(Instruction startInstruction) {
-        System.out.println("Program zakończył się " + (didFail ? "błędem." : "powodzeniem."));
-        handleUserInput(startInstruction, true);
+    /**
+     * Wywoływana po zakończeniu programu. Wyświetla komunikat o sukcesie lub błędzie.
+     * @param mainBlock główny blok programu.
+     */
+    protected void onFinish(Instruction mainBlock) {
+        printConsole("Program zakończył się " + (didFail ? "błędem." : "powodzeniem."), (didFail ? LogLevel.WARN : LogLevel.INFO));
+        handleUserInput(mainBlock, true);
+    }
+
+    /**
+     * Wyświetla komunikat w konsoli. Jeśli poziom logowania jest ERROR, wyświetla go na konsoli błędów.
+     * @param message treść komunikatu.
+     * @param logLevel poziom logowania.
+     */
+    protected void printConsole(String message, LogLevel logLevel) {
+        System.out.println(logLevel.color + message + ANSI_RESET);
     }
 
     /**
@@ -151,7 +175,7 @@ public class Debugger {
      * @param e wyjątek.
      */
     public void handleError(Exception e) {
-        System.err.println(ANSI_RED + e.getMessage() + ANSI_RESET);
+        printConsole(e.getMessage(), LogLevel.ERROR);
         didFail = true;
     }
 }
