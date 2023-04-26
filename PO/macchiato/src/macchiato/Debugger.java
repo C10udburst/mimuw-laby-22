@@ -16,6 +16,8 @@ public class Debugger {
     private boolean debugging = true;
     private int steps = 0;
 
+    private boolean didFail = false;
+
     // endregion dane
 
     protected Debugger() {
@@ -27,9 +29,10 @@ public class Debugger {
      * @param instruction instrukcja, która zostanie wykonana.
      */
     public void beforeExecute(Instruction instruction) {
-        if (shouldBreak()) printDebug(instruction.toString());
+        if (shouldBreak())
+            System.out.println(instruction.toString());
         while (shouldBreak()) {
-            handleUserInput(instruction);
+            handleUserInput(instruction, false);
         } // kontynuujemy wykonywanie programu
         steps--;
     }
@@ -45,7 +48,7 @@ public class Debugger {
         } catch (Exception e) {
             debugger.handleError(e);
         }
-        debugger.exit(0);
+        debugger.onFinish(start);
     }
 
 
@@ -87,28 +90,36 @@ public class Debugger {
         }
     }
 
+
     /**
      * Obsługuje komendy użytkownika. Jeśli komenda nie jest rozpoznana, ponawia pobieranie danych.
      * @param currentInstruction instrukcja, która będzie wykonana jako następna.
+     * @param finished czy wykonywanie już się zakończyło
      */
-    private void handleUserInput(Instruction currentInstruction) {
+    private void handleUserInput(Instruction currentInstruction, boolean finished) {
         String[] input = getUserInput();
         while (input == null || input.length == 0 || input[0].length() < 1)
             input = getUserInput();
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue
-                stopDebugging();
+                if (finished)
+                    System.out.println(ANSI_YELLOW + "Program już się zakończył." + ANSI_RESET);
+                else
+                    stopDebugging();
                 break;
             case 's': // (s)tep
-                try {
-                    addSteps(Integer.parseInt(input[1]));
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    System.err.println(ANSI_RED+"Niepoprawna liczba kroków"+ANSI_RESET);
-                    handleUserInput(currentInstruction);
-                }
+                if (finished)
+                    System.out.println(ANSI_YELLOW + "Program już się zakończył." + ANSI_RESET);
+                else
+                    try {
+                        addSteps(Integer.parseInt(input[1]));
+                    } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                        System.err.println(ANSI_RED+"Niepoprawna liczba kroków"+ANSI_RESET);
+                        handleUserInput(currentInstruction, false);
+                    }
                 break;
             case 'e': // (e)xit
-                exit(0);
+                System.exit(didFail ? 1 : 0);
                 break;
             case 'd': // (d)isplay
                 try {
@@ -119,28 +130,20 @@ public class Debugger {
                         System.out.println(requested.dumpVars());
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                     System.err.println(ANSI_RED+"Niepoprawna głębokość"+ANSI_RESET);
-                    handleUserInput(currentInstruction);
+                    handleUserInput(currentInstruction, finished);
                 }
                 break;
             default:
                 System.err.println(ANSI_RED+"Nie rozpoznano komendy."+ANSI_RESET);
-                handleUserInput(currentInstruction); // nie rozpoznano komendy, pobieramy ponownie
+                handleUserInput(currentInstruction, finished); // nie rozpoznano komendy, pobieramy ponownie
         }
+        if (finished)
+            handleUserInput(currentInstruction, true);
     }
 
-    /**
-     * Wyświetla komunikat w trybie debugowania.
-     * @param s komunikat
-     */
-    public void printDebug(String s) {
-        System.out.println(s);
-    }
-
-    /**
-     * Kończy pracę debuggera.
-     */
-    private void exit(int status) {
-        System.exit(status);
+    public void onFinish(Instruction startInstruction) {
+        System.out.println("Program zakończył się " + (didFail ? "błędem." : "powodzeniem."));
+        handleUserInput(startInstruction, true);
     }
 
     /**
@@ -149,6 +152,6 @@ public class Debugger {
      */
     public void handleError(Exception e) {
         System.err.println(ANSI_RED + e.getMessage() + ANSI_RESET);
-        exit(1);
+        didFail = true;
     }
 }
