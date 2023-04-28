@@ -1,0 +1,45 @@
+rsi = n
+rdi = x
+r8 = i
+r9
+rcx
+rdx
+rax = indeks poprzedniego zmienianego bloku
+r10 = wartość dodawana do obecnego bloku
+r11 = reszta do nowego bloku
+
+r11 = 0
+add [rdi], 0 ; ustalam SF na znak x[0]
+for (int r8 = 1; r8 < rsi; r8++) {
+    r10 = [rdi + r8]
+    [rdi + r8] = SF ? 0xFFF.. : 0
+
+    rax ++
+    if (rax < rsi)
+        [rdi + rax] += r11
+    
+    rax = 64*r8*r8/n:
+        rax = r8
+        rax *= r8
+        rax << 6
+        rax /= rsi
+
+    rcx = rax%8:
+        rcx = rax
+        rcx &= 0x7 ; trzy ostatnie bity
+    
+    rax = rax/8:
+        rax >> 3
+
+    test r10, r10
+    r11 = SF ? 0xFFF.. : 0
+
+    for (int r9=0;r9<rcx;r9++) {
+        r10 <<
+        r11 += CF;
+        r11 <<
+    }
+
+    [rdi + rax] += r10
+    r11 += CF
+}

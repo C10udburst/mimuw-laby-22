@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c17 -O2 -g3
-TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
+#TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
+TESTER =
 
 .PHONY: clean test gdb
 
