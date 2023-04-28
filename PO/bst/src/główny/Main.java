@@ -21,6 +21,7 @@ public class Main {
     }
 
     private static <T extends Comparable<T>> void testBST(BST<T> bst, T[] dane, T[] nieistniejące) {
+        System.out.println();
         System.out.println("Test BST dla " + dane.getClass().getSimpleName());
         System.out.println("Czy puste? " + bst.czyPuste());
         for (T elt : dane)
@@ -33,5 +34,14 @@ public class Main {
         System.out.println("Chyba nie istniejące");
         for (T elt : nieistniejące)
             System.out.println("\t"+bst.czyJest(elt));
+        if (dane.length > 0) {
+            System.out.println("rozmiar drzewa = " +
+                    bst.ileWęzłów());
+            System.out.println("istnieje? "+bst.czyJest(dane[0]));
+            bst.usuń(dane[0]);
+            System.out.println("rozmiar drzewa = " +
+                    bst.ileWęzłów());
+            System.out.println("istnieje? "+bst.czyJest(dane[0]));
+        }
     }
 }
