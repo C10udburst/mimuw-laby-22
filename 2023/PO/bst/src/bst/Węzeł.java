@@ -51,4 +51,47 @@ public class Węzeł<T extends Comparable<T> > {
     }
 
 
+    public void usuń(T elt) {
+        if (elt.compareTo(elt) < 0) {
+            if (lewe != null)
+                lewe.usuń(elt);
+        } else if (elt.compareTo(elt) > 0) {
+            if (prawe != null)
+                prawe.usuń(elt);
+        } else {
+            // znaleziono
+            if (lewe == null && prawe == null) {
+                /*
+                    usuwamy liść
+                    po prostu go usuwamy
+                */
+            } else if (lewe == null) {
+                /*
+                     usuwamy węzeł z jednym synem
+                     syn zastępuje rodzica
+                 */
+                wartość = prawe.wartość;
+                lewe = prawe.lewe;
+                prawe = prawe.prawe;
+            } else if (prawe == null) {
+                /*
+                    usuwamy węzeł z jednym synem
+                    syn zastępuje rodzica
+                 */
+                wartość = lewe.wartość;
+                prawe = lewe.prawe;
+                lewe = lewe.lewe;
+            } else {
+                /*
+                    usuwamy węzeł z dwoma synami
+                    zastępujemy go najmniejszym w prawym poddrzewie
+                 */
+                Węzeł<T> najmniejszy = prawe;
+                while (najmniejszy.lewe != null)
+                    najmniejszy = najmniejszy.lewe;
+                wartość = najmniejszy.wartość;
+                prawe.usuń(wartość);
+            }
+        }
+    }
 }

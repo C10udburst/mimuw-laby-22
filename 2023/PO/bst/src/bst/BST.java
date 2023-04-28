@@ -45,6 +45,10 @@ public class BST<T extends Comparable<T>> {
     // usuń
     // nie dbamy czy jest zrównoważone
 
+    public void usuń(T elt){
+        korzeń.usuń(elt);
+    }
+
 }
 
 
