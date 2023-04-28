@@ -1,52 +1,57 @@
-; void sum(int64_t *x, size_t n):
-; y = 0;
-; for (i = 0; i < n; ++i)
-;   y += x[i] * (2 ** floor(64 * i * i / n));
-; x[0, ..., n-1] = y;
-
 global sum
+
+
+section .text
+
 sum:
+  xor r11, r11
+  xor rax, rax
   mov r8, 1
 
-  ; x := rdi
-  ; n := rsi
-  ; i := r8 = 1
+  cmp rsi, 1
+  je .loop_end
+  
+  add qword [rdi], 0 
 
-.for_start:
-  ; for (r8 = 0; r8 < rsi)
-  cmp r8, rsi
-  je .for_end
+; for (int r8 = 1; r8 < rsi; r8++)
+.loop_start:
+  mov r10, qword [rdi + 8*r8]
+  js .if_neg_prev
+  mov qword [rdi + 8*r8], 0
+
+; [rdi + r8] = SF ? 0xFFF... : 0
+  jmp .endif_neg_ref
+.if_neg_prev:
+  mov qword [rdi + 8*r8], 0xFFFFFFFFFFFFFFFF
+.endif_neg_ref:
+
+  add [rdi+r8+1], r11
 
   mov rax, r8
   mul r8
   shl rax, 6
   div rsi
 
-.potegowanie_start:
-  cmp rax, 0
-  je .potegowanie_end
+  ; rcx = rax%8
+  mov rcx, rax
+  and rcx, 0x7
 
-  shl dword [rdi + 8*r8], 1
+  ; rax = rax/8
+  shr rax, 3
 
-  mov r9, r8
-  inc r9
+  ; TODO
+  xor r11, r11
+  shl r10, cl
+  adc r11, 0
 
-.przesuwanie_bitow_start:
-  jnc .przesuwanie_bitow_end
-  cmp r9, rsi
-  je .przesuwanie_bitow_end
-
-  add dword [rdi + 8*r9], 1
-
-  inc r9
-  jmp .przesuwanie_bitow_start
-.przesuwanie_bitow_end:
-
-  dec rax
-  jmp .potegowanie_start
-.potegowanie_end:
+  
+  add qword [rdi+rax], r10
 
   inc r8
-  jmp .for_start
-.for_end:
+
+  ; r8 < rsi
+  cmp r8, rsi
+  jl .loop_start
+
+.loop_end:
   ret

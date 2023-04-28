@@ -85,7 +85,7 @@ int main() {
         printf("W teście %zu pod indeksem %zu\n"
                "jest        %016" PRIx64 ",\n"
                "powinno być %016" PRIx64 ".\n",
-               test_data[i].t, i, work_space[i], test_data[test].y[i]);
+               test_data[test].t, i, work_space[i], test_data[test].y[i]);
       }
     }
     free(work_space);
