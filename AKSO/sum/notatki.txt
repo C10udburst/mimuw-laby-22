@@ -43,3 +43,93 @@ for (int r8 = 1; r8 < rsi; r8++) {
     [rdi + rax] += r10
     r11 += CF
 }
+
+rsi = n
+rdi = x
+r8 = i
+r10 = x[i]
+r9 = sgn(y) + flipped(y)*2^32
+rax = 64*r8*r8/rsi ∨ 64*r8*r8/(8*rsi)
+rdx = y[rax + 8]
+r11 = sgn(x[i]) ∨ sgn(x[i]) != sgn(y) 
+rcx
+
+
+add [rdi], 0
+r9 = SF ? 0x1: 0x0
+rdx = 0
+for (int r8 = 1; r8 < rsi; r8++) {
+    r10 = [rdi + r8]
+    [rdi + r8] = 0
+
+    if (SF) {
+        neg r10
+        r11 = 0x1
+    } else {
+        r11 = 0x0
+    }
+
+    if (rdx > 0) {
+        [rdi + rax] += rdx
+        ; TODO: CF?
+    }
+
+    rax = 64*r8*r8/rsi:
+        rax = r8
+        rax *= r8
+        rax << 6
+        rax /= rsi
+    
+    rcx = rax%8:
+        rcx = rax
+        rcx &= 0x7 ; trzy ostatnie bity
+    
+    rax = rax/8:
+        rax >> 3
+
+    r11d ^= r9d ; 0 - ten sam znak, 1 - rożny znak
+
+    rdx = 0
+    while rcx-- {
+        r10 << 1
+        rdx << 1
+        rdx += CF ? 1 : 0
+    }
+
+
+    if (r11 = 0) {
+        [rdi + rax] += r10
+        rdx += CF ? 1 : 0
+    } else {
+        if (rdx > 0) {
+            r9 ^= 0x1 ; y = -y
+            if (r10 >= [rdi + rax]) {
+                r10 -= [rdi + rax]
+            } else {
+                rdx--
+
+            }
+        }
+        else {
+            if (r10 > [rdi + rax]) {
+                r9 ^= 0x1 ; y = -y
+
+            }
+            else {
+                [rdi + rax] -= r10
+            }
+        }
+    }
+}
+
+
+23        00     00
+12        34     11
+23-11    99-34 99-11 
+99-23+11  34     11     -99
+
+
+10111111 00000000 00000000
+00010101 01101101 00101010
+
+10101001 10010010 11010110
