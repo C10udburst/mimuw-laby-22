@@ -48,7 +48,7 @@ rsi = n
 rdi = x
 r8 = i
 r10 = x[i]
-r9 = sgn(y) + flipped(y)*2^32
+r9 = sgn(y)
 rax = 64*r8*r8/rsi ∨ 64*r8*r8/(8*rsi)
 rdx = y[rax + 8]
 r11 = sgn(x[i]) ∨ sgn(x[i]) != sgn(y) 
@@ -58,6 +58,7 @@ rcx
 add [rdi], 0
 r9 = SF ? 0x1: 0x0
 rdx = 0
+rax = 0
 for (int r8 = 1; r8 < rsi; r8++) {
     r10 = [rdi + r8]
     [rdi + r8] = 0
@@ -70,6 +71,7 @@ for (int r8 = 1; r8 < rsi; r8++) {
     }
 
     if (rdx > 0) {
+        rax+=8
         [rdi + rax] += rdx
         ; TODO: CF?
     }
@@ -91,8 +93,8 @@ for (int r8 = 1; r8 < rsi; r8++) {
 
     rdx = 0
     while rcx-- {
-        r10 << 1
         rdx << 1
+        r10 << 1
         rdx += CF ? 1 : 0
     }
 
@@ -103,33 +105,53 @@ for (int r8 = 1; r8 < rsi; r8++) {
     } else {
         if (rdx > 0) {
             r9 ^= 0x1 ; y = -y
-            if (r10 >= [rdi + rax]) {
+            if (r10 > [rdi + rax]) {
                 r10 -= [rdi + rax]
+                [rdi + rax] = r10
+                goto .sub
             } else {
                 rdx--
-
+                neg [rdi + rax]
+                [rdi + rax] += r10
+                goto .sub
             }
         }
         else {
             if (r10 > [rdi + rax]) {
                 r9 ^= 0x1 ; y = -y
-
+                r10 -= [rdi+rax]
+                [rdi + rax] = r10
+                goto .sub
             }
             else {
                 [rdi + rax] -= r10
             }
         }
     }
+
+    .sub:
+        rcx = rax
+        if rcx == 0
+            jmp .sub_skip
+        rcx--
+        if rcx == 0
+            jmp .sub_end
+    .sub_loop:
+        if [rdi + rcx] == 0
+            break
+        xor [rdi + rcx], 0xFFF..
+        loop .sub_loop
+    .sub_end:
+        rcx++
+    .sub_skip:
+        [rdi+rcx]++
+    
+
 }
 
 
-23        00     00
-12        34     11
-23-11    99-34 99-11 
-99-23+11  34     11     -99
 
 
-10111111 00000000 00000000
-00010101 01101101 00101010
-
-10101001 10010010 11010110
+100000000
+ 11010101
+   101011
