@@ -1,4 +1,4 @@
-package macchiato;
+package macchiato.debugging;
 
 import macchiato.instructions.Instruction;
 
@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 
-public class Debugger {
+public class Debugger implements DebugHook {
 
     // region dane
     protected enum LogLevel {
@@ -39,6 +39,7 @@ public class Debugger {
      * Wywoływana przed wykonaniem instrukcji. Jeśli debugger jest w trybie debugowania, wyświetla informacje o instrukcji i czeka na komendę użytkownika.
      * @param instruction instrukcja, która zostanie wykonana.
      */
+    @Override
     public void beforeExecute(Instruction instruction) {
         if (shouldBreak())
             printConsole(instruction.toString(), LogLevel.INFO);
@@ -79,7 +80,7 @@ public class Debugger {
     }
 
     /**
-     * Dodaje kroki do wykonania zanim debugger wstrzyma program.
+     * Dodaje kroki do wykonania, zanim debugger wstrzyma program.
      * @param steps liczba kroków do wykonania.
      */
     public void addSteps(int steps) {
@@ -114,18 +115,21 @@ public class Debugger {
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue
                 if (finished)
-                    printConsole( "Program już się zakończył.", LogLevel.WARN);
+                    printConsole( "Program has already finished execution.", LogLevel.WARN);
                 else
                     stopDebugging();
                 break;
             case 's': // (s)tep
                 if (finished)
-                    printConsole( "Program już się zakończył.", LogLevel.WARN);
+                    printConsole( "Program has already finished execution.", LogLevel.WARN);
                 else
                     try {
-                        addSteps(Integer.parseInt(input[1]));
+                        int steps = Integer.parseInt(input[1]);
+                        if (steps < 1) // nie można wykonać mniej niż jednego kroku
+                            throw new NumberFormatException();
+                        addSteps(steps);
                     } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                        printConsole("Niepoprawna liczba kroków", LogLevel.ERROR);
+                        printConsole("Invalid number of steps.", LogLevel.ERROR);
                         handleUserInput(currentInstruction, false);
                     }
                 break;
@@ -136,16 +140,16 @@ public class Debugger {
                 try {
                     Instruction requested = currentInstruction.getParent(Integer.parseInt(input[1]));
                     if (requested == null)
-                        printConsole("Nie znaleziono rodzica o podanej głębokości: "+input[1], LogLevel.WARN);
+                        printConsole("Parent instruction of depth "+input[1] + " could not be resolved.", LogLevel.WARN);
                     else
                         printConsole(requested.dumpVars(), LogLevel.INFO);
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    printConsole("Niepoprawna głębokość", LogLevel.ERROR);
+                    printConsole("Invalid depth.", LogLevel.ERROR);
                     handleUserInput(currentInstruction, finished);
                 }
                 break;
             default:
-                printConsole("Nie rozpoznano komendy.", LogLevel.ERROR);
+                printConsole("Invalid command.", LogLevel.ERROR);
                 handleUserInput(currentInstruction, finished); // nie rozpoznano komendy, pobieramy ponownie
         }
         if (finished)
@@ -157,7 +161,7 @@ public class Debugger {
      * @param mainBlock główny blok programu.
      */
     protected void onFinish(Instruction mainBlock) {
-        printConsole("Program zakończył się " + (didFail ? "błędem." : "powodzeniem."), (didFail ? LogLevel.WARN : LogLevel.INFO));
+        printConsole("Program finished " + (didFail ? "with an error." : "successfully."), (didFail ? LogLevel.WARN : LogLevel.INFO));
         handleUserInput(mainBlock, true);
     }
 
@@ -171,7 +175,7 @@ public class Debugger {
     }
 
     /**
-     * Wyświetla treść wyjątku i zamyka program.
+     * Wyświetla komunikat o błędzie i ustawia flagę błędu.
      * @param e wyjątek.
      */
     public void handleError(Exception e) {

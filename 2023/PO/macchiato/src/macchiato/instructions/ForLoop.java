@@ -1,7 +1,7 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
 import macchiato.Variables;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 public class ForLoop extends Instruction {
     // region dane
     private final char iteratorName;
-    private final Expression end;
-    private final Instruction body;
+    @NotNull private final Expression end;
+    @NotNull private final Instruction body;
     // endregion dane
 
     // region techniczne
@@ -37,6 +37,7 @@ public class ForLoop extends Instruction {
     // region operacje
     @Override
     public void execute() throws MacchiatoException {
+        super.execute();
         assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
         vars.declare(iteratorName, 0);
         int endValue = end.evaluate(this);
@@ -47,10 +48,11 @@ public class ForLoop extends Instruction {
     }
 
     @Override
-    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        super.debugExecute(debugger);
         assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
-        debugger.beforeExecute(this);
         vars.declare(iteratorName, 0);
+        debugger.beforeExecute(this);
         int endValue = end.evaluate(this);
         for (int i = 0; i < endValue; i++) {
             vars.set(iteratorName, i);

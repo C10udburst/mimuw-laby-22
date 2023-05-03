@@ -1,7 +1,7 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
 import macchiato.Variables;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.InvalidVariableNameException;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.exceptions.UndeclaredVariableException;
@@ -78,14 +78,20 @@ public abstract class Instruction {
      * Wykonuje instrukcję.
      * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
      */
-    public abstract void execute() throws MacchiatoException;
+    public void execute() throws MacchiatoException {
+        if (vars != null)
+            vars.reset();
+    }
 
     /**
      * Wykonuje instrukcję w trybie debugowania.
      * @param debugger debugger
      * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
      */
-    public abstract void debugExecute(@NotNull Debugger debugger) throws MacchiatoException;
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        if (vars != null)
+            vars.reset();
+    }
 
     /**
      * Zwraca nadrzędny blok o podanej głębokości.

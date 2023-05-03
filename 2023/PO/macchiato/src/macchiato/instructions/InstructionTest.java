@@ -13,6 +13,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test implementacji instrukcji.
+ * Zadeklarowany w pakiecie macchiato.instructions, ponieważ aby sprawdzić poprawność działania klasy Instruction, musimy odwołać się do jego wewnętrznych struktur.
+ */
 class InstructionTest {
 
     @Test
@@ -60,5 +64,4 @@ class InstructionTest {
         assertEquals(mainBlock, blocks.get(0).getParent(6));
         assertNull(blocks.get(0).getParent(7));
     }
-
 }

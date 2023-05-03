@@ -1,7 +1,7 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
 import macchiato.Declaration;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ public class MainBlock extends Block {
     }
 
     @Override
-    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         super.debugExecute(debugger);
         System.out.println(dumpVars());
     }

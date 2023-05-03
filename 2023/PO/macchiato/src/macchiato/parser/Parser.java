@@ -2,11 +2,13 @@ package macchiato.parser;
 
 import macchiato.Declaration;
 import macchiato.comparators.*;
-import macchiato.comparators.Comparator;
+import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.*;
 import macchiato.instructions.*;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,7 +20,7 @@ import java.util.stream.Collectors;
  * Składnia:
  * <pre>
  * Dla uproszczenia pominięto tutaj znaki końca linii, ale w kodzie źródłowym muszą być one obecne,
- * wszędzie tam, gdzie pojawia się *Declaracja lub *Instrukcja.
+ * wszędzie tam, gdzie pojawia się *Deklaracja lub *Instrukcja.
  * Znaki końca linii można zastąpić średnikami lub dwukropkami.
  *
  * Symbol startowy: GłównyBlok
@@ -47,7 +49,7 @@ public class Parser {
     private static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("(?<name>[a-z]) ?= ?\\( ?(?<exp>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");
     private static final Pattern FOR_PATTERN = Pattern.compile("(?<name>[a-z]) ?= ?0\\.\\.?\\( ?(?<exp>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");
 
-    private final List<String> lines;
+    private final LinkedList<String> lines;
     private int lineNumber = 0;
 
     public Parser(String source) {
@@ -59,7 +61,7 @@ public class Parser {
                 .filter(s -> !s.isBlank())
                 .map(String::trim)
                 .filter(s -> !s.startsWith("#"))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -67,7 +69,7 @@ public class Parser {
      * @return Główny blok instrukcji
      * @throws ParserException W przypadku błędu parsowania
      */
-    public MainBlock parse() throws ParserException {
+    public MainBlock parse() throws ParserException, MacchiatoException {
         return parseMainBlock();
     }
 
@@ -75,7 +77,7 @@ public class Parser {
      * Na podstawie pierwszej linii kodu wybiera odpowiednią instrukcję i ją parsuje.
      * @return Blok instrukcji
      */
-    private Instruction parseAny() throws ParserException {
+    private Instruction parseAny() throws ParserException, MacchiatoException {
         String line = popLine();
 
         return switch (line) {
@@ -92,7 +94,7 @@ public class Parser {
      * Parsuje instrukcję if.
      * @return Instrukcja if
      */
-    private IfStatement parseIf() throws ParserException {
+    private IfStatement parseIf() throws ParserException, MacchiatoException {
         String line = popLine();
 
         // Parsuj warunek <exp1> <=|<>|>|<|>=|<=> <exp2>
@@ -129,7 +131,7 @@ public class Parser {
      * Parsuje instrukcję for.
      * @return Instrukcja for
      */
-    private ForLoop parseFor() throws ParserException {
+    private ForLoop parseFor() throws ParserException, MacchiatoException {
         String line = popLine();
 
         Matcher forLoop = FOR_PATTERN.matcher(line);
@@ -148,7 +150,7 @@ public class Parser {
      * Parsuje blok instrukcji.
      * @return Blok instrukcji
      */
-    private Block parseBlock() throws ParserException {
+    private Block parseBlock() throws ParserException, MacchiatoException {
         List<Declaration> declarations = new LinkedList<>();
         List<Instruction> instructions = new LinkedList<>();
 
@@ -186,7 +188,7 @@ public class Parser {
      * Parsuje główny blok instrukcji.
      * @return Główny blok instrukcji
      */
-    private MainBlock parseMainBlock() throws ParserException {
+    private MainBlock parseMainBlock() throws ParserException, MacchiatoException {
         List<Declaration> declarations = new LinkedList<>();
         List<Instruction> instructions = new LinkedList<>();
 
@@ -284,9 +286,7 @@ public class Parser {
      */
     private String popLine() throws ParserException {
         if (lines.isEmpty()) throw new ParserException("Unexpected end of file");
-        String line = lines.get(0);
-        lines.remove(0);
         lineNumber++;
-        return line;
+        return lines.poll();
     }
 }

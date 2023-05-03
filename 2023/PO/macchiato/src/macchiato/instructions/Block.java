@@ -1,8 +1,8 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
 import macchiato.Declaration;
 import macchiato.Variables;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,8 +10,8 @@ import java.util.List;
 
 public class Block extends Instruction {
     // region dane
-    private final List<Declaration> declarations;
-    private final List<Instruction> instructions;
+    @NotNull private final List<Declaration> declarations;
+    @NotNull private final List<Instruction> instructions;
     // endregion dane
 
     // region techniczne
@@ -30,18 +30,21 @@ public class Block extends Instruction {
         for (Instruction instruction : instructions)
             instruction.parent = this;
 
+        assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Block {\n");
-        sb.append("Declarations (").append(declarations.size()).append("):\n");
-        for (Declaration declaration : declarations)
-            sb.append(declaration).append("\n");
-        sb.append("Instructions: ").append(instructions.size()).append("\n");
-        sb.append("Variables:\n").append(dumpVars());
-        sb.append("\n}");
+        sb.append("Block: \n");
+        sb.append("\t");
+        sb.append("Deklaracje (").append(declarations.size()).append("): {");
+        for (int i = 0; i < declarations.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(declarations.get(i));
+        }
+        sb.append("}, ");
+        sb.append("Instrukcje: ").append(instructions.size());
         return sb.toString();
     }
     // endregion techniczne
@@ -49,17 +52,19 @@ public class Block extends Instruction {
     // region operacje
     @Override
     public void execute() throws MacchiatoException {
+        super.execute();
         assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
-        for (Declaration declaration : declarations)
+        for (Declaration declaration : declarations) // ustala wartości zmiennych
             vars.declare(declaration.getName(), declaration.execute(this));
         for (Instruction instruction : instructions)
             instruction.execute();
     }
 
     @Override
-    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        super.debugExecute(debugger);
         assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
-        for (Declaration declaration : declarations)
+        for (Declaration declaration : declarations) // ustala wartości zmiennych
             vars.declare(declaration.getName(), declaration.execute(this));
         debugger.beforeExecute(this);
         for (Instruction instruction : instructions)
