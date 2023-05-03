@@ -1,6 +1,6 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,13 +27,24 @@ public class PrintStdOut extends Instruction {
     // region operacje
     @Override
     public void execute() throws MacchiatoException {
+        super.execute();
         System.out.println(getVariable(variable));
     }
 
     @Override
-    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        super.debugExecute(debugger);
         debugger.beforeExecute(this);
         System.out.println(getVariable(variable));
+    }
+
+    /**
+     * Zwraca nazwę zmiennej, której wartość zostanie wypisana.
+     * Używane przez MacchiatoTest.
+     * @return nazwa zmiennej
+     */
+    public char getVariableName() {
+        return variable;
     }
     // endregion operacje
 }

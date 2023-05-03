@@ -1,17 +1,16 @@
 package macchiato.instructions;
 
-import macchiato.Debugger;
 import macchiato.comparators.Comparator;
+import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IfStatement extends Instruction {
     // region dane
-    protected Comparator comparator;
-    @NotNull Instruction thenInstruction;
-    @Nullable
-    protected Instruction elseInstruction;
+    @NotNull protected Comparator comparator;
+    @NotNull protected Instruction thenInstruction;
+    @Nullable protected Instruction elseInstruction;
     // endregion dane
 
     // region techniczne
@@ -21,7 +20,7 @@ public class IfStatement extends Instruction {
      * @param thenInstruction instrukcja, która ma być wykonana, jeśli warunek jest prawdziwy
      * @param elseInstruction instrukcja, która ma być wykonana, jeśli warunek jest fałszywy
      */
-    public IfStatement(Comparator comparator, @NotNull Instruction thenInstruction, @Nullable Instruction elseInstruction) {
+    public IfStatement(@NotNull Comparator comparator, @NotNull Instruction thenInstruction, @Nullable Instruction elseInstruction) {
         super(null);
         this.comparator = comparator;
         this.thenInstruction = thenInstruction;
@@ -41,6 +40,7 @@ public class IfStatement extends Instruction {
     // region operacje
     @Override
     public void execute() throws MacchiatoException {
+        super.execute();
         if (comparator.execute(this)) {
             thenInstruction.execute();
         } else {
@@ -50,7 +50,8 @@ public class IfStatement extends Instruction {
     }
 
     @Override
-    public void debugExecute(@NotNull Debugger debugger) throws MacchiatoException {
+    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        super.debugExecute(debugger);
         debugger.beforeExecute(this);
         if (comparator.execute(this)) {
             thenInstruction.debugExecute(debugger);

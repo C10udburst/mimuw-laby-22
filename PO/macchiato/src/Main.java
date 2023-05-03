@@ -1,4 +1,4 @@
-import macchiato.Debugger;
+import macchiato.debugging.Debugger;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.MainBlock;
 import macchiato.parser.Parser;
@@ -9,18 +9,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.Objects;
 
 public class Main {
     public static void main(String[] args) throws MacchiatoException, ParserException, IOException {
         if (args.length == 0) {
-            System.err.println("Usage: macchiato [<source file>|stdin] [debug]");
+            System.err.println("Usage: macchiato [<source file>|ask] [debug]");
             System.exit(1);
         }
 
         // Wczytaj plik źródłowy
         String sourcePath = args[0];
-        if (Objects.equals(args[0], "stdin")) {
+        if (args[0].equals("ask")) {
             System.out.print("File path: ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             sourcePath = br.readLine();
