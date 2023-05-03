@@ -14,7 +14,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- *
+ * Test implementacji języka Macchiato. Testujemy pełne programy, a nie pojedyncze instrukcje.
+ * Nie testujemy parsowania.
  */
 class MacchiatoTest {
 
@@ -65,7 +66,7 @@ class MacchiatoTest {
     }
 
     /**
-     * Test z przykładowego pseudokodu w poleceniu
+     * Test z przykładowego pseudokodu z polecenia
      */
     @Test
     void primeTest() throws MacchiatoException {
