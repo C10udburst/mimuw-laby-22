@@ -2,11 +2,13 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c17 -O0 -g3
 #TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
 TESTER =
+NASMFLAGS = -w+all -w+error
+GDB_FLAGS = --tui -ex "break sum" -ex "set debuginfod enabled on" -ex "set disassembly-flavor intel" -ex "r" -ex "layout asm"
 
-.PHONY: clean test gdb
+.PHONY: clean test gdb dump
 
 sum.o: sum.asm
-	nasm -f elf64 -w+all -w+error -o $@ $<
+	nasm -f elf64 $(NASMFLAGS) -o $@ $<
 
 sum_example.o: sum_example.c
 
@@ -14,7 +16,10 @@ sum.elf: sum_example.o sum.o
 	gcc -z noexecstack -o $@ $^
 
 gdb: sum.elf
-	gdb ./$< --tui -ex "break sum" -ex "set debuginfod enabled on" -ex "set disassembly-flavor intel" -ex "r" -ex "layout asm"
+	gdb ./$< $(GDB_FLAGS)
+
+dump: sum.o
+	objdump -M intel -d $^
 
 test: sum.elf
 	$(TESTER) ./$<

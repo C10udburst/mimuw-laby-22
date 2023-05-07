@@ -1,183 +1,119 @@
 global sum
 
+%define n rsi
+%define x rdi
+%define i r8
+
+; [carry:current] = x[i] * 2^(i*i*64/n)
+%define current r9
+%define carry r10
+
+; r11 będzie trzymać od którego miejsca należy uzupełnić 0xffff... aby liczba x[] rzeczywiście trzymała wynik poprzednej operacji
+%define first_fff r11
+
 section .text
 
 sum:
-  ; rsi = n
-  ; rdi = x
-  ; r8 = i
-  ; r10 = abs(x[i])
-  ; r9 = sgn(y)
-  ; rax = 64*r8*r8/rsi lub 64*r8*r8/(8*rsi)
-  ; rdx = y[rax + 8]
-  ; r11 = sgn(x[i]) lub sgn(x[i]) != sgn(y) 
+  ; jeśli tablica jest jednoelementowa, to nie trzeba nic robić
+  cmp n, 1
+  je .done
 
-  ; jeśli n = 1 to nic nie trzeba robić
-  cmp rsi, 1
-  je .skip_everything
+  mov first_fff, -1       ; first_fff = INFINITY
+  xor i, i                ; i = 0
+  xor carry, carry        ; carry = 0
+.loop_start:              ; for(int i=0; i<n; i++)
 
-  ; rdx = 0, rax = 0
-  xor rdx, rdx
-  xor rax, rax
-  xor r8, r8
+  mov current, qword [x + 8*i]    ; Wczytuje current = x[i]
+  mov qword [x + 8*i], 0          ; Ustawiam x[i] = 0
 
-  ; r9 = sgn(x[0])
-  cmp qword [rdi], 0
-  jl .if_neg_firstx
-  mov r9, 0
-  jmp .loop_start
-.if_neg_firstx:
-  mov r9, 1
+  ; jeśli carry jest puste, to nie trzeba go dodawać
+  cmp carry, 0
+  je .carry_empty
 
-.loop_start: ; for (int i := r8 = 1; i < n; i++)
-  mov r10, [rdi + 8*r8] ; r10 = x[i]
-  mov qword [rdi + 8*r8], 0 ; x[i] = 0
+  inc rax
 
-  ; r11 = (r10 > 0) ? 0 : 1; r10 = abs(r10)
-  cmp r10, 0
-  jl .if_neg_xi
-  mov r11d, 0 ; r11 = 0
-  jmp .endif_neg_xi
-.if_neg_xi: ; else
-  neg r10 ; r10 = -r10
-  mov r11d, 1 ; r11 = 1
-.endif_neg_xi:
+  lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
+  jmp .fill_with_fff
+.finish_fill_1:
 
-  ; if rdx > 0 then [rdi + rax + 64] += rdx
-  ; dodajemy to co zostało z poprzedniego działania do następnego 64 bloku
-.adding_previous_carry:
-  cmp rdx, 0
-  je .no_prev_carry
-  add rax, 8
+  add qword [x + 8*rax], carry
+  js .y_negative
+  mov first_fff, -1         ; first_fff = INFINITY, bo liczba jest dodatnia
+  jmp .y_positive
+.y_negative:
+  lea first_fff, [rax + 1] ; first_fff = rax+1
+.y_positive:
+
+.carry_empty:
+
+  mov rax, i    ; rax = i
+  mul i         ; rax = i*i
+  shl rax, 6    ; rax = 64*i*i
+  div n         ; rax = 64*i*i / n
+
+  ; Wyliczanie który blok z x[] wybrać i o ile pomnożyć current
   mov rcx, rax
-  shr rcx, 6 ; rcx /= 64
-  cmp rcx, rsi
-  jge .no_prev_carry
-  ; jeśli sie mieści w tablicy to powiększamy
-  add [rdi + rax], rdx
-.no_prev_carry:
+  and rcx, 64 - 1    ; rcx = rax % 64
+  shr rax, 6         ; rax = rax / 64
 
-  ; rax = 64*i*i/n
-.calculating_power:
-  mov rax, r8
-  mul r8
-  shl rax, 6 ; rax *= 64
-  div rsi
+  ; Wyliczanie carry = (current < 0) ? -1 : 0
+  test current, current       ; SF = current < 0
+  js .current_negative        ; if current < 0
+  xor carry, carry            ; carry = 0 if current >= 0 
+  jmp .current_positive       ; if current >= 0 
+.current_negative:
+  mov carry, -1               ; carry = -1 if current < 0
+.current_positive:
 
-  ; rcx = rax%8
-.calculating_table_offset_from_power:
-  mov rcx, rax
-  and rcx, 0x7 ; trzy ostatnie bity
-  shr rax, 3
+  ; mnożenie current przez 2^((64*i*i/n) % 64) i zapisywanie wyniku do [carry:current]
+  ; ponieważ cl < 64, to wiemy na pewno że znak zostanie zachowanym,
+  ; bo zostanie przynajmniej 1 bit z pierwotnego carry
+  shld current, carry, cl     ; [carry:current] = current >> CL
 
-  ; [rdx:r10] = r10<<rcx
-  jrcxz .skip_shift_by_rcx
-  xor rdx, rdx
-.shift_by_rcx:
-  shl rdx, 1
-  shl r10, 1
-  adc rdx, 0
-  loop .shift_by_rcx
-.skip_shift_by_rcx:
+  lea rdx, [rel .finish_fill_2] ; ustawienie adresu powrotu z .fill_with_fff
+  jmp .fill_with_fff            ; wypełnienie -1
+.finish_fill_2:
+  
+  add qword [x + 8*rax], current ; y += current mod 64
+  adc carry, 0                   ; carry += CF
 
-  ; r11d = sgn(y) !=  sgn(x[i])
-.begin_actual_addition:
-  xor r11d, r9d
-  jnz .if_diff_sgn
-.if_same_sgn:
-  ; sgn(y) == sgn(s[i])
-  add qword [rdi + rax], r10
-  adc rdx, 0
-  jmp .endif_same_sgn
-.if_diff_sgn:
-  ; sgn(y) != sgn(s[i])
-  cmp rdx, 0
-  je .no_carry
-.has_carry:
-  xor r9, 1   ; y = -y
-  cmp r10, qword [rdi + rax]
-  jle .has_carry_r10_less_equal
-.has_carry_r10_bigger:
-  sub r10, qword [rdi + rax]
-  dec r10 
-  mov qword [rdi + rax], r10
-  jmp .sub_old_bits
-.has_carry_r10_less_equal:
-  dec rdx
-  xor qword [rdi + rax], 0xffffffffffffffff
-  add [rdi + rax], r10
-  jmp .sub_old_bits
+  inc i       ; i++
 
-.no_carry:
-  cmp r10, qword [rdi + rax]
-  jle .no_carry_r10_less_equal
-.no_carry_r10_bigger:
-  xor r9, 1 ; y = -y
-  sub r10, qword [rdi + rax]
-  dec r10
-  mov qword [rdi + rax], r10
-  jmp .sub_old_bits
-.no_carry_r10_less_equal:
-  sub qword [rdi + rax], r10
-.endif_has_carry:
-.endif_same_sgn:
+  ; jeśli i<n to kontynuuj pętle
+  cmp i, n
+  jb .loop_start
 
-  jmp .loop_continue
-.sub_old_bits:
-  mov rcx, rax
-  jrcxz .sub_old_bits_skip
-  dec rcx
-  jrcxz .sub_old_bits_end
-  xor r11, r11 ; ostatni niezerowy bajt
-.sub_old_bits_loop:
-  cmp byte [rdi + rcx], 0
-  je .sub_old_bits_zero
-  mov r11, rcx
-.sub_old_bits_zero:
-  xor byte [rdi+rcx], 0xFF
-  sub rcx, 1
-  jns .sub_old_bits_loop
-.sub_old_bits_end:
-  inc rcx
-.sub_old_bits_skip:
-  inc byte [rdi+r11]
+; dodawanie ostatniego carry
+  inc rax
+  cmp rax, n
+  jae .done     ; jeśli rax > n to nie dodajemy
+  add qword [x + 8*rax], carry
 
-.loop_continue:
-  inc r8
-  cmp r8, rsi
-  jne .loop_start
-.loop_end:
-
-.adding_last_carry:
-  cmp rdx, 0
-  je .no_last_carry
-  add rax, 8
-  mov rcx, rax
-  shr rcx, 6 ; rcx /= 64
-  cmp rcx, rsi
-  jge .no_last_carry
-  ; jeśli sie mieści w tablicy to powiększamy
-  add [rdi + rax], rdx
-.no_last_carry:
-
-  and r9, 0x1
-  jz .positive_y
-.negative_y:
-  xor r8, r8
-  mov rcx, 1
-.negative_y_loop:
-  xor qword [rdi+8*r8], 0xffffffffffffffff
-  jrcxz .negative_y_no_carry
-  add qword [rdi+8*r8], 1
-  jc .next_has_carry
-.next_has_no_carry:
-  xor rcx, rcx
-.next_has_carry:
-.negative_y_no_carry:
-  inc r8
-  cmp r8, rsi
-  jl .negative_y_loop
-
-.positive_y:
-.skip_everything:
+.done:
   ret
+
+; for(rcx = first_fff; rcx <= rax; rcx++)
+;     x[rcx] = -1
+; jmp rdx
+.fill_with_fff:
+; rax = max(rax, n-1)
+  cmp rax, n
+  jb .rax_smaller_t_n
+  lea rax, [n - 1]
+.rax_smaller_t_n:
+
+  cmp rax, first_fff
+  jb .end_fill_fff            ; jeśli rax < first_fff, to nie trzeba nic wypełniać
+
+  mov rcx, first_fff
+.loop_fill_fff: ; for(rcx = first_fff; rcx <= rax; rcx++)
+  mov qword [x + 8*rcx], -1  ; x[rcx] = -1 = 0xfffffff...
+  inc rcx                    ; rcx++
+  cmp rcx, rax
+  jbe .loop_fill_fff         ; rcx <= rax
+
+  ; ponieważ wypełniliśmy wszystko od first_fff do rax włącznie
+  ; to następny niezmieniony blok to rax + 1
+  lea first_fff, [rax + 1]   ; first_fff = rax + 1
+.end_fill_fff:
+  jmp rdx
