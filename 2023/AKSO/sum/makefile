@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -std=c17 -O0 -g3
 #TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
 TESTER =
 NASMFLAGS = -w+all -w+error
-GDB_FLAGS = --tui -ex "break sum" -ex "set debuginfod enabled on" -ex "set disassembly-flavor intel" -ex "r" -ex "layout asm"
+GDB_FLAGS = --tui -x gdbinit
 
 .PHONY: clean test gdb dump
 

@@ -36,7 +36,12 @@ sum:
   jmp .fill_with_fff
 .finish_fill_1:
 
+  ; TODO: carry z dodawania carry
+  ; xor rcx, rcx
   add qword [x + 8*rax], carry
+  ; adc rcx, 0
+  ; or qword [x + 8*rax], 0
+
   js .y_negative
   mov first_fff, -1         ; first_fff = INFINITY, bo liczba jest dodatnia
   jmp .y_positive
@@ -68,7 +73,8 @@ sum:
   ; mnożenie current przez 2^((64*i*i/n) % 64) i zapisywanie wyniku do [carry:current]
   ; ponieważ cl < 64, to wiemy na pewno że znak zostanie zachowanym,
   ; bo zostanie przynajmniej 1 bit z pierwotnego carry
-  shld current, carry, cl     ; [carry:current] = current >> CL
+  shld carry, current, cl       ; przesuwamy cl bitów z current do carry
+  shl current, cl               ; mnożymy current razy 2^cl
 
   lea rdx, [rel .finish_fill_2] ; ustawienie adresu powrotu z .fill_with_fff
   jmp .fill_with_fff            ; wypełnienie -1
