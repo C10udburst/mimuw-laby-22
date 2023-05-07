@@ -22,6 +22,12 @@ public class PrintStdOut extends Instruction {
     public String toString() {
         return "print " + variable;
     }
+
+    @Override
+    public String getShortName() {
+        return "print";
+    }
+
     // endregion techniczne
 
     // region operacje

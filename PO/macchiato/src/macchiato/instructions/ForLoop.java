@@ -30,8 +30,14 @@ public class ForLoop extends Instruction {
 
     @Override
     public String toString() {
-        return "for "+iteratorName+" in 0.."+end.toString();
+        return "for "+iteratorName+" in 0.."+end.toString()+ " do " + body.getShortName();
     }
+
+    @Override
+    public String getShortName() {
+        return "for";
+    }
+
     // endregion techniczne
 
     // region operacje
@@ -50,10 +56,14 @@ public class ForLoop extends Instruction {
     @Override
     public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         super.debugExecute(debugger);
+
         assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
         vars.declare(iteratorName, 0);
+
         debugger.beforeExecute(this);
-        int endValue = end.evaluate(this);
+
+        int endValue = end.evaluate(this); // koniec pętli liczymy tylko raz
+
         for (int i = 0; i < endValue; i++) {
             vars.set(iteratorName, i);
             body.debugExecute(debugger);

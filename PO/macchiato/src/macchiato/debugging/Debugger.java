@@ -12,6 +12,7 @@ public class Debugger implements DebugHook {
     protected enum LogLevel {
 
         INFO("\u001B[0m"),
+        SUCCESS("\u001B[32m"),
         WARN("\u001B[33m"),
         ERROR("\u001B[31m")
         ;
@@ -115,13 +116,13 @@ public class Debugger implements DebugHook {
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue
                 if (finished)
-                    printConsole( "Program has already finished execution.", LogLevel.WARN);
+                    printConsole( "Program już się zakończył.", LogLevel.WARN);
                 else
                     stopDebugging();
                 break;
             case 's': // (s)tep
                 if (finished)
-                    printConsole( "Program has already finished execution.", LogLevel.WARN);
+                    printConsole( "Program już się zakończył.", LogLevel.WARN);
                 else
                     try {
                         int steps = Integer.parseInt(input[1]);
@@ -129,7 +130,7 @@ public class Debugger implements DebugHook {
                             throw new NumberFormatException();
                         addSteps(steps);
                     } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                        printConsole("Invalid number of steps.", LogLevel.ERROR);
+                        printConsole("Nieprawidłowa liczba kroków.", LogLevel.ERROR);
                         handleUserInput(currentInstruction, false);
                     }
                 break;
@@ -138,21 +139,22 @@ public class Debugger implements DebugHook {
                 break;
             case 'd': // (d)isplay
                 try {
-                    Instruction requested = currentInstruction.getParent(Integer.parseInt(input[1]));
+                    int depth = Integer.parseInt(input[1]);
+                    Instruction requested = currentInstruction.getParent(depth);
                     if (requested == null)
-                        printConsole("Parent instruction of depth "+input[1] + " could not be resolved.", LogLevel.WARN);
+                        printConsole("Nie znaleziono instrukcji o głębokości " + depth + ".", LogLevel.ERROR);
                     else
                         printConsole(requested.dumpVars(), LogLevel.INFO);
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                    printConsole("Invalid depth.", LogLevel.ERROR);
+                    printConsole("Nieprawidłowa głębokość.", LogLevel.ERROR);
                     handleUserInput(currentInstruction, finished);
                 }
                 break;
             default:
-                printConsole("Invalid command.", LogLevel.ERROR);
+                printConsole("Nie rozpoznano komendy.", LogLevel.ERROR);
                 handleUserInput(currentInstruction, finished); // nie rozpoznano komendy, pobieramy ponownie
         }
-        if (finished)
+        if (finished) // jeśli wykonywanie się zakończyło, to nie przerywamy wczytywania komend, gdyż nie ma już co wykonywać
             handleUserInput(currentInstruction, true);
     }
 
@@ -161,7 +163,7 @@ public class Debugger implements DebugHook {
      * @param mainBlock główny blok programu.
      */
     protected void onFinish(Instruction mainBlock) {
-        printConsole("Program finished " + (didFail ? "with an error." : "successfully."), (didFail ? LogLevel.WARN : LogLevel.INFO));
+        printConsole("Program zakończył działanie z" + (didFail ? " błędem." : " powodzeniem."), didFail ? LogLevel.ERROR : LogLevel.SUCCESS);
         handleUserInput(mainBlock, true);
     }
 
@@ -179,7 +181,7 @@ public class Debugger implements DebugHook {
      * @param e wyjątek.
      */
     public void handleError(Exception e) {
-        printConsole(e.getMessage(), LogLevel.ERROR);
+        printConsole("Błąd: " + e.getMessage(), LogLevel.ERROR);
         didFail = true;
     }
 }

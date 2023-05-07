@@ -22,7 +22,15 @@ public abstract class Instruction {
         this.vars = vars;
     }
 
+    // wymuszenie implementacji metody toString() w klasach dziedziczących
     public abstract String toString();
+
+    /**
+     * @return Krótka nazwa instrukcji, używana przy wypisywaniu np. listy instrukcji w bloku.
+     */
+    public String getShortName() {
+        return this.getClass().getSimpleName();
+    }
     // endregion techniczne
 
     // region operacje na zmiennych
@@ -85,7 +93,7 @@ public abstract class Instruction {
 
     /**
      * Wykonuje instrukcję w trybie debugowania.
-     * @param debugger debugger
+     * @param debugger obiekt, który ma zostać powiadomiony o wykonaniu instrukcji
      * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
      */
     public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {

@@ -33,8 +33,23 @@ public class IfStatement extends Instruction {
 
     @Override
     public String toString() {
-        return "if " + comparator.toString() + (elseInstruction != null ? " ... else ..." : " ...");
+        StringBuilder sb = new StringBuilder();
+        sb.append("if ");
+        sb.append(comparator);
+        sb.append(" then ");
+        sb.append(thenInstruction.getShortName());
+        if (elseInstruction != null) {
+            sb.append(" else ");
+            sb.append(elseInstruction.getShortName());
+        }
+        return sb.toString();
     }
+
+    @Override
+    public String getShortName() {
+        return "if";
+    }
+
     // endregion techniczne
 
     // region operacje

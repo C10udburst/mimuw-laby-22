@@ -27,6 +27,12 @@ public class Assignment extends Instruction {
     public String toString() {
         return variable + " = " + expression.toString();
     }
+
+    @Override
+    public String getShortName() {
+        return "set";
+    }
+
     // endregion techniczne
 
     // region operacje

@@ -44,9 +44,20 @@ public class Block extends Instruction {
             sb.append(declarations.get(i));
         }
         sb.append("}, ");
-        sb.append("Instrukcje: ").append(instructions.size());
+        sb.append("Instrukcje (").append(instructions.size()).append("): {");
+        for (int i = 0; i < instructions.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(instructions.get(i).getShortName());
+        }
+        sb.append("}");
         return sb.toString();
     }
+
+    @Override
+    public String getShortName() {
+        return "block";
+    }
+
     // endregion techniczne
 
     // region operacje
