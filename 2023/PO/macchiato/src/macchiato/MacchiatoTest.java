@@ -5,6 +5,8 @@ import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.*;
 import macchiato.instructions.*;
+import macchiato.parser.Parser;
+import macchiato.parser.ParserException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -162,4 +164,43 @@ class MacchiatoTest {
         DebugHook debugHook = new PrintDebugHook(expected);
         mainBlock.debugExecute(debugHook);
     }
+
+    /**
+     * Test sprawdzający poprawność wyliczania silni
+     */
+    @Test
+    void moduloFactorial() throws MacchiatoException, ParserException {
+        int max = 56;
+        int modulo = Integer.MAX_VALUE - 10;
+        LinkedList<Integer> intermediateResults = new LinkedList<>();
+        int expected = factorial(max, modulo, intermediateResults);
+        DebugHook debugHook = new PrintDebugHook(intermediateResults);
+        String src = String.format("""
+                n = (%d)
+                m = (%d)
+                f = (1)
+                do
+                    for: i = 0..(n)
+                        block
+                        do {
+                            set: f = (f m %% i 1 + * m %%)   :# f = ((f mod m)*(i+1)) mod m
+                            print: f
+                        }
+                """, max, modulo);
+        Parser parser = new Parser(src);
+        MainBlock mainBlock = parser.parse();
+        mainBlock.debugExecute(debugHook);
+        assertEquals(expected, mainBlock.getVariable('f'));
+    }
+
+    /** Funkcja obliczająca silnię {@param n} modulo {@param modulo} */
+    private static int factorial(int n, int modulo, List<Integer> intermediateResults) {
+        int result = 1;
+        for (int i = 1; i <= n; i++) {
+            result = (result * i) % modulo;
+            intermediateResults.add(result);
+        }
+        return result;
+    }
+
 }

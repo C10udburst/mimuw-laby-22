@@ -134,6 +134,7 @@ public class Parser {
     private ForLoop parseFor() throws ParserException, MacchiatoException {
         String line = popLine();
 
+        // Parsuj pętlę <name> = 0..<exp>
         Matcher forLoop = FOR_PATTERN.matcher(line);
         if (!forLoop.matches()) throw new ParserLineException(line, lineNumber);
 
@@ -155,19 +156,13 @@ public class Parser {
         List<Instruction> instructions = new LinkedList<>();
 
         boolean finishedDeclarations = false;
-        while (!lines.isEmpty() && !lines.get(0).equals("}")) {
+        while (!lines.isEmpty() && !lines.get(0).equals("}")) { // Parsuj deklaracje i instrukcje do końca bloku, czyli do }
             if (!finishedDeclarations) {
-                String line = popLine();
-                if (line.equals("do {")) {
+                if (lines.get(0).equals("do {")) {
                     finishedDeclarations = true;
+                    lines.remove(0);
                 } else {
-                    Matcher declaration = ASSIGNMENT_PATTERN.matcher(line);
-                    if (!declaration.matches()) throw new ParserLineException(line, lineNumber);
-
-                    char name = declaration.group("name").charAt(0);
-                    Expression exp = parseExpression(declaration.group("exp"));
-
-                    declarations.add(new Declaration(name, exp));
+                    declarations.add(parseDeclaration());
                 }
             } else {
                 // Zakończyły się deklaracje, parsuj instrukcje
@@ -177,7 +172,7 @@ public class Parser {
 
         if (lines.isEmpty()) throw new ParserException("Unexpected end of file");
 
-        // Usuń końcową linię }
+        // Usuń końcowy znak }
         lines.remove(0);
         lineNumber++;
 
@@ -193,25 +188,38 @@ public class Parser {
         List<Instruction> instructions = new LinkedList<>();
 
         boolean finishedDeclarations = false;
-        while (!lines.isEmpty()) {
+        while (!lines.isEmpty()) { // Parsuj deklaracje i instrukcje do końca pliku
             if (!finishedDeclarations) {
-                String line = popLine();
-                if (line.equals("do")) {
+                if (lines.get(0).equals("do")) {
                     finishedDeclarations = true;
+                    lines.remove(0);
                 } else {
-                    Matcher declaration = ASSIGNMENT_PATTERN.matcher(line);
-                    if (!declaration.matches()) throw new ParserLineException(line, lineNumber);
-
-                    char name = declaration.group("name").charAt(0);
-                    Expression exp = parseExpression(declaration.group("exp"));
-
-                    declarations.add(new Declaration(name, exp));
+                     declarations.add(parseDeclaration());
                 }
             } else {
+                // Zakończyły się deklaracje, parsuj instrukcje
                 instructions.add(parseAny());
             }
         }
         return new MainBlock(declarations, instructions);
+    }
+
+    /**
+     * Parsuje deklarację zmiennej.
+     * @return Deklaracja zmiennej
+     * @throws ParserException Błąd parsowania
+     */
+    private Declaration parseDeclaration() throws ParserException {
+        String line = popLine();
+
+        // <name> = <exp>
+        Matcher declaration = ASSIGNMENT_PATTERN.matcher(line);
+        if (!declaration.matches()) throw new ParserLineException(line, lineNumber);
+
+        char name = declaration.group("name").charAt(0);
+        Expression exp = parseExpression(declaration.group("exp"));
+
+        return new Declaration(name, exp);
     }
 
     /**
@@ -261,6 +269,7 @@ public class Parser {
                 if (stack.size() < 2)
                     throw new ParserLineException(line, lineNumber); // za mało argumentów na stosie
 
+                // jeśli operator, to wykonaj operację na dwóch argumentach ze stosu, kolejność ma znaczenie
                 Expression right = stack.pop();
                 Expression left = stack.pop();
                 switch (token) {
