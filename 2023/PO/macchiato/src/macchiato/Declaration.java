@@ -3,12 +3,14 @@ package macchiato;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.Expression;
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Klasa reprezentująca deklarację zmiennej. Zawiera nazwę zmiennej i wyrażenie, które staje się jej wartością.
  */
 public class Declaration {
     private final char name;
+    @NotNull
     private final Expression expression;
 
     @Override
@@ -20,7 +22,7 @@ public class Declaration {
      * @param name nazwa zmiennej
      * @param expression wyrażenie, które staje się wartością zmiennej
      */
-    public Declaration(char name, Expression expression) {
+    public Declaration(char name, @NotNull Expression expression) {
         this.name = name;
         this.expression = expression;
     }
@@ -30,7 +32,7 @@ public class Declaration {
      * @param parent instrukcja, która zawiera tę deklarację
      * @return wartość wyrażenia
      */
-    public int execute(Instruction parent) throws MacchiatoException {
+    public int execute(@NotNull Instruction parent) throws MacchiatoException {
         return expression.evaluate(parent);
     }
 

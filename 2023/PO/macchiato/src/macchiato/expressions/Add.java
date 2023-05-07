@@ -2,13 +2,14 @@ package macchiato.expressions;
 
 import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 public class Add extends Operator {
     // region dane
     // end region
 
     // region techniczne
-    public Add(Expression arg1, Expression arg2) {
+    public Add(@NotNull Expression arg1, @NotNull Expression arg2) {
         super(arg1, arg2);
     }
 
@@ -26,7 +27,7 @@ public class Add extends Operator {
 
     // region operacje
     @Override
-    public int evaluate(Instruction context) throws MacchiatoException {
+    public int evaluate(@NotNull Instruction context) throws MacchiatoException {
         return arg1.evaluate(context) + arg2.evaluate(context);
     }
     // endregion

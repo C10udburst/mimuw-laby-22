@@ -8,9 +8,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class IfStatement extends Instruction {
     // region dane
-    @NotNull protected Comparator comparator;
-    @NotNull protected Instruction thenInstruction;
-    @Nullable protected Instruction elseInstruction;
+    @NotNull protected final Comparator comparator;
+    @NotNull protected final Instruction thenInstruction;
+    @Nullable protected final Instruction elseInstruction;
     // endregion dane
 
     // region techniczne

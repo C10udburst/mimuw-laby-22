@@ -1,9 +1,10 @@
 package macchiato.comparators;
 
 import macchiato.expressions.Expression;
+import org.jetbrains.annotations.NotNull;
 
 public class LessEqual extends Comparator {
-    public LessEqual(Expression left, Expression right) {
+    public LessEqual(@NotNull Expression left, @NotNull Expression right) {
         super(left, right);
     }
 

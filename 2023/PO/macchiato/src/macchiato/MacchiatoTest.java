@@ -7,6 +7,7 @@ import macchiato.expressions.*;
 import macchiato.instructions.*;
 import macchiato.parser.Parser;
 import macchiato.parser.ParserException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -25,13 +26,10 @@ class MacchiatoTest {
      * Klasa używana do testowania instrukcji {@link PrintStdOut}
      */
     private record PrintDebugHook(LinkedList<Integer> expected) implements DebugHook {
-
-    @Override
-        public void beforeExecute(Instruction instruction) {
+        @Override
+        public void beforeExecute(@NotNull Instruction instruction) {
             if (instruction instanceof PrintStdOut print) {
-                assertDoesNotThrow(() -> {
-                    assertEquals(expected.poll(), instruction.getVariable(print.getVariableName()));
-                });
+                assertDoesNotThrow(() -> assertEquals(expected.poll(), instruction.getVariable(print.getVariableName())));
             }
         }
     }
@@ -42,19 +40,12 @@ class MacchiatoTest {
     private record PrimePrintDebugHook() implements DebugHook {
 
         @Override
-        public void beforeExecute(Instruction instruction) {
+        public void beforeExecute(@NotNull Instruction instruction) {
             if (instruction instanceof PrintStdOut print) {
-                assertDoesNotThrow(() -> {
-                    assertTrue(isPrime(instruction.getVariable(print.getVariableName())), "Liczba " + instruction.getVariable(print.getVariableName()) + " nie jest liczbą pierwszą");
-                });
+                assertDoesNotThrow(() -> assertTrue(isPrime(instruction.getVariable(print.getVariableName())), "Liczba " + instruction.getVariable(print.getVariableName()) + " nie jest liczbą pierwszą"));
             }
         }
 
-        /**
-         * Metoda sprawdzająca, czy podana liczba jest liczbą pierwszą
-         * @param number liczba do sprawdzenia
-         * @return true jeśli jest liczbą pierwszą, false w przeciwnym wypadku
-         */
         private boolean isPrime(int number) {
             if (number <= 1) {
                 return false;
@@ -193,7 +184,6 @@ class MacchiatoTest {
         assertEquals(expected, mainBlock.getVariable('f'));
     }
 
-    /** Funkcja obliczająca silnię {@param n} modulo {@param modulo} */
     private static int factorial(int n, int modulo, List<Integer> intermediateResults) {
         int result = 1;
         for (int i = 1; i <= n; i++) {

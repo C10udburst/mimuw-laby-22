@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class InstructionTest {
 
+    /** Testy funkcji {@link Instruction#dumpVars()} */
     @Test
     void dumpVars() throws MacchiatoException {
         List<Declaration> declarations = List.of(
@@ -30,6 +31,7 @@ class InstructionTest {
         assertEquals("a: 1, b: 5", mainBlock.dumpVars());
     }
 
+    /** Testy sprawdzające poprawność działania zmiennych. */
     @Test
     void variableScopes() throws MacchiatoException {
         List<Declaration> declarations = List.of(
@@ -41,7 +43,10 @@ class InstructionTest {
         mainBlock.execute();
         assertEquals(1, innerBlock.getVariable('a'));
         assertEquals(5, innerBlock.getVariable('b'));
-        assertThrows(UndeclaredVariableException.class, () -> innerBlock.vars.get('a'));
+        assertThrows(UndeclaredVariableException.class, () -> {
+            assert innerBlock.vars != null;
+            innerBlock.vars.get('a');
+        });
         assertThrows(UndeclaredVariableException.class, () -> innerBlock.getVariable('c'));
         assertThrows(UndeclaredVariableException.class, () -> innerBlock.setVariable('c', 1));
         innerBlock.setVariable('a', 2);
@@ -49,6 +54,7 @@ class InstructionTest {
         assertEquals(2, mainBlock.getVariable('a'));
     }
 
+    /** Testy funkcji {@link Instruction#getParent(int)} )} */
     @Test
     void getParent() {
         ArrayList<Block> blocks = new ArrayList<>();

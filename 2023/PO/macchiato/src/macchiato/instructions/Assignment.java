@@ -25,7 +25,7 @@ public class Assignment extends Instruction {
 
     @Override
     public String toString() {
-        return variable + " = " + expression.toString();
+        return variable + " = " + expression;
     }
 
     @Override
