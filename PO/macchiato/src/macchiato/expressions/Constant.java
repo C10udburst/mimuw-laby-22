@@ -1,10 +1,11 @@
 package macchiato.expressions;
 
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 public class Constant extends Expression {
     // region dane
-    int value;
+    private final int value;
     // endregion
 
     // region techniczne
@@ -20,7 +21,7 @@ public class Constant extends Expression {
 
     // region operacje
     @Override
-    public int evaluate(Instruction context) {
+    public int evaluate(@NotNull Instruction context) {
         return value;
     }
     // endregion

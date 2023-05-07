@@ -3,12 +3,14 @@ package macchiato;
 import macchiato.exceptions.InvalidVariableNameException;
 import macchiato.exceptions.UndeclaredVariableException;
 import macchiato.exceptions.VariableRedeclarationException;
+import org.jetbrains.annotations.NotNull;
 
 public class Variables {
 
     // region dane
 
-    Integer[] vars;
+    @NotNull
+    private Integer[] vars;
 
     public Variables() {
         this.vars = new Integer[26];

@@ -1,6 +1,7 @@
 package macchiato.debugging;
 
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -41,7 +42,7 @@ public class Debugger implements DebugHook {
      * @param instruction instrukcja, która zostanie wykonana.
      */
     @Override
-    public void beforeExecute(Instruction instruction) {
+    public void beforeExecute(@NotNull Instruction instruction) {
         if (shouldBreak())
             printConsole(instruction.toString(), LogLevel.INFO);
         while (shouldBreak()) {
@@ -54,7 +55,7 @@ public class Debugger implements DebugHook {
      * Uruchamia debugger na podanym kodzie. Wyświetla informacje o błędzie, jeśli wystąpił.
      * @param start początek kodu.
      */
-    public static void debug(Instruction start) {
+    public static void debug(@NotNull Instruction start) {
         var debugger = new Debugger();
         try {
             start.debugExecute(debugger);
@@ -109,7 +110,7 @@ public class Debugger implements DebugHook {
      * @param currentInstruction instrukcja, która będzie wykonana jako następna.
      * @param finished czy wykonywanie już się zakończyło
      */
-    private void handleUserInput(Instruction currentInstruction, boolean finished) {
+    private void handleUserInput(@NotNull Instruction currentInstruction, boolean finished) {
         String[] input = getUserInput();
         while (input == null || input.length == 0 || input[0].length() < 1)
             input = getUserInput();
@@ -161,7 +162,7 @@ public class Debugger implements DebugHook {
      * Wywoływana po zakończeniu programu. Wyświetla komunikat o sukcesie lub błędzie.
      * @param mainBlock główny blok programu.
      */
-    protected void onFinish(Instruction mainBlock) {
+    protected void onFinish(@NotNull Instruction mainBlock) {
         printConsole("Program finished " + (didFail ? "with an error." : "successfully."), (didFail ? LogLevel.WARN : LogLevel.SUCCESS));
         handleUserInput(mainBlock, true);
     }
@@ -180,6 +181,7 @@ public class Debugger implements DebugHook {
      * @param e wyjątek.
      */
     public void handleError(Exception e) {
+        if (e == null) return;
         printConsole(e.getMessage(), LogLevel.ERROR);
         didFail = true;
     }

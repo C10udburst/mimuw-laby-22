@@ -30,7 +30,7 @@ public class ForLoop extends Instruction {
 
     @Override
     public String toString() {
-        return "for "+iteratorName+" in 0.."+end.toString()+ " do " + body.getShortName();
+        return "for "+iteratorName+" in 0.."+ end + " do " + body.getShortName();
     }
 
     @Override

@@ -3,24 +3,28 @@ package macchiato.comparators;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.Expression;
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class Comparator {
     // region dane
 
-    Expression left;
-    Expression right;
+    @NotNull
+    private final Expression left;
+
+    @NotNull
+    private final Expression right;
 
     // endregion dane
 
     // region techniczne
-    public Comparator(Expression left, Expression right) {
+    public Comparator(@NotNull Expression left, @NotNull Expression right) {
         this.left = left;
         this.right = right;
     }
 
     @Override
     public String toString() {
-        return left.toString() + " " + symbol() + " " + right.toString();
+        return left + " " + symbol() + " " + right;
     }
 
     /**

@@ -2,6 +2,7 @@ package macchiato.expressions;
 
 import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class Expression {
     // region dane
@@ -29,6 +30,6 @@ public abstract class Expression {
      *
      * @return wartość wyrażenia
      */
-    public abstract int evaluate(Instruction context) throws MacchiatoException;
+    public abstract int evaluate(@NotNull Instruction context) throws MacchiatoException;
     // endregion
 }

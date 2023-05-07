@@ -1,9 +1,10 @@
 package macchiato.comparators;
 
 import macchiato.expressions.Expression;
+import org.jetbrains.annotations.NotNull;
 
 public class NotEquals extends Comparator {
-    public NotEquals(Expression left, Expression right) {
+    public NotEquals(@NotNull Expression left, @NotNull Expression right) {
         super(left, right);
     }
 
