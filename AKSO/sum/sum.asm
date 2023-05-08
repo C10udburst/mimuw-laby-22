@@ -14,15 +14,11 @@ global sum
 section .text
 
 sum:
-  ; jeśli tablica jest jednoelementowa, to nie trzeba nic robić
-  cmp n, 1
-  je .done
-
   mov first_fff, -1       ; first_fff = INFINITY
   xor i, i                ; i = 0
   xor carry, carry        ; carry = 0
-.loop_start:              ; for(int i=0; i<n; i++)
 
+.loop_start:              ; for(int i=0; i<n; i++)
   mov current, qword [x + 8*i]    ; Wczytuje current = x[i]
   mov qword [x + 8*i], 0          ; Ustawiam x[i] = 0
 
@@ -88,7 +84,6 @@ sum:
 .finish_fill_3:   ; zapewniamy, że y jest wypełniony -1
   add qword [x + 8*rax], carry
 
-.done:
   ret
 
 ; for(rcx = first_fff; rcx <= rax; rcx++)
