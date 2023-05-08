@@ -30,20 +30,19 @@ sum:
   cmp carry, 0
   je .carry_empty
 
-  inc rax
+  inc rax     ; rax trzyma adres poprzedniego dodawania, a powinno znajdować się w rax+1
 
+  ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny y
   lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
-  jmp .fill_with_fff
+  jmp .fill_with_fff            ; wywołanie funkcji fill_with_fff
 .finish_fill_1:
 
   add qword [x + 8*rax], carry
 
-  js .y_negative
-  mov first_fff, -1         ; first_fff = INFINITY, bo liczba jest dodatnia
-  jmp .y_positive
-.y_negative:
-  lea first_fff, [rax + 1] ; first_fff = rax+1
-.y_positive:
+  ; first_fff = (SF) ? (rax + 1) : -1
+  mov first_fff, -2         ; -2, gdyż potem będziemy dodawać 1 aby dostać -1 lub rax + 1
+  cmovs first_fff, rax      ; jeśli SF to first_fff = rax
+  inc first_fff             ; rax => rax + 1 lub -2 => -1
 
 .carry_empty:
 
@@ -52,22 +51,19 @@ sum:
   shl rax, 6    ; rax = 64*i*i
   div n         ; rax = 64*i*i / n
 
+    ; Wyliczanie carry = (current < 0) ? -1 : 0
+  test current, current       ; SF = current < 0
+  setl cl                     ; cl = SF ? 1 : 0
+  movzx carry, cl             ; carry = cl
+  neg carry                   ; carry *= -1
+
   ; Wyliczanie który blok z x[] wybrać i o ile pomnożyć current
   mov rcx, rax
-  and rcx, 64 - 1    ; rcx = rax % 64
-  shr rax, 6         ; rax = rax / 64
-
-  ; Wyliczanie carry = (current < 0) ? -1 : 0
-  test current, current       ; SF = current < 0
-  js .current_negative        ; if current < 0
-  xor carry, carry            ; carry = 0 if current >= 0 
-  jmp .current_positive       ; if current >= 0 
-.current_negative:
-  mov carry, -1               ; carry = -1 if current < 0
-.current_positive:
+  and rcx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
+  shr rax, 6         ; rax = rax / 64, wybór indeksu
 
   ; mnożenie current przez 2^((64*i*i/n) % 64) i zapisywanie wyniku do [carry:current]
-  ; ponieważ cl < 64, to wiemy na pewno że znak zostanie zachowanym,
+  ; ponieważ cl < 64 (bo rcx = rax % 64), to wiemy na pewno że znak zostanie zachowanym,
   ; bo zostanie przynajmniej 1 bit z pierwotnego carry
   shld carry, current, cl       ; przesuwamy cl bitów z current do carry
   shl current, cl               ; mnożymy current razy 2^cl
@@ -86,10 +82,10 @@ sum:
   jb .loop_start
 
 ; dodawanie ostatniego carry
-  inc rax
+  inc rax         ; w rax znajduje się ostatnie dodawanie current
   lea rdx, [rel .finish_fill_3]
   jmp .fill_with_fff
-.finish_fill_3:
+.finish_fill_3:   ; zapewniamy, że y jest wypełniony -1
   add qword [x + 8*rax], carry
 
 .done:
@@ -115,8 +111,5 @@ sum:
   cmp rcx, rax
   jbe .loop_fill_fff         ; rcx <= rax
 
-  ; ponieważ wypełniliśmy wszystko od first_fff do rax włącznie
-  ; to następny niezmieniony blok to rax + 1
-  lea first_fff, [rax + 1]   ; first_fff = rax + 1
 .end_fill_fff:
   jmp rdx
