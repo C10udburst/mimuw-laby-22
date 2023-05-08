@@ -36,11 +36,7 @@ sum:
   jmp .fill_with_fff
 .finish_fill_1:
 
-  ; TODO: carry z dodawania carry
-  ; xor rcx, rcx
   add qword [x + 8*rax], carry
-  ; adc rcx, 0
-  ; or qword [x + 8*rax], 0
 
   js .y_negative
   mov first_fff, -1         ; first_fff = INFINITY, bo liczba jest dodatnia
@@ -91,8 +87,9 @@ sum:
 
 ; dodawanie ostatniego carry
   inc rax
-  cmp rax, n
-  jae .done     ; jeśli rax > n to nie dodajemy
+  lea rdx, [rel .finish_fill_3]
+  jmp .fill_with_fff
+.finish_fill_3:
   add qword [x + 8*rax], carry
 
 .done:
