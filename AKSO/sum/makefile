@@ -5,7 +5,7 @@ TESTER =
 NASMFLAGS = -w+all -w+error
 GDB_FLAGS = --tui -x gdbinit
 
-.PHONY: clean test gdb dump
+.PHONY: clean test gdb dump 69 p pgdb
 
 sum.o: sum.asm
 	nasm -f elf64 $(NASMFLAGS) -o $@ $<
