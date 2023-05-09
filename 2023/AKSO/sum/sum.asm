@@ -79,11 +79,14 @@ sum:
 
 ; dodawanie ostatniego carry
   inc rax         ; w rax znajduje się ostatnie dodawanie current
+  cmp rax, n
+  jae .done
   lea rdx, [rel .finish_fill_3]
   jmp .fill_with_fff
 .finish_fill_3:   ; zapewniamy, że y jest wypełniony -1
   add qword [x + 8*rax], carry
 
+.done:
   ret
 
 ; for(rcx = first_fff; rcx <= rax; rcx++)
@@ -106,5 +109,6 @@ sum:
   cmp rcx, rax
   jbe .loop_fill_fff         ; rcx <= rax
 
+  lea first_fff, [rax + 1]
 .end_fill_fff:
   jmp rdx
