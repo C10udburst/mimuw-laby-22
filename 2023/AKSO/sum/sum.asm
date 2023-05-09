@@ -77,11 +77,9 @@ sum:
   jb .loop_start
 
 ; dodawanie ostatniego carry
-  cmp rax, n
-  jae .done
   lea rdx, [rel .finish_fill_3]
   jmp .fill_with_fff
-.finish_fill_3:   ; zapewniamy, że y jest wypełniony -1
+.finish_fill_3:   ; zapewniamy, że y jest wypełniony -1 jeśli trzeba
   add qword [x + 8*rax], carry
 
 .done:
@@ -94,7 +92,7 @@ sum:
   cmp rax, first_fff
   jb .end_fill_fff            ; jeśli rax < first_fff, to nie trzeba nic wypełniać
 
-.loop_fill_fff: ; while(first_fff <= rax) first_fff++
+.loop_fill_fff: ; while(first_fff <= rax)
   mov qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
   inc first_fff                    ; first_fff++
   cmp first_fff, rax
