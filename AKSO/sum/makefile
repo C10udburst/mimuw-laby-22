@@ -15,6 +15,9 @@ sum_example.o: sum_example.c
 sum.elf: sum_example.o sum.o
 	gcc -z noexecstack -o $@ $^
 
+libsum.so: sum.o
+	$(CC) -shared -o $@ $^
+
 gdb: sum.elf
 	gdb ./$< $(GDB_FLAGS)
 
