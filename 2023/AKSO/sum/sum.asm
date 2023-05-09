@@ -84,8 +84,8 @@ sum:
 
   ret
 
-; for(rcx = first_fff; rcx <= rax; rcx++)
-;     x[rcx] = -1
+; while(first_fff <= rax)
+;     x[first_fff++] = -1
 ; jmp rdx
 .fill_with_fff:
   cmp rax, first_fff
