@@ -82,7 +82,6 @@ sum:
 .finish_fill_3:   ; zapewniamy, że y jest wypełniony -1 jeśli trzeba
   add qword [x + 8*rax], carry
 
-.done:
   ret
 
 ; for(rcx = first_fff; rcx <= rax; rcx++)
