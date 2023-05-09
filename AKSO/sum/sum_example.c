@@ -8,7 +8,7 @@
 void sum(int64_t *x, size_t n);
 
 // To są dane do testów.
-static const int64_t x0[] = {3};
+static const int64_t x0[] = {0x9b2d83c61ea14757};
 static const int64_t x1[] = {7, 9};
 static const int64_t x2[] = {-3, 8};
 static const int64_t x3[] = {3, -8};
@@ -25,9 +25,10 @@ static const int64_t x7[] = {
   INT64_MIN, INT64_MIN, INT64_MIN, INT64_MIN,
   INT64_MIN
 };
+static const int64_t x8[] = {0x8000000000000000, 0x7fffffffffffffff, 0x8000000000000000, 0x7fffffffffffffff, 0x8000000000000000, 0x7fffffffffffffff};
 
 // To są oczekiwane wyniki.
-static const int64_t y0[] = {0x0000000000000003};
+static const int64_t y0[] = {0x9b2d83c61ea14757};
 static const int64_t y1[] = {0x0000000900000007, 0x0000000000000000};
 static const int64_t y2[] = {0x00000007fffffffd, 0x0000000000000000};
 static const int64_t y3[] = {0xfffffff800000003, 0xffffffffffffffff};
@@ -49,6 +50,7 @@ static const int64_t y7[] = {
   0xfffff7ffffffffff, 0xffffffffffffffff, 0xfffffffffffbffff, 0xffffffffffffffff,
   0xfffffffffffffff7
 };
+static const int64_t y8[] = {0x7ffffffffffffc00, 0xfffffdff000001ff, 0x000000007fffffff, 0xfffffe0000000000, 0xfffffffffffffbff, 0x00000000000001ff};
 
 typedef struct {
   size_t  const t;  // numer testu
@@ -69,6 +71,7 @@ static const test_data_t test_data[] = {
   DATA(5),
   DATA(6),
   DATA(7),
+  DATA(8)
 };
 
 int main() {

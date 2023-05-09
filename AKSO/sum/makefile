@@ -19,7 +19,13 @@ libsum.so: sum.o
 	$(CC) -shared -o $@ $^
 
 gdb: sum.elf
-	gdb ./$< $(GDB_FLAGS)
+	gdb ./$< $(GDB_FLAGS) -ex "run"
+
+pgdb: libsum.so
+	gdb python3 $(GDB_FLAGS) -ex "run sum_test.py"
+
+p: libsum.so
+	python3 sum_test.py
 
 dump: sum.o
 	objdump -M intel -d $^

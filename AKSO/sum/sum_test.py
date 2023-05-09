@@ -16,7 +16,15 @@ where ** denotes a power-up, and y is a (64 * n)-bit number in the complement re
 It is free to assume that the pointer to x is valid and that n has a positive value less than 2 to the power of 29.
 """
 
-random.seed(sys.argv[1])
+seed = None
+if len(sys.argv) < 2:
+    seed = input("seed> ")
+    if seed == "":
+        seed = str(os.getpid())
+else:
+    seed = sys.argv[1]
+        
+random.seed(seed)
 
 INT_MIN = -9223372036854775808
 INT_MAX = 9223372036854775807
@@ -25,7 +33,7 @@ libsum = ctypes.CDLL(os.path.join(os.getcwd(), 'libsum.so'))
 
 def generate_x():
     x = []
-    for _ in range(random.randint(1, 25)):
+    for _ in range(random.randint(1, 2048)):
         x.append(random.randint(INT_MIN, INT_MAX))
     return x
 
@@ -83,7 +91,7 @@ for i in range(len(x)):
         print(f"  expected: {expected:016x}")
         errored = True
 
-print(f"{n=}")
+print(f"{n=}, {seed=}")
 print("x=", end='')
 pprint(x, n)
 print("y=", end='')
@@ -92,4 +100,4 @@ print("r=", end='')
 pprint(x_array, n)
 
 if not errored:
-    print("success!")
+    print("\033[92msuccess!")
