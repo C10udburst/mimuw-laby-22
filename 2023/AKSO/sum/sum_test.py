@@ -18,9 +18,7 @@ It is free to assume that the pointer to x is valid and that n has a positive va
 
 seed = None
 if len(sys.argv) < 2:
-    seed = input("seed> ")
-    if seed == "":
-        seed = str(os.getpid())
+    seed = str(os.getpid())
 else:
     seed = sys.argv[1]
         
@@ -33,7 +31,7 @@ libsum = ctypes.CDLL(os.path.join(os.getcwd(), 'libsum.so'))
 
 def generate_x():
     x = []
-    for _ in range(random.randint(1, 2048)):
+    for _ in range(random.randint(1, 5000)):
         x.append(random.randint(INT_MIN, INT_MAX))
     return x
 
@@ -51,7 +49,6 @@ def chunks(xs, n):
 
 def n_ff(n):
     return int("ff"*n, 16)
-    
 
 def make_yarray(y, n):
     y_array = []
@@ -92,12 +89,13 @@ for i in range(len(x)):
         errored = True
 
 print(f"{n=}, {seed=}")
-print("x=", end='')
-pprint(x, n)
-print("y=", end='')
-pprint(y_array, n)
-print("r=", end='')
-pprint(x_array, n)
+# print("x=", end='')
+# pprint(x, n)
+# print("y=", end='')
+# pprint(y_array, n)
+# print("r=", end='')
+# pprint(x_array, n)
 
 if not errored:
-    print("\033[92msuccess!")
+    print("\033[92msuccess!\033[0m")
+sys.exit(1 if errored else 0)

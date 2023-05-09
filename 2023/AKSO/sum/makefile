@@ -22,7 +22,10 @@ gdb: sum.elf
 	gdb ./$< $(GDB_FLAGS) -ex "run"
 
 pgdb: libsum.so
-	gdb python3 $(GDB_FLAGS) -ex "run sum_test.py"
+	gdb python3 $(GDB_FLAGS)
+
+69: libsum.so
+	for _ in {1..69}; do python3 sum_test.py || break; done
 
 p: libsum.so
 	python3 sum_test.py

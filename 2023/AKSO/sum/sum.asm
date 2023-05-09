@@ -26,8 +26,6 @@ sum:
   cmp carry, 0
   je .carry_empty
 
-  inc rax     ; rax trzyma adres poprzedniego dodawania, a powinno znajdować się w rax+1
-
   ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny y
   lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
   jmp .fill_with_fff            ; wywołanie funkcji fill_with_fff
@@ -70,15 +68,15 @@ sum:
   
   add qword [x + 8*rax], current ; y += current mod 64
   adc carry, 0                   ; carry += CF
+  inc rax  ; rax trzyma adres poprzedniego dodawania, carry znajduje się o jeden indeks wyżej
 
-  inc i       ; i++
+  inc i
 
   ; jeśli i<n to kontynuuj pętle
   cmp i, n
   jb .loop_start
 
 ; dodawanie ostatniego carry
-  inc rax         ; w rax znajduje się ostatnie dodawanie current
   cmp rax, n
   jae .done
   lea rdx, [rel .finish_fill_3]
@@ -93,22 +91,13 @@ sum:
 ;     x[rcx] = -1
 ; jmp rdx
 .fill_with_fff:
-; rax = max(rax, n-1)
-  cmp rax, n
-  jb .rax_smaller_t_n
-  lea rax, [n - 1]
-.rax_smaller_t_n:
-
   cmp rax, first_fff
   jb .end_fill_fff            ; jeśli rax < first_fff, to nie trzeba nic wypełniać
 
-  mov rcx, first_fff
-.loop_fill_fff: ; for(rcx = first_fff; rcx <= rax; rcx++)
-  mov qword [x + 8*rcx], -1  ; x[rcx] = -1 = 0xfffffff...
-  inc rcx                    ; rcx++
-  cmp rcx, rax
-  jbe .loop_fill_fff         ; rcx <= rax
-
-  lea first_fff, [rax + 1]
+.loop_fill_fff: ; while(first_fff <= rax) first_fff++
+  mov qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
+  inc first_fff                    ; first_fff++
+  cmp first_fff, rax
+  jbe .loop_fill_fff         ; first_fff <= rax
 .end_fill_fff:
   jmp rdx
