@@ -26,9 +26,10 @@ class InstructionTest {
                 new Declaration('a', new Constant(1)),
                 new Declaration('b', new Add(new Constant(2), new Constant(3)))
         );
-        MainBlock mainBlock = new MainBlock(declarations, Collections.emptyList());
+        Block innerBlock = new Block(Collections.emptyList(), Collections.emptyList());
+        MainBlock mainBlock = new MainBlock(declarations, List.of(innerBlock));
         mainBlock.execute();
-        assertEquals("a: 1, b: 5", mainBlock.dumpVars());
+        assertEquals("a: 1, b: 5", innerBlock.dumpVars());
     }
 
     /** Testy sprawdzające poprawność działania zmiennych. */
