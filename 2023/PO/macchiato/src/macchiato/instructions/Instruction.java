@@ -18,8 +18,8 @@ public abstract class Instruction {
     /**
      * Tworzy instrukcję.
      */
-    public Instruction(@Nullable Variables vars) {
-        this.vars = vars;
+    public Instruction(boolean hasVariables) {
+        vars = hasVariables ? new Variables(this) : null;
     }
 
     // wymuszenie implementacji metody toString() w klasach dziedziczących
@@ -61,7 +61,7 @@ public abstract class Instruction {
     public int getVariable(char name) throws InvalidVariableNameException, UndeclaredVariableException {
         try {
             if (vars == null) // nie ma zmiennych w tym bloku
-                throw new UndeclaredVariableException(name);
+                throw new UndeclaredVariableException(name, this);
             return vars.get(name);
         } catch (UndeclaredVariableException e) {
             if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana
@@ -80,7 +80,7 @@ public abstract class Instruction {
     public void setVariable(char name, int value) throws InvalidVariableNameException, UndeclaredVariableException {
         try {
             if (vars == null) // nie ma zmiennych w tym bloku
-                throw new UndeclaredVariableException(name);
+                throw new UndeclaredVariableException(name, this);
             vars.set(name, value);
         } catch (UndeclaredVariableException e) {
             if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana

@@ -51,7 +51,7 @@ public class Main {
             assert true; // nie powinno się zdarzyć, bo source jest poprawny
         }
         assert mainBlock != null;
-        mainBlock.execute();
+        Debugger.debug(mainBlock);
     }
 
     /**

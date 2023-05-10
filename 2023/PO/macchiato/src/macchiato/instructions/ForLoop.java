@@ -1,6 +1,5 @@
 package macchiato.instructions;
 
-import macchiato.Variables;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.Expression;
@@ -21,7 +20,7 @@ public class ForLoop extends Instruction {
      * @param body ciało pętli
      */
     public ForLoop(char iteratorName, @NotNull Expression end, @NotNull Instruction body) {
-        super(new Variables());
+        super(true);
         this.iteratorName = iteratorName;
         this.end = end;
         this.body = body;

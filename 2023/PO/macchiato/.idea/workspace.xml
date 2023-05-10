@@ -4,8 +4,23 @@
     <list default="true" id="fa4a200a-fe3e-4b6a-a80d-e4d9dc68898b" name="Changes" comment="macchiato: debugger tweak">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/macchiato/MacchiatoTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/MacchiatoTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/Variables.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/Variables.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/debugging/Debugger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/debugging/Debugger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/exceptions/DivideByZeroException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/exceptions/DivideByZeroException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/exceptions/InvalidVariableNameException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/exceptions/InvalidVariableNameException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/exceptions/MacchiatoException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/exceptions/MacchiatoException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/exceptions/UndeclaredVariableException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/exceptions/UndeclaredVariableException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/exceptions/VariableRedeclarationException.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/exceptions/VariableRedeclarationException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/expressions/Divide.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/expressions/Divide.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/expressions/Modulo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/expressions/Modulo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/Assignment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/Assignment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/Block.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/Block.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/ForLoop.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/ForLoop.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/IfStatement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/IfStatement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/Instruction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/Instruction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/InstructionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/InstructionTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/MainBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/MainBlock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/PrintStdOut.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/PrintStdOut.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,28 +34,32 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectId" id="2Oxj6oJbNe6kbtBYBUDyYFkM2Ew" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/students/inf/t/tw448546/mimuw-laby/2023/PO/bst&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Downloaded.Files.Path.Enabled": "false",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "/home/students/inf/t/tw448546/mimuw-laby/2023/PO/bst",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.lookFeel"
   }
-}</component>
-  <component name="RunManager" selected="JUnit.MacchiatoTest">
+}]]></component>
+  <component name="RunManager" selected="Application.Primes">
     <configuration name="Main" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="macchiato" />
@@ -49,7 +68,15 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="InstructionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="Primes" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="macchiato" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="InstructionTest" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
       <module name="macchiato" />
       <extension name="coverage">
         <pattern>
@@ -81,13 +108,13 @@
     </configuration>
     <list>
       <item itemvalue="Application.Main" />
+      <item itemvalue="Application.Primes" />
       <item itemvalue="JUnit.InstructionTest" />
       <item itemvalue="JUnit.MacchiatoTest" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.MacchiatoTest" />
-        <item itemvalue="JUnit.InstructionTest" />
       </list>
     </recent_temporary>
   </component>

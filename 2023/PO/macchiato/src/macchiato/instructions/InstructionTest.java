@@ -21,7 +21,7 @@ class InstructionTest {
 
     /** Testy funkcji {@link Instruction#dumpVars()} */
     @Test
-    void dumpVars() throws MacchiatoException {
+    void dumpVars() {
         List<Declaration> declarations = List.of(
                 new Declaration('a', new Constant(1)),
                 new Declaration('b', new Add(new Constant(2), new Constant(3)))
