@@ -35,11 +35,20 @@ public abstract class Instruction {
 
     // region operacje na zmiennych
     /**
-     * Wypisuje wszystkie zmienne w tej instrukcji.
+     * Wypisuje wszystkie zmienne w obecnym wartościowaniu
      * @return reprezentacja tekstowa wszystkich zmiennych.
      */
     public String dumpVars() {
-        return vars != null ? vars.toString() : "";
+        StringBuilder sb = new StringBuilder();
+        for(char name = 'a'; name <= 'z'; name++) {
+            try {
+                int value = getVariable(name);
+                sb.append(name).append(": ").append(value).append(", ");
+            } catch (InvalidVariableNameException | UndeclaredVariableException e) { /* nie ma takiej zmiennej */ }
+        }
+        if (sb.length() > 0) // usuń ostatni przecinek
+            sb.delete(sb.length() - 2, sb.length());
+        return sb.toString();
     }
 
     /**
@@ -102,14 +111,15 @@ public abstract class Instruction {
     }
 
     /**
-     * Zwraca nadrzędny blok o podanej głębokości.
-     * @param depth głębokość, 0 oznacza obecny blok
-     * @return nadrzędny blok o podanej głębokości
+     * Zwraca nadrzędną instrukcję o podanej głębokości.
+     * @param depth głębokość, 0 oznacza obecną instrukcję
+     * @return nadrzędna instrukcja o podanej głębokości
      */
     public @Nullable Instruction getParent(int depth) {
         if (depth == 0)  return this;
         if (parent == null)  return null;
         return parent.getParent(depth - 1);
     }
+
     // endregion operacje na instrukcjach
 }
