@@ -48,7 +48,7 @@ public class Main {
         try {
             mainBlock = parser.parse();
         } catch (ParserException | MacchiatoException ex) {
-            assert true; // nie powinno się zdarzyć, bo source jest poprawny
+            assert false; // nie powinno się zdarzyć, bo source jest poprawny
         }
         assert mainBlock != null;
         Debugger.debug(mainBlock);
