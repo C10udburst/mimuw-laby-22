@@ -18,7 +18,7 @@ public class Assignment extends Instruction {
      * @param expression wyrażenie, którego wartość przypisujemy
      */
     public Assignment(char variable, @NotNull Expression expression) {
-        super(null);
+        super(false);
         this.variable = variable;
         this.expression = expression;
     }

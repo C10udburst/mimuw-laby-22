@@ -21,7 +21,7 @@ public class IfStatement extends Instruction {
      * @param elseInstruction instrukcja, która ma być wykonana, jeśli warunek jest fałszywy
      */
     public IfStatement(@NotNull Comparator comparator, @NotNull Instruction thenInstruction, @Nullable Instruction elseInstruction) {
-        super(null);
+        super(false);
         this.comparator = comparator;
         this.thenInstruction = thenInstruction;
         this.elseInstruction = elseInstruction;

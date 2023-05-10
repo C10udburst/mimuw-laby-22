@@ -4,6 +4,7 @@ import macchiato.instructions.Instruction;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 
@@ -97,8 +98,11 @@ public class Debugger implements DebugHook {
         System.out.print("> ");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
-            return Arrays.stream(br.readLine().split(" ")).map(String::trim).toArray(String[]::new);
-        } catch (Exception e) {
+            String input = br.readLine();
+            if (input == null)
+                return null;
+            return Arrays.stream(input.split(" ")).map(String::trim).toArray(String[]::new);
+        } catch (IOException e) {
             handleError(e);
             return null;
         }
@@ -112,7 +116,11 @@ public class Debugger implements DebugHook {
      */
     private void handleUserInput(@NotNull Instruction currentInstruction, boolean finished) {
         String[] input = getUserInput();
-        while (input == null || input.length == 0 || input[0].length() < 1)
+        if (input == null) { // nie udało się pobrać wejścia, prawdopodobnie EOF
+            stopDebugging();
+            return;
+        }
+        while (input.length == 0 || input[0].length() < 1)
             input = getUserInput();
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue

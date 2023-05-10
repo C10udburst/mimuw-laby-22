@@ -15,7 +15,7 @@ public class PrintStdOut extends Instruction {
      * @param variable nazwa zmiennej
      */
     public PrintStdOut(char variable) {
-        super(null);
+        super(false);
         this.variable = variable;
     }
     @Override

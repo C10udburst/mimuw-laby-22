@@ -1,7 +1,6 @@
 package macchiato.instructions;
 
 import macchiato.Declaration;
-import macchiato.Variables;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +20,7 @@ public class Block extends Instruction {
      * @param instructions instrukcje do wykonania
      */
     public Block(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
-        super(new Variables());
+        super(true);
 
         this.declarations = declarations;
         this.instructions = instructions;

@@ -30,7 +30,7 @@ public class Modulo extends Operator {
     public int evaluate(@NotNull Instruction context) throws MacchiatoException {
         int arg2Value = arg2.evaluate(context);
         if (arg2Value == 0)
-            throw new DivideByZeroException(this);
+            throw new DivideByZeroException(this, context);
         return arg1.evaluate(context) % arg2Value;
     }
     // endregion

@@ -26,14 +26,20 @@ public class MainBlock extends Block {
     }
     // endregion techniczne
 
+    /**
+     * Wykonuje blok główny. Po bezbłędnym wykonaniu wypisuje na standardowe wyjście wartości wszystkich zmiennych w głównym bloku.
+     * Jeśli wystąpi błąd, wypisuje błąd i wartości wszystkich zmiennych w bloku, w którym wystąpił.
+     */
     @Override
     public void execute() {
         try {
             super.execute();
         } catch (MacchiatoException e) {
             System.err.println("An error occured: " + e.getMessage());
+            System.out.println(e.context.dumpVars());
+        } finally {
+            System.out.println(dumpVars());
         }
-        System.out.println(dumpVars());
     }
 
     @Override
