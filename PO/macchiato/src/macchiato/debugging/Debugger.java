@@ -140,7 +140,8 @@ public class Debugger implements DebugHook {
                 break;
             case 'd': // (d)isplay
                 try {
-                    Instruction requested = currentInstruction.getParent(Integer.parseInt(input[1]));
+                    int depth = Integer.parseInt(input[1]);
+                    Instruction requested = currentInstruction.getParent(depth);
                     if (requested == null)
                         printConsole("Parent instruction of depth " + input[1] + " could not be resolved.", LogLevel.WARN);
                     else
