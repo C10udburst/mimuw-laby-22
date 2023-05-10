@@ -89,12 +89,9 @@ sum:
 ; jmp rdx
 .fill_with_fff:
   cmp rax, first_fff
-  jb .end_fill_fff            ; jeśli rax < first_fff, to nie trzeba nic wypełniać
-
-.loop_fill_fff: ; while(first_fff <= rax)
+  jb .end_fill_fff
   mov qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
   inc first_fff                    ; first_fff++
-  cmp first_fff, rax
-  jbe .loop_fill_fff         ; first_fff <= rax
+  jmp .fill_with_fff
 .end_fill_fff:
   jmp rdx
