@@ -177,7 +177,7 @@ class MacchiatoTest {
                             set: f = (f m %% i 1 + * m %%)   :# f = ((f mod m)*(i+1)) mod m
                             print: f
                         }
-                """, max, modulo);
+                """, max, modulo).stripIndent().trim();
         Parser parser = new Parser(src);
         MainBlock mainBlock = parser.parse();
         mainBlock.debugExecute(debugHook);

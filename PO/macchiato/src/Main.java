@@ -11,12 +11,53 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 
 public class Main {
-    public static void main(String[] args) throws MacchiatoException, ParserException, IOException {
-        if (args.length == 0) {
-            System.err.println("Usage: macchiato [<source file>|ask] [debug]");
-            System.exit(1);
-        }
+    public static void main(String[] args) throws ParserException, MacchiatoException, IOException {
+        if (args.length == 0)
+            defaultBehaviour();
+        else
+            withArgs(args);
 
+    }
+
+    /**
+     * Domyślne zachowanie programu, gdy nie podano argumentów, wykonuje kod z polecenia.
+     */
+    private static void defaultBehaviour() {
+        String source = """
+                    n = (30)
+                do
+                    for: k = 0..(n 1 -)
+                        block
+                            p = (1)
+                            k = (k 2 +)
+                        do {
+                            for: i = 0..(k 2 -)
+                                block
+                                    i = (i 2 +)
+                                do {
+                                    if: (k i %) = (0)
+                                        set: p = (0)
+                                }
+                            if: (p) = (1)
+                                print: k
+                        }
+                """.stripIndent().trim();
+        // Parsuj
+        Parser parser = new Parser(source);
+        MainBlock mainBlock = null;
+        try {
+            mainBlock = parser.parse();
+        } catch (ParserException | MacchiatoException ex) {
+            assert true; // nie powinno się zdarzyć, bo source jest poprawny
+        }
+        assert mainBlock != null;
+        mainBlock.execute();
+    }
+
+    /**
+     * Wykonuje kod z pliku, którego ścieżka jest podana jako argument, lub pyta o ścieżkę, jeśli podano "ask".
+     */
+    private static void withArgs(String[] args) throws MacchiatoException, ParserException, IOException {
         // Wczytaj plik źródłowy
         String sourcePath = args[0];
         if (args[0].equals("ask")) {
