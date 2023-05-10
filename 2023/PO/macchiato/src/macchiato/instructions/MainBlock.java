@@ -27,8 +27,12 @@ public class MainBlock extends Block {
     // endregion techniczne
 
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
+    public void execute() {
+        try {
+            super.execute();
+        } catch (MacchiatoException e) {
+            System.err.println("An error occured: " + e.getMessage());
+        }
         System.out.println(dumpVars());
     }
 

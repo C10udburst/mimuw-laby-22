@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="fa4a200a-fe3e-4b6a-a80d-e4d9dc68898b" name="Changes" comment="macchiato: debugger tweak">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/InstructionTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/InstructionTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/MacchiatoTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/MacchiatoTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/macchiato/instructions/MainBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/macchiato/instructions/MainBlock.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +44,7 @@
     <configuration name="Main" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />
       <module name="macchiato" />
-      <option name="PROGRAM_PARAMETERS" value="ask debug" />
+      <option name="PROGRAM_PARAMETERS" value="ask" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -77,6 +79,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.Main" />
+      <item itemvalue="JUnit.InstructionTest" />
+      <item itemvalue="JUnit.MacchiatoTest" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="JUnit.MacchiatoTest" />
