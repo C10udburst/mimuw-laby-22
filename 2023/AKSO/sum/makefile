@@ -5,12 +5,16 @@ TESTER =
 NASMFLAGS = -w+all -w+error
 GDB_FLAGS = --tui -x gdbinit
 
-.PHONY: clean test gdb dump 69 p pgdb
+.PHONY: clean test gdb dump 69 p pgdb testy
 
 sum.o: sum.asm
 	nasm -f elf64 $(NASMFLAGS) -o $@ $<
 
 sum_example.o: sum_example.c
+tester.o: tester.c
+
+abi_check.o: abi_check.asm
+	nasm -f elf64 $(NASMFLAGS) -o $@ $<
 
 sum.elf: sum_example.o sum.o
 	gcc -z noexecstack -o $@ $^
@@ -32,9 +36,25 @@ p: libsum.so
 
 dump: sum.o
 	objdump -M intel -d $^
+	size sum.o
 
 test: sum.elf
 	$(TESTER) ./$<
+
+tester.elf: sum.o abi_check.o tester.o
+	gcc -z noexecstack -o $@ $^
+
+testy: tester.elf
+	./$< < ./testy/t1 > /dev/null || echo "FAIL"
+	./$< < ./testy/t2 > /dev/null || echo "FAIL"
+	./$< < ./testy/t3 > /dev/null || echo "FAIL"
+	./$< < ./testy/t4 > /dev/null || echo "FAIL"
+	./$< < ./testy/t5 > /dev/null || echo "FAIL"
+	./$< < ./testy/t6 > /dev/null || echo "FAIL"
+	./$< < ./testy/t7 > /dev/null || echo "FAIL"
+	./$< < ./testy/t8 > /dev/null || echo "FAIL"
+	./$< < ./testy/t9 > /dev/null || echo "FAIL"
+	./$< < ./testy/t10 > /dev/null || echo "FAIL"
 
 clean:
 	rm *.o *.elf
