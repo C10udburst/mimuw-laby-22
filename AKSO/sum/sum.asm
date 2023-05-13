@@ -14,18 +14,16 @@ global sum
 section .text
 
 sum:
-  mov first_fff, -1       ; first_fff = INFINITY
+  or first_fff, -1        ; first_fff = INFINITY
   xor i, i                ; i = 0
   xor carry, carry        ; carry = 0
   xor rax, rax
 
 .loop_start:              ; for(int i=0; i<n; i++)
-  mov current, qword [x + 8*i]    ; Wczytuje current = x[i]
-  mov qword [x + 8*i], 0          ; Ustawiam x[i] = 0
 
-  ; jeśli carry jest puste, to nie trzeba go dodawać
-  ;cmp carry, 0
-  ;je .carry_empty
+  ; Wczytuje current = x[i] oraz ustawiam x[i] = 0
+  xor current, current          ; current = 0
+  xchg current, qword [x + 8*i] ; x[i] = 0, current = x[i]
 
   ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny y
   lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
@@ -47,10 +45,11 @@ sum:
   div n         ; rax = 64*i*i / n
 
     ; Wyliczanie carry = (current < 0) ? -1 : 0
+  xor carry, carry            ; carry = 0
   test current, current       ; SF = current < 0
-  setl cl                     ; cl = SF ? 1 : 0
-  movzx carry, cl             ; carry = cl
-  neg carry                   ; carry *= -1
+  jns .current_positive       ; SF > 0
+  or carry, -1                ; if (SF > 0) carry = -1
+.current_positive:
 
   ; Wyliczanie który blok z x[] wybrać i o ile pomnożyć current
   mov rcx, rax
@@ -78,7 +77,7 @@ sum:
   jb .loop_start
 
 ; dodawanie ostatniego carry
-  lea rdx, [rel .finish_fill_3]
+  add rdx, .finish_fill_3 - .finish_fill_2 ; ustawienie adresu powrotu z .fill_with_fff, ponieważ rdx się nie zmieniło, wystartczy dodać
   jmp .fill_with_fff
 .finish_fill_3:   ; zapewniamy, że y jest wypełniony -1 jeśli trzeba
   add qword [x + 8*rax], carry
@@ -91,7 +90,7 @@ sum:
 .fill_with_fff:
   cmp rax, first_fff
   jb .end_fill_fff
-  mov qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
+  or qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
   inc first_fff                    ; first_fff++
   jmp .fill_with_fff
 .end_fill_fff:
