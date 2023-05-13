@@ -36,12 +36,13 @@ sum:
   jmp .fill_with_fff            ; wywołanie funkcji fill_with_fff
 .finish_fill_1:
 
+  ; y += carry oraz first_fff = (SF) ? (rax + 1) : -1
+  or first_fff, -1 ; first_fff = - 1
   add qword [x + 8*rax], carry
-
-  ; first_fff = (SF) ? (rax + 1) : -1
-  mov first_fff, -2         ; -2, gdyż potem będziemy dodawać 1 aby dostać -1 lub rax + 1
-  cmovs first_fff, rax      ; jeśli SF to first_fff = rax
-  inc first_fff             ; rax => rax + 1 lub -2 => -1
+  jns .y_positive
+  mov first_fff, rax  ; jeśli SF to first_fff = rax
+  inc first_fff
+.y_positive:
 
 .carry_empty:
 
