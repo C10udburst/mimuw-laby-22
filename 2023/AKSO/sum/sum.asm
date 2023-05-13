@@ -11,6 +11,12 @@ global sum
 ; r11 będzie trzymać od którego miejsca należy uzupełnić 0xffff... aby liczba x[] rzeczywiście trzymała wynik poprzednej operacji
 %define first_fff r11
 
+; rdx będzie trzymać do którego miejsca ma wrócić wywołanie .fill_with_fff
+; 0 - powrót do .finish_fill_1
+; -1 - powrót do .finish_fill_2
+; wpw - kontynuuj, czyli dodaj ostanią resztę
+%define return_mark rdx
+
 section .text
 
 sum:
@@ -21,12 +27,12 @@ sum:
 
 .loop_start:              ; for(int i=0; i<n; i++)
 
-  ; Wczytuje current = x[i] oraz ustawiam x[i] = 0
+  ; wczytuję current = x[i] oraz ustawiam x[i] = 0
   xor current, current          ; current = 0
   xchg current, qword [x + 8*i] ; x[i] = 0, current = x[i]
 
-  ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny y
-  lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
+  ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny yf
+  xor return_mark, return_mark  ; return_mark = 0, czyli .finish_fill_1
   jmp .fill_with_fff            ; wywołanie funkcji fill_with_fff
 .finish_fill_1:
 
@@ -44,7 +50,7 @@ sum:
   shl rax, 6    ; rax = 64*i*i
   div n         ; rax = 64*i*i / n
 
-    ; Wyliczanie carry = (current < 0) ? -1 : 0
+  ; wyliczanie carry = (current < 0) ? -1 : 0
   xor carry, carry            ; carry = 0
   test current, current       ; SF = current < 0
   jns .current_positive       ; SF > 0
@@ -62,8 +68,8 @@ sum:
   shld carry, current, cl       ; przesuwamy cl bitów z current do carry
   shl current, cl               ; mnożymy current razy 2^cl
 
-  lea rdx, [rel .finish_fill_2] ; ustawienie adresu powrotu z .fill_with_fff
-  jmp .fill_with_fff            ; wypełnienie -1
+  or return_mark, -1   ; return_mark = -1, czyli .finish_fill_2
+  jmp .fill_with_fff   ; wypełnienie -1
 .finish_fill_2:
   
   add qword [x + 8*rax], current ; y += current mod 64
@@ -76,13 +82,9 @@ sum:
   cmp i, n
   jb .loop_start
 
-; dodawanie ostatniego carry
-  add rdx, .finish_fill_3 - .finish_fill_2 ; ustawienie adresu powrotu z .fill_with_fff, ponieważ rdx się nie zmieniło, wystartczy dodać
-  jmp .fill_with_fff
-.finish_fill_3:   ; zapewniamy, że y jest wypełniony -1 jeśli trzeba
-  add qword [x + 8*rax], carry
-
-  ret
+  ; ustaw return_mark na wartość inną niż 0 lub -1 
+  ; aby .fill_with_fff kontynuuowało
+  mov return_mark, n
 
 ; while(first_fff <= rax)
 ;     x[first_fff++] = -1
@@ -94,4 +96,11 @@ sum:
   inc first_fff                    ; first_fff++
   jmp .fill_with_fff
 .end_fill_fff:
-  jmp rdx
+  test return_mark, return_mark
+  jz .finish_fill_1
+  js .finish_fill_2
+  ; jeśli tu jesteśmy do znaczy że .fill_with_fff wywołane na samym końcu
+
+; dodawanie ostaniego carry
+  add qword [x + 8*rax], carry
+  ret
