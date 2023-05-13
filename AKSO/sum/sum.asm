@@ -83,18 +83,22 @@ sum:
   jb .loop_start
 
   ; ustaw return_mark na wartość inną niż 0 lub -1 
-  ; aby .fill_with_fff kontynuuowało
+  ; aby .fill_with_fff kontynuuowało, a wiemy, że n<=2^29
   mov return_mark, n
 
 ; while(first_fff <= rax)
 ;     x[first_fff++] = -1
-; jmp rdx
+; jmp {
+;     .finish_fill_1 jeśli return_mark = 0
+;     .finish_fill_2 jeśli return_mark = -1
+;     nigdzie wpw
+; } to podejście zajmuje mniej miejsca niż lea [rel .finish_fill_1], itd
 .fill_with_fff:
   cmp rax, first_fff
-  jb .end_fill_fff
+  jb .end_fill_fff                ; first_fff > rax
   or qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
-  inc first_fff                    ; first_fff++
-  jmp .fill_with_fff
+  inc first_fff                   ; first_fff++
+  jmp .fill_with_fff              ; first_fff <= rax
 .end_fill_fff:
   test return_mark, return_mark
   jz .finish_fill_1
