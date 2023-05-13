@@ -107,5 +107,10 @@ sum:
   ; jeśli tu jesteśmy do znaczy że .fill_with_fff wywołane na samym końcu
 
 ; dodawanie ostaniego carry
+  cmp rax, n
+  jae .rax_too_big
   add qword [x + 8*rax], carry
+
+.rax_too_big:
   ret
+
