@@ -17,14 +17,15 @@ sum:
   mov first_fff, -1       ; first_fff = INFINITY
   xor i, i                ; i = 0
   xor carry, carry        ; carry = 0
+  xor rax, rax
 
 .loop_start:              ; for(int i=0; i<n; i++)
   mov current, qword [x + 8*i]    ; Wczytuje current = x[i]
   mov qword [x + 8*i], 0          ; Ustawiam x[i] = 0
 
   ; jeśli carry jest puste, to nie trzeba go dodawać
-  cmp carry, 0
-  je .carry_empty
+  ;cmp carry, 0
+  ;je .carry_empty
 
   ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny y
   lea rdx, [rel .finish_fill_1] ; ustawienie adresu powrotu z .fill_with_fff
