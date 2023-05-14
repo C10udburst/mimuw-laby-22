@@ -28,6 +28,9 @@ gdb: sum.elf
 pgdb: libsum.so
 	gdb python3 $(GDB_FLAGS)
 
+eval: libsum.so
+	python3 sum_eval.py
+
 69: libsum.so
 	for _ in {1..69}; do python3 sum_test.py || break; done
 
