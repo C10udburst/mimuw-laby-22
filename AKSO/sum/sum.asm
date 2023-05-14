@@ -84,7 +84,7 @@ sum:
   jb .loop_start
 
   ; ustaw return_mark na wartość inną niż 0 lub -1 
-  ; aby .fill_with_fff kontynuuowało, a wiemy, że n<=2^29
+  ; aby .fill_with_fff kontynuuowało, a wiemy, że 0<n<=2^29
   mov return_mark, n
 
 ; while(first_fff <= rax)
@@ -102,8 +102,8 @@ sum:
   jmp .fill_with_fff              ; first_fff <= rax
 .end_fill_fff:
   test return_mark, return_mark
-  jz .finish_fill_1
-  js .finish_fill_2
+  jz .finish_fill_1    ; return_mark = 0
+  js .finish_fill_2    ; return_mark = -1
   ; jeśli tu jesteśmy do znaczy że .fill_with_fff wywołane na samym końcu
 
 ; dodawanie ostaniego carry
