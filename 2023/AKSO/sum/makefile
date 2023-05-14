@@ -57,6 +57,7 @@ testy: tester.elf
 	./$< < ./testy/t7 > /dev/null || echo "FAIL"
 	./$< < ./testy/t8 > /dev/null || echo "FAIL"
 	./$< < ./testy/t9 > /dev/null || echo "FAIL"
+	./$< < ./testy/ubijak1 > /dev/null || echo "FAIL"
 #	./$< < ./testy/t10 > /dev/null || echo "FAIL"
 
 clean:
