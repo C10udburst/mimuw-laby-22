@@ -4,51 +4,32 @@ global sum
 %define x rdi
 %define i r8
 
-; [carry:current] = x[i] * 2^(i*i*64/n)
 %define current r9
 %define carry r10
-
-; r11 będzie trzymać od którego miejsca należy uzupełnić 0xffff... aby liczba x[] rzeczywiście trzymała wynik poprzednej operacji
-%define first_fff r11
-
-; rdx będzie trzymać do którego miejsca ma wrócić wywołanie .fill_with_fff
-; 0 - powrót do .finish_fill_1
-; -1 - powrót do .finish_fill_2
-; wpw - kontynuuj, czyli dodaj ostanią resztę
-%define return_mark rdx
+%define next r11
 
 section .text
 
 sum:
-  or first_fff, -1        ; first_fff = INFINITY
-  xor i, i                ; i = 0
-  xor carry, carry        ; carry = 0
-  xor rax, rax
+  movq xmm0, r12
+  xor i, i             ; i = 0
+  or rax, -1           ; rax = INFTY
+  xor next, next       ; next = 0
+  xor carry, carry     ; carry = 0
+  xor current, current ; current = 0 
+.loop_start: ; for(int i=0; i<n; i++)
 
-.loop_start:              ; for(int i=0; i<n; i++)
+  ; wczytuję next = x[i] oraz ustawiam x[i] = 0
+  xchg next, qword [x + 8*i] ; x[i] = 0, next = x[i]
 
-  ; wczytuję current = x[i] oraz ustawiam x[i] = 0
-  xor current, current          ; current = 0
-  xchg current, qword [x + 8*i] ; x[i] = 0, current = x[i]
+  xor rdx, rdx
+  jmp .add_start
+.ret_carry1:
+  xchg next, current
 
-  ; fill_with_fff zapewnia, że w x[0...rax] rzeczywiście reprezentuje obecny yf
-  xor return_mark, return_mark  ; return_mark = 0, czyli .finish_fill_1
-  jmp .fill_with_fff            ; wywołanie funkcji fill_with_fff
-.finish_fill_1:
-
-  ; y += carry oraz first_fff = (SF) ? (rax + 1) : -1
-  or first_fff, -1 ; first_fff = - 1
-  add qword [x + 8*rax], carry
-  jns .y_positive
-  mov first_fff, rax  ; jeśli SF to first_fff = rax
-  inc first_fff
-.y_positive:
-
-.carry_empty:
-
-  mov rax, i    ; rax = i
-  mul i         ; rax = i*i
-  shl rax, 6    ; rax = 64*i*i
+  mov rax, i    ; rax = i < 2^29
+  mul i         ; rax = i*i < 2^58
+  shl rax, 6    ; rax = 64*i*i < 2^64
   div n         ; rax = 64*i*i / n
 
   ; wyliczanie carry = (current < 0) ? -1 : 0
@@ -69,48 +50,46 @@ sum:
   shld carry, current, cl       ; przesuwamy cl bitów z current do carry
   shl current, cl               ; mnożymy current razy 2^cl
 
-  or return_mark, -1   ; return_mark = -1, czyli .finish_fill_2
-  jmp .fill_with_fff   ; wypełnienie -1
-.finish_fill_2:
-  
-  add qword [x + 8*rax], current ; y += current mod 64
-  adc carry, 0                   ; carry += CF
-  inc rax  ; rax trzyma adres poprzedniego dodawania, carry znajduje się o jeden indeks wyżej
-
   inc i
 
   ; jeśli i<n to kontynuuj pętle
   cmp i, n
   jb .loop_start
+  or rdx, -1
+  dec i     ; i = n-1, ponieważ rax <= i => rax < n
 
-  ; ustaw return_mark na wartość inną niż 0 lub -1 
-  ; aby .fill_with_fff kontynuuowało, a wiemy, że 0<n<=2^29
-  mov return_mark, n
+.add_start:
+  xor rcx, rcx
+  test carry, carry
+  jns .carry_positive
+  or rcx, -1
+.carry_positive:
+  xor r12, r12
+.add_loop: ; y[rax...i] += [current:carry]
+  ; jeśli rax jest większy niż obecny rozmiar y[0..i], to go nie dodajemy
+  cmp rax, i
+  ja .add_end
 
-; while(first_fff <= rax)
-;     x[first_fff++] = -1
-; jmp {
-;     .finish_fill_1 jeśli return_mark = 0
-;     .finish_fill_2 jeśli return_mark = -1
-;     nigdzie wpw
-; } to podejście zajmuje mniej miejsca niż lea [rel .finish_fill_1], itd
-.fill_with_fff:
-  cmp rax, first_fff
-  jb .end_fill_fff                ; first_fff > rax
-  or qword [x + 8*first_fff], -1  ; x[first_fff] = -1 = 0xfffffff...
-  inc first_fff                   ; first_fff++
-  jmp .fill_with_fff              ; first_fff <= rax
-.end_fill_fff:
-  test return_mark, return_mark
-  jz .finish_fill_1    ; return_mark = 0
-  js .finish_fill_2    ; return_mark = -1
-  ; jeśli tu jesteśmy do znaczy że .fill_with_fff wywołane na samym końcu
+  ; dodawanie i liczenie carry
+  add qword [x + 8*rax], current
+  adc carry, r12
+  jnc .ncc
+;.cc:
+  mov r12, 1
+  jmp .cc
+.ncc:
+  xor r12, r12
+.cc:
+  ; przesuwanie bufora liczby o jeden w prawo
+  mov current, carry     ; current = carry
+  mov carry, rcx
 
-; dodawanie ostaniego carry
-  cmp rax, n
-  jae .rax_too_big
-  add qword [x + 8*rax], carry
+  inc rax
+  jmp .add_loop
 
-.rax_too_big:
+.add_end:
+  test rdx, rdx
+  jz .ret_carry1
+
+  movq r12, xmm0
   ret
-
