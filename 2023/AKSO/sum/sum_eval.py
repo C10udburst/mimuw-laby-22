@@ -25,11 +25,10 @@ def generate_x():
             
 
 def calculate_y(x, n):
-    mod = 1<<(64*n)
     y = 0
     for i, xi in enumerate(x):
         y += xi * (2 ** int(64 * (i ** 2) / len(x)))
-        y = y % mod
+        y = y
     return y
 
 def chunks(xs, n):
@@ -63,7 +62,7 @@ x = generate_x()
 n = len(x)
 x_array = convert_to_carray(x)
 y = calculate_y(x,n)
-y_array = make_yarray(y, n)
+y_array = make_yarray(y%(1<<(64*n)), n)
 
 libsum.sum(ctypes.byref(x_array), n)
 
@@ -83,6 +82,7 @@ if n < 300:
     pprint(x, n)
     print("y=", end='')
     pprint(y_array, n)
+    print(f"y={hex(y)}")
     print("r=", end='')
     pprint(x_array, n)
 

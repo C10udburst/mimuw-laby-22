@@ -12,6 +12,7 @@ section .text
 
 sum:
   movq xmm0, r12
+  xor r12, r12
   xor i, i             ; i = 0
   or rax, -1           ; rax = INFTY
   xor next, next       ; next = 0
@@ -22,7 +23,6 @@ sum:
   ; wczytuję next = x[i] oraz ustawiam x[i] = 0
   xchg next, qword [x + 8*i] ; x[i] = 0, next = x[i]
 
-  xor rdx, rdx
   jmp .add_start
 .ret_carry1:
   xchg next, current
@@ -55,7 +55,7 @@ sum:
   ; jeśli i<n to kontynuuj pętle
   cmp i, n
   jb .loop_start
-  or rdx, -1
+  xor n, n
   dec i     ; i = n-1, ponieważ rax <= i => rax < n
 
 .add_start:
@@ -64,7 +64,7 @@ sum:
   jns .carry_positive
   or rcx, -1
 .carry_positive:
-  xor r12, r12
+  xor rdx, rdx
 .add_loop: ; y[rax...i] += [current:carry]
   ; jeśli rax jest większy niż obecny rozmiar y[0..i], to go nie dodajemy
   cmp rax, i
@@ -72,24 +72,31 @@ sum:
 
   ; dodawanie i liczenie carry
   add qword [x + 8*rax], current
-  adc carry, r12
+  adc carry, rdx
   jnc .ncc
 ;.cc:
-  mov r12, 1
+  mov rdx, 1
   jmp .cc
 .ncc:
-  xor r12, r12
+  xor rdx, rdx
 .cc:
   ; przesuwanie bufora liczby o jeden w prawo
   mov current, carry     ; current = carry
   mov carry, rcx
-
   inc rax
   jmp .add_loop
 
 .add_end:
-  test rdx, rdx
-  jz .ret_carry1
+  sub current, r12
+  jns .ncrs
+;.crs:
+  mov r12, 1
+  jmp .crs
+.ncrs:
+  xor r12, r12
+.crs:
+  test n, n
+  jnz .ret_carry1
 
   movq r12, xmm0
   ret
