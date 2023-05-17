@@ -23,10 +23,13 @@ libsum.so: sum.o
 	$(CC) -shared -o $@ $^
 
 gdb: sum.elf
-	gdb ./$< $(GDB_FLAGS) -ex "run"
+	gdb ./$< $(GDB_FLAGS) -ex "break sum" -ex "run"
 
 pgdb: libsum.so
-	gdb python3 $(GDB_FLAGS)
+	gdb python3 $(GDB_FLAGS) -ex "break sum" -ex "y"
+	
+gdeval: libsum.so
+	gdb python3 $(GDB_FLAGS) -ex "break sum" -ex "y" -ex "run sum_eval.py"
 
 eval: libsum.so
 	python3 sum_eval.py
@@ -61,4 +64,4 @@ testy: tester.elf
 #	./$< < ./testy/t10 > /dev/null || echo "FAIL"
 
 clean:
-	rm *.o *.elf
+	rm *.o *.elf *.so
