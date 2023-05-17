@@ -29,11 +29,9 @@ sum:
 .added_prev:
 
   mov x1, rdx
-  test x1, x1
-  js .neg_x1
   xor x2, x2
-  jmp .pos_x1
-.neg_x1:
+  test x1, x1
+  jns .pos_x1
   or x2, -1
 .pos_x1:
 
@@ -73,6 +71,8 @@ sum:
 .extend_done:
   add qword [x + 8*rax - 8], x1
   adc qword [x + 8*rax], x2
+  ; carry missing?
+
 .add_end:
   test n, n
   jnz .added_prev
