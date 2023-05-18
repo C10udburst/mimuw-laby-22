@@ -28,15 +28,16 @@ sum:
   jmp .add_x
 .added_prev:
 
-  mov x1, rdx
-  xor x2, x2
+  ; ustalanie [x1:x2] = x[i]
+  mov x1, rdx   ; x1 = x[i]
+  xor x2, x2    ; x2 = (x1 < 0) ? -1 : 0
   test x1, x1
-  jns .pos_x1
+  jns .x1_positive
   or x2, -1
-.pos_x1:
+.x1_positive:
 
   mov rax, i    ; rax = i
-  mul i         ; rax = i*i
+  mul i         ; rax = i*i, rdx = 0
   shl rax, 6    ; rax = 64*i*i
   div n         ; rax = 64*i*i / n
 
@@ -45,6 +46,7 @@ sum:
   and rcx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
   shr rax, 6         ; rax = rax / 64, wybór indeksu
 
+  ; liczenie mnnożenia przez 2^cl
   shld x2, x1, cl
   shl x1, cl  
 
@@ -55,23 +57,38 @@ sum:
 
 .add_x:
   inc rax
-
 .extend_y:
   test qword [x + 8*y_len], -1
   jns .y_positive
-.fill_y: ; ujemne y
+.fill_y:
   cmp rax, y_len
   jbe .extend_done
   inc y_len
-  or qword[x + 8*y_len], -1
+  or qword [x + 8*y_len], -1
   jmp .fill_y
 .y_positive:
   cmp rax, y_len
   cmova y_len, rax
 .extend_done:
+  xor rcx, rcx
   add qword [x + 8*rax - 8], x1
   adc qword [x + 8*rax], x2
-  ; carry missing?
+
+  jno .no_overflow
+  ; has overflow
+  jnc .overflow_sum_positive
+  or qword [x + 8*rax + 8], -1
+.overflow_sum_positive:
+  inc y_len
+
+.no_overflow:
+  adc rcx, 0
+  inc rax
+  cmp rax, y_len
+  ja .ignore_carry
+  add [x + 8*rax], rcx
+
+.ignore_carry:
 
 .add_end:
   test n, n
