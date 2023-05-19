@@ -20,14 +20,14 @@ sum:
   xor rax, rax
 
 .loop_start:    ; for(int i=0; i<n; i++)
-  xor rdx, rdx
-  xchg rdx, qword [x + 8*i]
+  xor rcx, rcx
+  xchg rcx, qword [x + 8*i]
 
   jmp .add_x
 .added_prev:
 
   ; ustawia [x2:x1] = x[i]
-  mov rax, rdx  ; wpisuje x[i] do rax
+  mov rax, rcx  ; wpisuje x[i] do rax
   cqo           ; rozszerza znak x[i] do rdx
   mov x1, rax   ; ustala x1 na pierwszą cześć x[i]
   mov x2, rdx   ; ustala x2 na pierwszą cześć x[i]
@@ -50,40 +50,42 @@ sum:
   cmp i, n
   jb .loop_start
   xor n_32, n_32
+  dec i
 
 .add_x:
-  inc rax
+  add rax, 2
+
 .extend_y:
   cmp qword [x + 8*y_len], 0
-  jge .y_positive
+  jge .fill_end
 .fill_y:
   cmp rax, y_len
-  jbe .extend_done
+  jbe .fill_end
   inc y_len
   or qword [x + 8*y_len], -1
   jmp .fill_y
-.y_positive:
+.fill_end:
+  
+  ; min(max(rax, y_len), i)
   cmp rax, y_len
   cmova y_len, rax
+  cmp i, y_len
+  cmovb y_len, i
+  
 .extend_done:
-  xor rcx, rcx
-  add qword [x + 8*rax - 8], x1
-  adc qword [x + 8*rax], x2
+  xchg rax, x2
+  cqo
+  xchg rax, x2
+  ; rdx = (x2 < 0) ? -1 : 0
 
-  jno .no_overflow
-  ; has overflow
-  jnc .overflow_sum_positive
-  or qword [x + 8*rax + 8], -1
-.overflow_sum_positive:
-  inc y_len
-
-.no_overflow:
-  adc rcx, 0
-  inc rax
-  cmp rax, y_len
-  ja .ignore_carry
-  add qword [x + 8*rax], rcx
-
+  add qword [x + 8*rax - 16], x1
+  adc qword [x + 8*rax - 8], x2
+  adc rdx, 0
+  
+  cmp y_len, rax
+  jb .ignore_carry
+.gdb:
+  adc qword [x + 8*rax], rdx
 .ignore_carry:
 
 .add_end:
