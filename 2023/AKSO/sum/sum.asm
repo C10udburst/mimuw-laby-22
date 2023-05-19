@@ -17,10 +17,10 @@ sum:
   xor x1, x1
   xor x2, x2
   xor y_len, y_len
-  xor rax, rax
+  xor eax, eax
 
 .loop_start:    ; for(int i=0; i<n; i++)
-  xor rcx, rcx
+  xor ecx, ecx
   xchg rcx, qword [x + 8*i]
 
   jmp .add_x
@@ -38,8 +38,8 @@ sum:
   div n         ; rax = 64*i*i / n
 
   ; Wyliczanie który blok z x[] wybrać i o ile pomnożyć current
-  mov rcx, rax
-  and rcx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
+  mov ecx, eax
+  and ecx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
   shr rax, 6         ; rax = rax / 64, wybór indeksu
 
   ; liczenie mnnożenia przez 2^cl
@@ -53,39 +53,36 @@ sum:
   dec i
 
 .add_x:
-  add rax, 2
+  add eax, 2
 
-.extend_y:
-  cmp qword [x + 8*y_len], 0
-  jge .fill_end
+  ; rdx = (y < 0) ? -1 : 0
+  xchg qword [x + 8*y_len], rax
+  cqo
+  xchg qword [x + 8*y_len], rax
+
 .fill_y:
   cmp rax, y_len
   jbe .fill_end
+  cmp y_len, i
+  je .fill_end
   inc y_len
-  or qword [x + 8*y_len], -1
+  mov qword [x + 8*y_len], rdx
   jmp .fill_y
 .fill_end:
   
-  ; min(max(rax, y_len), i)
-  cmp rax, y_len
-  cmova y_len, rax
-  cmp i, y_len
-  cmovb y_len, i
-  
-.extend_done:
+  ; rdx = (x2 < 0) ? -1 : 0
   xchg rax, x2
   cqo
   xchg rax, x2
-  ; rdx = (x2 < 0) ? -1 : 0
 
+  ; dodawanie x[i]
   add qword [x + 8*rax - 16], x1
   adc qword [x + 8*rax - 8], x2
   adc rdx, 0
   
   cmp y_len, rax
   jb .ignore_carry
-.gdb:
-  adc qword [x + 8*rax], rdx
+  add qword [x + 8*rax], rdx
 .ignore_carry:
 
 .add_end:
