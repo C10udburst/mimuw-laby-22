@@ -17,17 +17,17 @@ sum:
   xor x1, x1
   xor x2, x2
   xor y_len, y_len
-  xor rax, rax
+  xor eax, eax
 
 .loop_start:    ; for(int i=0; i<n; i++)
-  xor rdx, rdx
-  xchg rdx, qword [x + 8*i]
+  xor ecx, ecx
+  xchg rcx, qword [x + 8*i]
 
   jmp .add_x
 .added_prev:
 
   ; ustawia [x2:x1] = x[i]
-  mov rax, rdx  ; wpisuje x[i] do rax
+  mov rax, rcx  ; wpisuje x[i] do rax
   cqo           ; rozszerza znak x[i] do rdx
   mov x1, rax   ; ustala x1 na pierwszą cześć x[i]
   mov x2, rdx   ; ustala x2 na pierwszą cześć x[i]
@@ -38,8 +38,8 @@ sum:
   div n         ; rax = 64*i*i / n
 
   ; Wyliczanie który blok z x[] wybrać i o ile pomnożyć current
-  mov rcx, rax
-  and rcx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
+  mov ecx, eax
+  and ecx, 64 - 1    ; rcx = rax % 64, przesunięcie, które jest mniejsze niż indeks
   shr rax, 6         ; rax = rax / 64, wybór indeksu
 
   ; liczenie mnnożenia przez 2^cl
@@ -50,40 +50,39 @@ sum:
   cmp i, n
   jb .loop_start
   xor n_32, n_32
+  dec i
 
 .add_x:
-  inc rax
-.extend_y:
-  cmp qword [x + 8*y_len], 0
-  jge .y_positive
+  add eax, 2
+
+  ; rdx = (y < 0) ? -1 : 0
+  xchg qword [x + 8*y_len], rax
+  cqo
+  xchg qword [x + 8*y_len], rax
+
 .fill_y:
   cmp rax, y_len
-  jbe .extend_done
+  jbe .fill_end
+  cmp y_len, i
+  je .fill_end
   inc y_len
-  or qword [x + 8*y_len], -1
+  mov qword [x + 8*y_len], rdx
   jmp .fill_y
-.y_positive:
-  cmp rax, y_len
-  cmova y_len, rax
-.extend_done:
-  xor rcx, rcx
-  add qword [x + 8*rax - 8], x1
-  adc qword [x + 8*rax], x2
+.fill_end:
+  
+  ; rdx = (x2 < 0) ? -1 : 0
+  xchg rax, x2
+  cqo
+  xchg rax, x2
 
-  jno .no_overflow
-  ; has overflow
-  jnc .overflow_sum_positive
-  or qword [x + 8*rax + 8], -1
-.overflow_sum_positive:
-  inc y_len
-
-.no_overflow:
-  adc rcx, 0
-  inc rax
-  cmp rax, y_len
-  ja .ignore_carry
-  add qword [x + 8*rax], rcx
-
+  ; dodawanie x[i]
+  add qword [x + 8*rax - 16], x1
+  adc qword [x + 8*rax - 8], x2
+  adc rdx, 0
+  
+  cmp y_len, rax
+  jb .ignore_carry
+  add qword [x + 8*rax], rdx
 .ignore_carry:
 
 .add_end:
