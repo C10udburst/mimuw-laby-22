@@ -1,0 +1,5 @@
+set debuginfod enabled on
+set disassembly-flavor intel
+layout asm
+layout regs
+#tui window height regs -3
