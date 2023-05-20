@@ -26,7 +26,8 @@ _start:
   ; infile = [rsp], outfile = [rsp + 8]
 
   ; otwieramy plik infile do czytania
-  mov eax, SYS_OPEN
+  xor eax, eax
+  mov al, SYS_OPEN
   mov rdi, [rsp]
   xor esi, esi         ; esi = RDONLY = 0, tryb czytania
   syscall
@@ -34,7 +35,8 @@ _start:
   js .exit1
 
   ; otwieramy plik outfile do pisania
-  mov eax, SYS_OPEN
+  xor eax, eax
+  mov al, SYS_OPEN
   mov rdi, [rsp + 8]
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania
   mov edx, FMOD ; ustaw uprawnienia pliku
@@ -43,13 +45,12 @@ _start:
   js .exit1
 
 
-  ; program zakończył się bezbłędnie
-  mov eax, SYS_EXIT
+  ; wychodzenie z programu
   xor edi, edi  ; rdi = 0, $? = 0
-  syscall
-
+  jmp .exit0 ; nie było skoku do exit1 więc rdi = 0
 .exit1:
-  mov eax, SYS_EXIT
-  xor edi, edi  ; rdi = 0
-  inc edi       ; rdi = 1
+  inc edi ; był skok, więc rdi = 1
+.exit0:
+  or eax, eax       ; eax = 0
+  mov al, SYS_EXIT  ; eax = SYS_EXIT
   syscall
