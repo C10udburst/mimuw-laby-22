@@ -3,3 +3,8 @@ set disassembly-flavor intel
 layout asm
 layout regs
 #tui window height regs -3
+
+define bfs
+    print (char[64])*(char *)($rsp)
+    print (char[64])*(char *)($rsp - 64)
+end
