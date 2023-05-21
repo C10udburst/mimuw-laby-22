@@ -1,3 +1,4 @@
 *.elf
 *.o
 *.sout
+.gdb_history
