@@ -19,173 +19,178 @@ O_EXCL equ 200o  ; błąd jeśli istnieje
 ; uprawnienia nowo utworzonego pliku
 FMOD equ 664o ; rw-r--r--
 
+; nazwy rejestrów
+%define read_idx   r9    ; obecny indeks w buforze infile
+%define write_idx  r10   ; obecny indeks w buforze outfile
+%define read_size  r12   ; rozmiar załadowanego kawałka infile
+%define ns_count   r13w  ; licznik znaków != 's', 'S'
+%define infile_id  r14   ; deskryptor pliku infile
+%define outfile_id r15   ; deskryptor pliku outfile
+
+section .bss
+
+infile_buf: resb READ_BUFFER
+
+outfile_buf: resb WRITE_BUFFER
+
+woverflow: resw 1
+
+
+section .text
+
 _start:
   ; domyślna instalacja linuxa ustala ARG_MAX=2097152
-  ; więc teoretycznie qword jest tu niepotrzebny
+  ; więc teoretycznie qword jest tu nadmiarowy
   cmp qword [rsp], 3
   jnz .exit1
   add rsp, 16  ; usuwamy ze stosu ilość argumentów i arg[0] (nazwę programu)
 
   ; stan stosu:
-  ; [rsp]:     nazwa infile
-  ; [rsp + 8]: nazwa outfile
+  ; [rsp]      infile_name
+  ; [rsp + 8]  outfile_name
 
-  ; otwieramy plik infile do czytania
-  xor eax, eax
   mov al, SYS_OPEN
   mov rdi, [rsp]
-  xor esi, esi         ; esi = RDONLY = 0, tryb czytania
-  syscall
-  test eax, eax
+  xor esi, esi     ; esi = RDONLY = 0, tryb czytania
+  call .syscall
+  test rax, rax    ; rax < 0 => wystąpił błąd
   js .exit1
+  mov infile_id, rax         ; deskryptor infile
 
-  push rax
-
-  ; stan stosu:
-  ; [rsp]:      deskyptor infile
-  ; [rsp + 8]:  nazwa infile
-  ; [rsp + 16]: nazwa outfile
-
-  ; otwieramy plik outfile do pisania
-  xor eax, eax
   mov al, SYS_OPEN
-  mov rdi, [rsp + 16]
+  mov rdi, [rsp + 8]
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania
-  mov edx, FMOD ; ustaw uprawnienia pliku
-  syscall
+  mov edx, FMOD                        ; ustaw uprawnienia pliku
+  call .syscall
   test eax, eax
-  js .error_on_open_outfile
+  js .err_infile_open
+  mov outfile_id, rax
 
-  push rax
-  add rsp, READ_BUFFER+WRITE_BUFFER ; zarezerwuj pamięć na read buffer i write buffer
+  mov read_idx,  READ_BUFFER + 2
+  mov read_size, READ_BUFFER + 1
+  xor write_idx, write_idx
+  xor ns_count, ns_count
 
-  ; stan stosu:
-  ; [rsp]:                                   bufor infile
-  ; [rsp - READ_BUFFER]:                     bufor outfile
-  ; [rsp + 8 - READ_BUFFER - WRITE_BUFFER]:  deskyptor infile
-  ; [rsp - READ_BUFFER - WRITE_BUFFER]:      deskyptor outfile
-  ; [rsp + 16 - READ_BUFFER - WRITE_BUFFER]: nazwa infile
-  ; [rsp + 24 - READ_BUFFER - WRITE_BUFFER]: nazwa outfile
+.loop:
+  cmp write_idx, WRITE_BUFFER
+  jb .write_buf_ok
+  ; należy przesunąć bufor outfile
+  mov al, SYS_WRITE
+  mov rdi, outfile_id         ; wczytaj deskryptor outfile do rdi
+  mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
+  mov edx, WRITE_BUFFER       ; wczytaj rozmiar bufora do rdx
+  call .syscall
+  test rax, rax
+  js .err_both_open
+  mov ax, word [abs woverflow]        ; wczytaj strażnika
+  mov word [abs outfile_buf], ax      ; wstaw strażnika do buforu
+  sub write_idx, WRITE_BUFFER         ; przesuń write_idx do początku  
+.write_buf_ok:
 
-  mov r9, READ_BUFFER
-  mov r10, WRITE_BUFFER
-  xor r13, r13
-.rw_loop:
-  cmp r9, READ_BUFFER
-  jae .infile_next
-.infile_next_done:
+  cmp read_idx, read_size
+  jb .read_buf_ok
+  cmp read_size, READ_BUFFER
+  jb .read_done   ; jeśli rozmiar wczytanego pliku mniejszy od bufora, to doszliśmy do końca pliku
+  ; należy poszerzyć bufor infile
+  mov al, SYS_READ
+  mov rdi, infile_id        ; wczytaj deskryptor infile do rdi
+  mov rsi, infile_buf       ; wczytaj adres bufora do rsi
+  mov edx, READ_BUFFER      ; wczytaj rozmiar bufora do rdx
+  call .syscall
+  test rax, rax
+  js .err_both_open
+  jz .read_done          ; jeśli rozmiar == 0 to plik się skończył 
+  mov read_size, rax     ; ustaw rozmiar wczytanej części pliku
+  xor read_idx, read_idx ; przesuń read_idx na początek buforu
+.read_buf_ok:
 
-  cmp r10, WRITE_BUFFER
-  jae .outfile_next
-.outfile_next_done:
-
-.calc_loop: ; pętla która wypełnia bufor outfile
-  mov dl, [rsp + r9]
+  ; w tym miejscu na pewno w infile został co najmniej jeden bajt
+  ; i na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
+  mov dl, [abs infile_buf + read_idx]
   xor dl, 's'         ; jeśli dl jest s lub S to wszystkie bity = 0 poza 2^15
   test dl, 1011111b   ; s i S różnią się jedynie przedostatnim bitem
   jz .is_s
-  inc r13
-  jmp .not_s 
+  ; nie jest 's' ani 'S'
+  inc ns_count
+  jmp .not_s
 .is_s:
-  test r13, r13
-  jz .no_counter
-  mov word [rsp - READ_BUFFER + r10], r13w
-  xor r13, r13
-  add r10, 2
+  test ns_count, ns_count
+  jz .no_counter ; jeśli nie napotkaliśmy na ciąg nie 's' 'S' to nie wpisujemy do pliku
+  mov word [abs outfile_buf + write_idx], ns_count
+  xor ns_count, ns_count  ; ns_count = 0
+  add write_idx, 2        ; word = 2 bajty, które wpisaliśmy
 .no_counter:
-  xor dl, 's'
-  mov byte [rsp - READ_BUFFER + r10], dl
-  inc r10
+  xor dl, 's'             ; przywróć dl do 's' albo 'S'
+  mov byte [abs outfile_buf + write_idx], dl
+  inc write_idx
 .not_s:
-  inc r9
+  inc read_idx
+  jmp .loop
 
-  cmp r10, WRITE_BUFFER
-  jae .rw_loop
+.read_done:
 
-  cmp r9, r12
-  ja .rw_done
+  test ns_count, ns_count
+  jz .no_last_counter
+  mov word [abs outfile_buf + write_idx], ns_count
+  xor ns_count, ns_count  ; ns_count = 0
+  add write_idx, 2        ; word = 2 bajty, które wpisaliśmy
 
-  cmp r9, READ_BUFFER
-  jb .calc_loop
-  ;jmp .rw_loop
+.no_last_counter:
 
-.rw_done:
+  test write_idx, write_idx
+  jz .no_write 
 
+  mov al, SYS_WRITE
+  mov rdi, outfile_id         ; wczytaj deskryptor outfile do rdi
+  mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
+  mov rdx, write_idx          ; wczytaj rozmiar bufora do rdx
+  call .syscall
+  test rax, rax
+  js .err_both_open
 
-  ; wychodzenie z programu
-  call .close_files
-  xor edi, edi  ; $? := rdi
-  xor eax, eax       ; eax = 0
-  mov al, SYS_EXIT  ; eax = SYS_EXIT
-  syscall
+.no_write:
 
-.error_on_open_outfile:
-  mov rdi, [rsp]     ;  na górze stosu obecnie znajduje się deskryptor infile
-
-  xor eax, eax
-  mov al, SYS_CLOSE
-  syscall
-  
-  js .exit1          ; zamknięcie programu z błędem
-
-.error_both_files:
-  call .close_files
-  js .exit1
-
-.exit1:
+.exit0:
+  call .close_both_files
   xor edi, edi
-  inc edi
-  xor eax, eax       ; eax = 0
-  mov al, SYS_EXIT  ; eax = SYS_EXIT
-  syscall
+  jmp .exit
+.exit1:
+  mov edi, 1
+.exit:
+  mov al, SYS_EXIT
+  call .syscall
 
-.close_files:
-  xor r12, r12
-
-  mov rdi, [rsp - READ_BUFFER - WRITE_BUFFER]
-  xor eax, eax
+.close_both_files:
   mov al, SYS_CLOSE
-  syscall
+  mov rdi, outfile_id
+  call .syscall
+  test rax, rax
+  js .err_infile_func 
 
-  test eax, eax
-  jns .no_error
-  inc r12
-.no_error:
-
-  mov rdi, [rsp + 8 - READ_BUFFER - WRITE_BUFFER]
-  xor eax, eax
   mov al, SYS_CLOSE
-  syscall
-
-  test eax, eax
+  mov rdi, infile_id
+  call .syscall
+  test rax, rax
   js .exit1
-  test r12, r12
-  jnz .exit1
 
   ret
 
-.infile_next:
-  xor eax, eax                       ; eax = 0 = SYS_READ
-  mov rdi, [rsp + 8 - READ_BUFFER - WRITE_BUFFER]   ; wczytaj deskryptor infile do rdi
-  mov rsi, rsp                       ; wczytaj adres bufora do rsi
-  mov rdx, READ_BUFFER               ; wczytaj rozmiar bufora do rdx
-  syscall
-  test rax, rax
-  js .error_both_files
-  jz .rw_done
-  mov r12, rax
-  xor r9, r9
-  jmp .infile_next_done
+.err_infile_func:
+  pop rdi  ; usuń adres powrotu ze stosu
+.err_infile_open:
 
+  ; zamknij infile
+  mov al, SYS_CLOSE
+  mov rdi, infile_id
+  call .syscall
 
-.outfile_next:
-  xor eax, eax
-  inc eax                                     ; eax = 1 = SYS_WRITE
-  mov rdi, [rsp - READ_BUFFER - WRITE_BUFFER] ; wczytaj deskryptor outfile do rdi
-  lea rsi, [rsp - READ_BUFFER]                ; wczytaj adres bufora do rsi
-  mov rdx, WRITE_BUFFER                       ; wczytaj rozmiar bufora do rdx
+  jmp .exit1
+
+.err_both_open:
+  call .close_both_files
+  jmp .exit1
+
+.syscall:
+  movzx eax, al
   syscall
-  test rax, rax
-  js .error_both_files
-  xor r10, r10
-  jmp .outfile_next_done
+  ret

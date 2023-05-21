@@ -1,7 +1,7 @@
 #TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
 TESTER =
 NASMFLAGS = -w+all -w+error
-GDB_FLAGS = --tui -x gdbinit
+GDB_FLAGS = -x gdbinit
 
 .PHONY: clean dump test
 
