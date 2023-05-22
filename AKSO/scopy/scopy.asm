@@ -50,7 +50,7 @@ _start:
   ; [rsp + 8]  outfile_name
 
   mov al, SYS_OPEN
-  mov rdi, [rsp]
+  pop rdi    ; wczytaj nazwe infile do rdi
   xor esi, esi     ; esi = RDONLY = 0, tryb czytania
   call .syscall
   test rax, rax    ; rax < 0 => wystąpił błąd
@@ -58,13 +58,13 @@ _start:
   mov infile_id, rax         ; deskryptor infile
 
   mov al, SYS_OPEN
-  mov rdi, [rsp + 8]
-  mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania
+  pop rdi    ; wczytaj nazwę outfile do rdi
+  mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                        ; ustaw uprawnienia pliku
   call .syscall
   test eax, eax
-  js .err_infile_open
-  mov outfile_id, rax
+  js .err_infile_open      ; błąd, trzeba zamknąć infile
+  mov outfile_id, rax      ; deskryptor outfile
 
   mov read_idx,  READ_BUFFER + 2
   mov read_size, READ_BUFFER + 1
@@ -80,8 +80,8 @@ _start:
   mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER       ; wczytaj rozmiar bufora do rdx
   call .syscall
-  test rax, rax
-  js .err_both_open
+  test rax, rax               ; jesli rax<0 to wystąpił błąd 
+  js .err_both_open           ; trzeba zamknąć oba pliki z błędem 
   mov ax, word [abs woverflow]        ; wczytaj strażnika
   mov word [abs outfile_buf], ax      ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER         ; przesuń write_idx do początku  
@@ -91,15 +91,15 @@ _start:
   jb .read_buf_ok
   cmp read_size, READ_BUFFER
   jb .read_done   ; jeśli rozmiar wczytanego pliku mniejszy od bufora, to doszliśmy do końca pliku
-  ; należy poszerzyć bufor infile
+  ; należy przesunąć bufor infile
   mov al, SYS_READ
   mov rdi, infile_id        ; wczytaj deskryptor infile do rdi
   mov rsi, infile_buf       ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER      ; wczytaj rozmiar bufora do rdx
   call .syscall
   test rax, rax
-  js .err_both_open
-  jz .read_done          ; jeśli rozmiar == 0 to plik się skończył 
+  js .err_both_open      ; jeśli rax<0 to wystąpił błąd
+  jz .read_done          ; jeśli rozmiar == 0 to plik się skończył 
   mov read_size, rax     ; ustaw rozmiar wczytanej części pliku
   xor read_idx, read_idx ; przesuń read_idx na początek buforu
 .read_buf_ok:
@@ -138,7 +138,7 @@ _start:
 .no_last_counter:
 
   test write_idx, write_idx
-  jz .no_write 
+  jz .no_write ; bufor zapisu jest pusty
 
   mov al, SYS_WRITE
   mov rdi, outfile_id         ; wczytaj deskryptor outfile do rdi
@@ -165,7 +165,8 @@ _start:
   mov rdi, outfile_id
   call .syscall
   test rax, rax
-  js .err_infile_func 
+  js .err_infile_open   ; jeśli nie udało sie zamknąć outfile
+                        ; to nie próbujemy ponownie, ale zamykamy infile
 
   mov al, SYS_CLOSE
   mov rdi, infile_id
@@ -175,8 +176,8 @@ _start:
 
   ret
 
-.err_infile_func:
-  pop rdi  ; usuń adres powrotu ze stosu
+
+
 .err_infile_open:
 
   ; zamknij infile
@@ -190,6 +191,7 @@ _start:
   call .close_both_files
   jmp .exit1
 
+; wykonywanie syscalli w ten sposób zajmuje mniej miejsca niz robienie xor eax, eax przed każdym 
 .syscall:
   movzx eax, al
   syscall
