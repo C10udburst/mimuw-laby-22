@@ -35,7 +35,6 @@ outfile_buf: resb WRITE_BUFFER
 
 woverflow: resw 1
 
-
 section .text
 
 _start:
@@ -175,8 +174,6 @@ _start:
   js .exit1
 
   ret
-
-
 
 .err_infile_open:
 

@@ -2,6 +2,8 @@
 TESTER =
 NASMFLAGS = -w+all -w+error
 GDB_FLAGS = -x gdbinit
+SHELL = /bin/bash
+HEX=hexdump #hexyl
 
 .PHONY: clean dump test
 
@@ -18,7 +20,7 @@ dump: scopy.o
 test: scopy.elf
 	rm -f ./example1.sout
 	$(TESTER) ./$< ./testy/example1.in ./example1.sout
-	diff --color <(hexyl ./testy/example1.out) <(hexyl ./example1.sout)
+	diff --color <($(HEX) ./testy/example1.out) <($(HEX) ./example1.sout)
 
 gdb: scopy.elf
 	rm -f ./example1.sout
