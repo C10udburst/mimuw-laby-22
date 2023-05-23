@@ -61,7 +61,7 @@ _start:
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                        ; ustaw uprawnienia pliku
   syscall
-  test eax, eax
+  test rax, rax
   js .err_infile_open      ; błąd, trzeba zamknąć infile
   mov outfile_id, rax      ; deskryptor outfile
 
