@@ -22,9 +22,6 @@ O_EXCL equ 200o  ; błąd jeśli istnieje
 PROT_READ equ 1o  ; strony dostępne do odczytu
 PROT_WRITE equ 2o ; strony dostępne do zapisu
 PROT_EXEC equ 4o  ; strony dostępne do wykonania
-MAP_PRIVATE equ 2x ; strony nie są współdzielones
-MAP_ANONYMOUS equ 20x ; strony nie są powiązane z plikiem
-MAP_EXECUTABLE equ 1000x ; strony mogą być wykonane
 
 ; uprawnienia nowo utworzonego pliku
 FMOD equ 664o ; rw-r--r--
@@ -44,8 +41,6 @@ infile_buf: resb READ_BUFFER
 outfile_buf: resb WRITE_BUFFER
 
 woverflow: resw 1
-
-code_ptr: resq 1
 
 ; ponieważ do oceny liczy się tylko rozmiar sekcji .text i nie ma ograniczeń
 ; to wstawiam tutaj kod, który będzie wykonywany po ustawieniu uprawnień w trakcie działania programu
