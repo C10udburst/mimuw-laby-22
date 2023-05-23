@@ -8,8 +8,8 @@ SYS_WRITE equ 1
 SYS_CLOSE equ 3
 
 ; rozmiary buforów
-READ_BUFFER equ 64
-WRITE_BUFFER equ 64
+READ_BUFFER equ 1084
+WRITE_BUFFER equ 573
 
 ; bits/fcntl-linux.h
 O_WRONLY equ 1o  ; tylko do zapisu
@@ -48,7 +48,8 @@ _start:
   ; [rsp]      infile_name
   ; [rsp + 8]  outfile_name
 
-  mov eax, SYS_OPEN
+  xor eax, eax
+  mov al, SYS_OPEN
   pop rdi            ; wczytaj nazwe infile do rdi
   xor esi, esi       ; esi = RDONLY = 0, tryb czytania
   syscall
@@ -56,7 +57,8 @@ _start:
   js .exit1
   mov infile_id, rax ; deskryptor infile
 
-  mov eax, SYS_OPEN
+  xor eax, eax
+  mov al, SYS_OPEN
   pop rdi                              ; wczytaj nazwę outfile do rdi
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                        ; ustaw uprawnienia pliku
@@ -74,7 +76,8 @@ _start:
   cmp write_idx, WRITE_BUFFER
   jb .write_buf_ok
   ; należy przesunąć bufor outfile
-  mov eax, SYS_WRITE
+  xor eax, eax
+  mov al, SYS_WRITE
   mov rdi, outfile_id         ; wczytaj deskryptor outfile do rdi
   mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER       ; wczytaj rozmiar bufora do rdx
@@ -91,7 +94,8 @@ _start:
   cmp read_size, READ_BUFFER
   jb .read_done   ; jeśli rozmiar wczytanego pliku mniejszy od bufora, to doszliśmy do końca pliku
   ; należy przesunąć bufor infile
-  mov eax, SYS_READ
+  xor eax, eax
+  mov al, SYS_READ
   mov rdi, infile_id        ; wczytaj deskryptor infile do rdi
   mov rsi, infile_buf       ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER      ; wczytaj rozmiar bufora do rdx
@@ -139,10 +143,11 @@ _start:
   test write_idx, write_idx
   jz .no_write ; bufor zapisu jest pusty
 
-  mov eax, SYS_WRITE
-  mov rdi, outfile_id         ; wczytaj deskryptor outfile do rdi
-  mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
-  mov rdx, write_idx          ; wczytaj rozmiar bufora do rdx
+  xor eax, eax
+  mov al, SYS_WRITE
+  mov rdi, outfile_id          ; wczytaj deskryptor outfile do rdi
+  mov rsi, outfile_buf         ; wczytaj adres bufora do rsi
+  mov rdx, write_idx           ; wczytaj rozmiar bufora do rdx
   syscall
   test rax, rax
   js .err_both_open
@@ -156,18 +161,21 @@ _start:
 .exit1:
   mov edi, 1
 .exit:
-  mov eax, SYS_EXIT
+  xor eax, eax
+  mov al, SYS_EXIT
   syscall
 
 .close_both_files:
-  mov eax, SYS_CLOSE
+  xor eax, eax
+  mov al, SYS_CLOSE
   mov rdi, outfile_id
   syscall
   test rax, rax
   js .err_infile_open   ; jeśli nie udało sie zamknąć outfile
                         ; to nie próbujemy ponownie, ale zamykamy infile
 
-  mov eax, SYS_CLOSE
+  xor eax, eax
+  mov al, SYS_CLOSE
   mov rdi, infile_id
   syscall
   test rax, rax
@@ -178,7 +186,8 @@ _start:
 .err_infile_open:
 
   ; zamknij infile
-  mov eax, SYS_CLOSE
+  xor eax, eax
+  mov al, SYS_CLOSE
   mov rdi, infile_id
   syscall
 
