@@ -14,7 +14,7 @@ scopy.elf: scopy.o
 	ld --fatal-warnings -o $@ $<
 
 dump: scopy.o
-	objdump -M intel -d $^
+	objdump -M intel -D $^
 	size $^
 
 test: scopy.elf
