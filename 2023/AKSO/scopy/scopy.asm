@@ -6,8 +6,8 @@ SYS_OPEN  equ 2
 SYS_READ equ 0
 SYS_WRITE equ 1
 SYS_CLOSE equ 3
-SYS_MMAP equ 9
-SYS_MUNMAP equ 0xb
+SYS_MPROTECT equ 0xa
+
 
 ; rozmiary buforów
 READ_BUFFER equ 64
@@ -48,11 +48,8 @@ woverflow: resw 1
 code_ptr: resq 1
 
 ; ponieważ do oceny liczy się tylko rozmiar sekcji .text i nie ma ograniczeń
-; na rozmiar sekcji .data, to w sekcji .data umieszczamy większość kodu
-; (.rodata liczony jest do .text)
-; kod ten zostanie wpisany do nowego bloku pamięci, który będzie
-; wykonywalny i będzie zawierał tylko kod
-section .data
+; to wstawiam tutaj kod, który będzie wykonywany po ustawieniu uprawnień w trakcie działania programu
+section .code write
 
 start_code:
   ; domyślna instalacja linuxa ustala ARG_MAX=2097152
@@ -172,9 +169,8 @@ start_code:
 .exit1:
   mov edi, 1
 .exit:
-  push rdi   ; zapisz kod wyjścia na stosie
-  mov rax, _start.exit
-  jmp rax
+  mov al, SYS_EXIT
+  call .syscall
 
 .close_both_files:
   mov al, SYS_CLOSE
@@ -216,42 +212,12 @@ end_code:
 section .text
 
 _start:
-  ; utwórz blok pamięci z uprawnieniami do wykonywania
-  xor eax, eax
-  mov al, SYS_MMAP
-  xor edi, edi ; NULL
-  mov esi, end_code - start_code ; rozmiar bloku
-  xor edx, edx
-  mov dl, PROT_EXEC | PROT_READ | PROT_WRITE
-  mov r10, MAP_PRIVATE | MAP_ANONYMOUS | MAP_EXECUTABLE
-  or r8d, -1 ; fd
-  xor r9d, r9d ; offset
+  ; ustaw sekcje .code na wykonywalną
+  mov eax, SYS_MPROTECT
+  lea rdi, [abs start_code]
+  mov rsi, end_code - start_code
+  mov rdx, PROT_READ | PROT_WRITE | PROT_EXEC
   syscall
 
-  mov r10, rax ; r10 = adres bloku
-
-  ; przepisz kod do bloku
-  mov rdi, rax ; adres bloku
-  mov esi, start_code
-  mov ecx, end_code - start_code
-  rep movsb
-
-  mov [abs code_ptr], r10 ; zapisz adres bloku w zmiennej start_code
-
-  ; wykonaj kod
-  jmp r10
-
-
-.exit:
-
-  ; usuwanie bloku pamięci
-  xor eax, eax
-  mov al, SYS_MUNMAP
-  mov rdi, [abs code_ptr] ; wczytaj adres bloku do rdi
-  mov esi, end_code - start_code
-  syscall
-
-  xor eax, eax
-  mov al, SYS_EXIT
-  pop rdi  ; wczytaj kod wyjścia do rdi
-  syscall
+  ; skocz do sekcji .code
+  jmp start_code
