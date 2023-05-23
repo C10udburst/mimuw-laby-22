@@ -6,6 +6,8 @@ SYS_OPEN  equ 2
 SYS_READ equ 0
 SYS_WRITE equ 1
 SYS_CLOSE equ 3
+SYS_MMAP equ 9
+SYS_MUNMAP equ 0xb
 
 ; rozmiary buforów
 READ_BUFFER equ 64
@@ -15,6 +17,14 @@ WRITE_BUFFER equ 64
 O_WRONLY equ 1o  ; tylko do zapisu
 O_CREAT equ 100o ; utwórz nowy
 O_EXCL equ 200o  ; błąd jeśli istnieje
+
+; bits/mmap.h
+PROT_READ equ 1o  ; strony dostępne do odczytu
+PROT_WRITE equ 2o ; strony dostępne do zapisu
+PROT_EXEC equ 4o  ; strony dostępne do wykonania
+MAP_PRIVATE equ 2x ; strony nie są współdzielones
+MAP_ANONYMOUS equ 20x ; strony nie są powiązane z plikiem
+MAP_EXECUTABLE equ 1000x ; strony mogą być wykonane
 
 ; uprawnienia nowo utworzonego pliku
 FMOD equ 664o ; rw-r--r--
@@ -35,9 +45,16 @@ outfile_buf: resb WRITE_BUFFER
 
 woverflow: resw 1
 
-section .text
+code_ptr: resq 1
 
-_start:
+; ponieważ do oceny liczy się tylko rozmiar sekcji .text i nie ma ograniczeń
+; na rozmiar sekcji .data, to w sekcji .data umieszczamy większość kodu
+; (.rodata liczony jest do .text)
+; kod ten zostanie wpisany do nowego bloku pamięci, który będzie
+; wykonywalny i będzie zawierał tylko kod
+section .data
+
+start_code:
   ; domyślna instalacja linuxa ustala ARG_MAX=2097152
   ; więc teoretycznie qword jest tu nadmiarowy
   cmp qword [rsp], 3
@@ -149,15 +166,15 @@ _start:
 
 .no_write:
 
-.exit0:
   call .close_both_files
   xor edi, edi
   jmp .exit
 .exit1:
   mov edi, 1
 .exit:
-  mov al, SYS_EXIT
-  call .syscall
+  push rdi   ; zapisz kod wyjścia na stosie
+  mov rax, _start.exit
+  jmp rax
 
 .close_both_files:
   mov al, SYS_CLOSE
@@ -193,3 +210,48 @@ _start:
   movzx eax, al
   syscall
   ret
+
+end_code:
+
+section .text
+
+_start:
+  ; utwórz blok pamięci z uprawnieniami do wykonywania
+  xor eax, eax
+  mov al, SYS_MMAP
+  xor edi, edi ; NULL
+  mov esi, end_code - start_code ; rozmiar bloku
+  xor edx, edx
+  mov dl, PROT_EXEC | PROT_READ | PROT_WRITE
+  mov r10, MAP_PRIVATE | MAP_ANONYMOUS | MAP_EXECUTABLE
+  or r8d, -1 ; fd
+  xor r9d, r9d ; offset
+  syscall
+
+  mov r10, rax ; r10 = adres bloku
+
+  ; przepisz kod do bloku
+  mov rdi, rax ; adres bloku
+  mov esi, start_code
+  mov ecx, end_code - start_code
+  rep movsb
+
+  mov [abs code_ptr], r10 ; zapisz adres bloku w zmiennej start_code
+
+  ; wykonaj kod
+  jmp r10
+
+
+.exit:
+
+  ; usuwanie bloku pamięci
+  xor eax, eax
+  mov al, SYS_MUNMAP
+  mov rdi, [abs code_ptr] ; wczytaj adres bloku do rdi
+  mov esi, end_code - start_code
+  syscall
+
+  xor eax, eax
+  mov al, SYS_EXIT
+  pop rdi  ; wczytaj kod wyjścia do rdi
+  syscall

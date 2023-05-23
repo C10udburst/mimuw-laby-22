@@ -3,7 +3,7 @@ TESTER =
 NASMFLAGS = -w+all -w+error
 GDB_FLAGS = -x gdbinit
 SHELL = /bin/bash
-HEX=hexdump #hexyl
+HEX=hexyl
 
 .PHONY: clean dump test
 
