@@ -27,6 +27,11 @@ FMOD equ 664o ; rw-r--r--
 %define infile_id  r14   ; deskryptor pliku infile
 %define outfile_id r15   ; deskryptor pliku outfile
 
+%macro jmp_syscall_err 1
+  cmp rax, -4095
+  jae %1
+%endmacro
+
 section .bss
 
 infile_buf: resb READ_BUFFER
@@ -63,8 +68,7 @@ _start:
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                        ; ustaw uprawnienia pliku
   syscall
-  test rax, rax
-  js .err_infile_open      ; błąd, trzeba zamknąć infile
+  jmp_syscall_err .err_infile_open ; błąd, trzeba zamknąć infile
   mov outfile_id, rax      ; deskryptor outfile
 
   mov read_idx,  READ_BUFFER + 2
@@ -82,8 +86,7 @@ _start:
   mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER       ; wczytaj rozmiar bufora do rdx
   syscall
-  test rax, rax                  ; jesli rax<0 to wystąpił błąd 
-  js .err_both_open              ; trzeba zamknąć oba pliki z błędem 
+  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem 
   mov ax, word [abs woverflow]   ; wczytaj strażnika
   mov word [abs outfile_buf], ax ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER    ; przesuń write_idx do początku  
@@ -100,8 +103,7 @@ _start:
   mov rsi, infile_buf       ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER      ; wczytaj rozmiar bufora do rdx
   syscall
-  test rax, rax
-  js .err_both_open      ; jeśli rax<0 to wystąpił błąd
+  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem
   jz .read_done          ; jeśli rozmiar == 0 to plik się skończył 
   mov read_size, rax     ; ustaw rozmiar wczytanej części pliku
   xor read_idx, read_idx ; przesuń read_idx na początek buforu
@@ -149,8 +151,7 @@ _start:
   mov rsi, outfile_buf         ; wczytaj adres bufora do rsi
   mov rdx, write_idx           ; wczytaj rozmiar bufora do rdx
   syscall
-  test rax, rax
-  js .err_both_open
+  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem
 
 .no_write:
 
