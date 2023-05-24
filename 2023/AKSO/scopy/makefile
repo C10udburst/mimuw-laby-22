@@ -10,7 +10,13 @@ HEX=hexdump #hexyl
 scopy.o: scopy.asm
 	nasm -f elf64 $(NASMFLAGS) -o $@ $<
 
+rndtest.o: rndtest.asm scopy.asm
+	nasm -f elf64 $(NASMFLAGS) -o $@ $<
+
 scopy.elf: scopy.o
+	ld --fatal-warnings -o $@ $<
+
+rndtest.elf: rndtest.o
 	ld --fatal-warnings -o $@ $<
 
 dump: scopy.o
@@ -21,6 +27,9 @@ test: scopy.elf
 	rm -f ./example1.sout
 	$(TESTER) ./$< ./testy/example1.in ./example1.sout
 	diff --color <($(HEX) ./testy/example1.out) <($(HEX) ./example1.sout)
+
+rndtest: rndtest.elf
+	for _ in {1..69}; do rm -f ./example1.sout; strace ./$<  ./testy/example1.in ./example1.sout || echo "ERROR!"; done
 
 gdb: scopy.elf
 	rm -f ./example1.sout
