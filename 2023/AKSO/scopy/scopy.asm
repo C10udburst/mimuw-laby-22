@@ -68,8 +68,8 @@ _start:
   mov esi, O_WRONLY | O_CREAT | O_EXCL ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                        ; ustaw uprawnienia pliku
   syscall
-  jmp_syscall_err .err_infile_open ; błąd, trzeba zamknąć infile
-  mov outfile_id, rax      ; deskryptor outfile
+  jmp_syscall_err .err_infile_open     ; błąd, trzeba zamknąć infile
+  mov outfile_id, rax                  ; deskryptor outfile
 
   mov read_idx,  READ_BUFFER + 2
   mov read_size, READ_BUFFER + 1
@@ -86,10 +86,10 @@ _start:
   mov rsi, outfile_buf        ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER       ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem 
-  mov ax, word [abs woverflow]   ; wczytaj strażnika
-  mov word [abs outfile_buf], ax ; wstaw strażnika do buforu
-  sub write_idx, WRITE_BUFFER    ; przesuń write_idx do początku  
+  jmp_syscall_err .err_both_open     ; trzeba zamknąć oba pliki z błędem 
+  mov ax, word [abs woverflow]       ; wczytaj strażnika
+  mov word [abs outfile_buf], ax     ; wstaw strażnika do buforu
+  sub write_idx, WRITE_BUFFER        ; przesuń write_idx do początku  
 .write_buf_ok:
 
   cmp read_idx, read_size
@@ -103,17 +103,17 @@ _start:
   mov rsi, infile_buf       ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER      ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem
-  jz .read_done          ; jeśli rozmiar == 0 to plik się skończył 
-  mov read_size, rax     ; ustaw rozmiar wczytanej części pliku
-  xor read_idx, read_idx ; przesuń read_idx na początek buforu
+  jmp_syscall_err .err_both_open    ; trzeba zamknąć oba pliki z błędem
+  jz .read_done                     ; jeśli rozmiar == 0 to plik się skończył 
+  mov read_size, rax                ; ustaw rozmiar wczytanej części pliku
+  xor read_idx, read_idx            ; przesuń read_idx na początek buforu
 .read_buf_ok:
 
   ; w tym miejscu na pewno w infile został co najmniej jeden bajt
   ; i na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
   mov dl, [abs infile_buf + read_idx]
-  xor dl, 's'         ; jeśli dl jest s lub S to wszystkie bity = 0 poza 2^15
-  test dl, 1011111b   ; s i S różnią się jedynie przedostatnim bitem
+  xor dl, 's'               ; jeśli dl jest s lub S to wszystkie bity = 0 poza 2^15
+  test dl, 1011111b         ; s i S różnią się jedynie przedostatnim bitem
   jz .is_s
   ; nie jest 's' ani 'S'
   inc ns_count
@@ -122,10 +122,10 @@ _start:
   test ns_count, ns_count
   jz .no_counter ; jeśli nie napotkaliśmy na ciąg nie 's' 'S' to nie wpisujemy do pliku
   mov word [abs outfile_buf + write_idx], ns_count
-  xor ns_count, ns_count  ; ns_count = 0
-  add write_idx, 2        ; word = 2 bajty, które wpisaliśmy
+  xor ns_count, ns_count    ; ns_count = 0
+  add write_idx, 2          ; word = 2 bajty, które wpisaliśmy
 .no_counter:
-  xor dl, 's'             ; przywróć dl do 's' albo 'S'
+  xor dl, 's'               ; przywróć dl do 's' albo 'S'
   mov byte [abs outfile_buf + write_idx], dl
   inc write_idx
 .not_s:
@@ -151,7 +151,7 @@ _start:
   mov rsi, outfile_buf         ; wczytaj adres bufora do rsi
   mov rdx, write_idx           ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open ; trzeba zamknąć oba pliki z błędem
+  jmp_syscall_err .err_both_open     ; trzeba zamknąć oba pliki z błędem
 
 .no_write:
 
