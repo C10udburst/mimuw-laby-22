@@ -120,7 +120,7 @@ _start:
   jmp .not_s
 .is_s:
   test ns_count, ns_count
-  jz .no_counter ; jeśli nie napotkaliśmy na ciąg nie 's' 'S' to nie wpisujemy do pliku
+  jz .no_counter            ; jeśli nie napotkaliśmy na ciąg nie 's' 'S' to nie wpisujemy do pliku
   mov word [abs outfile_buf + write_idx], ns_count
   xor ns_count, ns_count    ; ns_count = 0
   add write_idx, 2          ; word = 2 bajty, które wpisaliśmy
