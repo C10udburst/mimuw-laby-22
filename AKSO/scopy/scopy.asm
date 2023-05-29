@@ -12,13 +12,13 @@ READ_BUFFER equ 1084
 WRITE_BUFFER equ 573
 
 ; bits/fcntl-linux.h
-O_WRONLY equ 1o        ; tylko do zapisu
-O_CREAT equ 100o       ; utwórz nowy
-O_EXCL equ 200o        ; błąd jeśli istnieje
+O_WRONLY equ 1o          ; tylko do zapisu
+O_CREAT equ 100o         ; utwórz nowy
+O_EXCL equ 200o          ; błąd jeśli istnieje
 
 ; uprawnienia nowo utworzonego pliku
 ; https://www.nettools.club/chmod_calc
-FMOD equ 664o ; rw-r--r--
+FMOD equ 664o            ; rw-r--r--
 
 ; nazwy rejestrów, ich znaczenie praktycznie nie zmienia się
 %define read_idx   r9    ; obecny indeks w buforze infile
@@ -175,9 +175,9 @@ _start:
 .exit1:
   mov r12, 1
 .infile_closed:
-  mov edi, r12d                ; wczytaj kod błędu do edi
   xor eax, eax
   mov al, SYS_EXIT             ; exit(r12)
+  mov edi, r12d                ; wczytaj kod błędu do edi
   syscall
 
 .err_infile_open:
