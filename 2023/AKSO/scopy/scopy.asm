@@ -28,18 +28,11 @@ FMOD equ 664o            ; rw-r--r--
 %define infile_id  r14   ; deskryptor pliku infile
 %define outfile_id r15   ; deskryptor pliku outfile
 
-; makro do sprawdzania czy syscall zwrócił błąd, jeśli tak to skocz do etykiety
-%macro jmp_syscall_err 1
-  cmp rax, -4095
-  jae %1
-%endmacro
 
 section .bss
 
 infile_buf: resb READ_BUFFER
-
 outfile_buf: resb WRITE_BUFFER
-
 woverflow: resw 1
 
 section .text
@@ -68,7 +61,8 @@ _start:
   mov esi, O_WRONLY | O_CREAT | O_EXCL     ; utwórz plik to zapisywania, z błędem jeśli istnieje
   mov edx, FMOD                            ; ustaw uprawnienia pliku
   syscall
-  jmp_syscall_err .err_infile_open         ; błąd, trzeba zamknąć infile
+  test rax, rax                            ; rax < 0 => wystąpił błąd
+  js .err_infile_open
   mov outfile_id, rax                      ; deskryptor outfile
 
   mov read_idx,  READ_BUFFER + 2
@@ -83,12 +77,13 @@ _start:
   xor eax, eax
   mov al, SYS_WRITE
   mov rdi, outfile_id                ; wczytaj deskryptor outfile do rdi
-  mov rsi, outfile_buf               ; wczytaj adres bufora do rsi
+  lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER              ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open     ; trzeba zamknąć oba pliki z błędem 
-  mov ax, word [abs woverflow]       ; wczytaj strażnika
-  mov word [abs outfile_buf], ax     ; wstaw strażnika do buforu
+  cmp rax, -1                        ; rax == -1 => wystąpił błąd
+  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  mov ax, word [rel woverflow]       ; wczytaj strażnika
+  mov word [rel outfile_buf], ax     ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER        ; przesuń write_idx do początku  
 .write_buf_ok:
 
@@ -100,10 +95,11 @@ _start:
   xor eax, eax
   mov al, SYS_READ                   ; read(infile_id, infile_buf, READ_BUFFER)
   mov rdi, infile_id                 ; wczytaj deskryptor infile do rdi
-  mov rsi, infile_buf                ; wczytaj adres bufora do rsi
+  lea rsi, [rel infile_buf]          ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER               ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open     ; trzeba zamknąć oba pliki z błędem
+  cmp rax, -1                        ; rax == -1 => wystąpił błąd
+  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
   jz .read_done                      ; jeśli rozmiar == 0 to plik się skończył 
   mov read_size, rax                 ; ustaw rozmiar wczytanej części pliku
   xor read_idx, read_idx             ; przesuń read_idx na początek buforu
@@ -112,9 +108,10 @@ _start:
   ; w tym miejscu na pewno w infile został co najmniej jeden bajt
   ; i na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
   mov dl, [abs infile_buf + read_idx]
-  xor dl, 's'                              ; jeśli dl jest s lub S to wszystkie bity = 0 poza 2^15
-  test dl, 1011111b                        ; s i S różnią się jedynie przedostatnim bitem
-  jz .is_s                                 ; jeśli dl == 's' lub 'S' to skocz do .is_s 
+  cmp dl, 's'
+  je .is_s                                 ; jeśli 's' to wpisz do bufora
+  cmp dl, 'S'
+  je .is_s                                 ; jeśli 'S' to wpisz do bufora
   inc ns_count                             ; jeśli dl != 's' i dl != 'S' to zwiększ licznik
   jmp .not_s
 .is_s:
@@ -124,11 +121,10 @@ _start:
   xor ns_count, ns_count                             ; ns_count = 0
   add write_idx, 2                                   ; ustaw następny bajt do zapisu (+2 bo word = 2)
 .no_counter:
-  xor dl, 's'                                        ; przywróć dl do 's' albo 'S'
   mov byte [abs outfile_buf + write_idx], dl         ; wpisz 's' albo 'S' do bufora
   inc write_idx                                      ; ustaw następny bajt do zapisu
 .not_s:
-  inc read_idx
+  inc read_idx                                       ; ustaw następny bajt do odczytu
   jmp .loop
 
 .read_done:
@@ -147,14 +143,15 @@ _start:
   xor eax, eax
   mov al, SYS_WRITE                  ; write(outfile_id, outfile_buf, write_idx)
   mov rdi, outfile_id                ; wczytaj deskryptor outfile do rdi
-  mov rsi, outfile_buf               ; wczytaj adres bufora do rsi
+  lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov rdx, write_idx                 ; wczytaj rozmiar bufora do rdx
   syscall
-  jmp_syscall_err .err_both_open     ; trzeba zamknąć oba pliki z błędem
+  cmp rax, -1                        ; rax == -1 => wystąpił błąd
+  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
 
 .no_write:
 
-  xor r12, r12                 ; od tego miejsca r12 := $? (exit code)
+  xor dl, dl                   ; od tego miejsca edx := $? (exit code)
 
 .exit_close:                   ; zamknij oba pliki i zakończ program
   xor eax, eax
@@ -163,7 +160,7 @@ _start:
   syscall
   test rax, rax
   jns .outfile_closed          ; jeśli udało się zamknąć outfile, to kod błędu pozostaje
-  mov r12, 1                   ; nie udało się zamknąć outfile, ustaw kod błędu na 1
+  mov dl, 1                    ; nie udało się zamknąć outfile, ustaw kod błędu na 1
 
 .outfile_closed:               ; infile już zamknięty, więc wystarczy zamknąć outfile
   xor eax, eax
@@ -173,18 +170,18 @@ _start:
   test rax, rax
   jns .infile_closed           ; jeśli udało się zamknąć infile, kod błędu pozostaje
 .exit1:
-  mov r12, 1
+  mov dl, 1
 .infile_closed:
   xor eax, eax
   mov al, SYS_EXIT             ; exit(r12)
-  mov edi, r12d                ; wczytaj kod błędu do edi
+  movzx edi, dl                ; wczytaj kod błędu do edi
   syscall
 
 .err_infile_open:
-  mov r12, 1
+  mov dl, 1
   jmp .outfile_closed
 
 .err_both_open:
-  mov r12, 1
+  mov dl, 1
   jmp .exit_close
 
