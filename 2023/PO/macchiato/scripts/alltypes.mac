@@ -1,0 +1,24 @@
+    # testowanie wszystkich typów instrukcji
+    a = (0)
+    b = (1)
+    c = (2)
+    # jeśli wystąpi błąd to tu będzie != 1
+    z = (0)
+do
+    # a+1 > b+c (1+1 > 1+2)
+    if: (a 1 +) > (b c +)
+        set: z = (1)
+    else
+        block
+            # 2 * 2 * 3 * 5
+            a = (c 3 5 c * * *)
+            d = (1)
+        do {
+            # od 1 do 6
+            for: i = 0..(5): block; do {
+                set: d = (a i 1 + %)
+                if: (d) <> (0)
+                    set: z = (2)
+            }
+            print: a
+        }

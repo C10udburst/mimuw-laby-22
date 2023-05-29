@@ -1,0 +1,8 @@
+# f = n! mod m
+    n = (56)
+    m = (2147483637)
+    f = (1)
+do
+    for: i = 0..(n)
+        set: f = (f m % i 1 + * m %)
+    print: f
