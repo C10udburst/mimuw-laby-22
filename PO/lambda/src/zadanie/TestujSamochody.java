@@ -2,6 +2,11 @@ package zadanie;
 
 import java.util.Arrays;
 import java.util.List;
+import zadanie.input.ListSorter;
+
+import static zadanie.input.Metody.porownywaczZIntWyciagacza;
+import static zadanie.input.Metody.zamieniacz;
+
 
 public class TestujSamochody {
 
@@ -30,20 +35,20 @@ public class TestujSamochody {
         List<Samochod> samochody = zróbSamochody();
 
         System.out.println("\n==> Wg ceny:");
-        //ListSorter.SortowaniePrzezWybieranie(samochody,
-        //        ...);
+        ListSorter.SortowaniePrzezWybieranie(samochody,
+                porownywaczZIntWyciagacza(Samochod::getCena));
         samochody.forEach(System.out::println);
 
         System.out.println("\n==> Wg liczby:");
         // sortujemy!
-        //ListSorter.SortowaniePrzezWybieranie(samochody,
-        //        ...);
+        ListSorter.SortowaniePrzezWybieranie(samochody,
+                porownywaczZIntWyciagacza(Samochod::getLiczbaDrzwi));
         samochody.forEach(System.out::println);
 
         System.out.println("\n==> Wg marki i modelu:");
         // sortujemy!
-        //ListSorter.SortowaniePrzezWybieranie(samochody,
-        //        ...);
+        ListSorter.SortowaniePrzezWybieranie(samochody,
+            zamieniacz((Samochod s) -> String.format("%s %s", s.getMarka(), s.getModel()), (s1, s2) -> s1.compareTo(s2)));
         samochody.forEach(System.out::println);
     }
 
