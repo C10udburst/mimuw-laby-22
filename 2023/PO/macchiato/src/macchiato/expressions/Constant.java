@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class Constant extends Expression {
     // region dane
-    private final int value;
+    protected final int value;
     // endregion
 
     // region techniczne
@@ -25,4 +25,8 @@ public class Constant extends Expression {
         return value;
     }
     // endregion
+
+    public static Constant of(int v) {
+        return new Constant(v);
+    }
 }

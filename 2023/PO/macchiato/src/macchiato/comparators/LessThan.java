@@ -17,4 +17,8 @@ public class LessThan extends Comparator {
     public boolean compare(int left, int right) {
         return left < right;
     }
+
+    public static LessThan of(Expression left, Expression right) {
+        return new LessThan(left, right);
+    }
 }

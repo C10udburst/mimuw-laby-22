@@ -17,9 +17,14 @@ public class Procedure {
     @NotNull
     protected final ProcedureBlock block;
 
-    public Procedure(@NotNull List<Character> arguments, @NotNull List<Instruction> instructions) {
-        this.block = new ProcedureBlock(instructions);
+
+    public Procedure(@NotNull List<Character> arguments, @NotNull ProcedureBlock block) {
+        this.block = block;
         this.arguments = arguments;
+    }
+
+    public Procedure(@NotNull List<Character> arguments, @NotNull List<Instruction> instructions) {
+        this(arguments, new ProcedureBlock(instructions));
     }
 
     @Override
