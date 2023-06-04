@@ -34,4 +34,18 @@ public class Modulo extends Operator {
         return arg1.evaluate(context) % arg2Value;
     }
     // endregion
+
+    // region fabryka
+    public static Expression of(@NotNull Expression arg1, @NotNull Expression arg2) {
+        if (arg2 instanceof Constant a2 && a2.value == 0)
+            throw new ArithmeticException("Modulo by zero");
+        if (arg1 instanceof Constant a1 && arg2 instanceof Constant a2)
+            return Constant.of(a1.value % a2.value);
+        if (arg2 instanceof Constant a2 && a2.value == 1)
+            return Constant.of(0);
+        if (arg1 instanceof Constant a1 && a1.value == 0)
+            return Constant.of(0);
+        return new Modulo(arg1, arg2);
+    }
+    // endregion
 }
