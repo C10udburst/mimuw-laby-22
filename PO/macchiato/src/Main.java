@@ -1,6 +1,6 @@
 import macchiato.debugging.Debugger;
 import macchiato.exceptions.MacchiatoException;
-import macchiato.instructions.MainBlock;
+import macchiato.instructions.*;
 import macchiato.parser.Parser;
 import macchiato.parser.ParserException;
 
