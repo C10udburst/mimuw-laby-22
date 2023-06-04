@@ -43,4 +43,8 @@ public class Declaration {
     public char getName() {
         return name;
     }
+
+    public static Declaration of(char name, @NotNull Expression expression) {
+        return new Declaration(name, expression);
+    }
 }

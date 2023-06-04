@@ -112,6 +112,7 @@ public class ProcedureTest {
         assertThrows(UndeclaredProcedureException.class, () -> b1.getProcedure("pc"));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     void initTest() {
         assertThrows(Exception.class, () -> {
@@ -120,11 +121,9 @@ public class ProcedureTest {
                     "*", p
             ));
         });
-        assertThrows(Exception.class, () -> {
-            new Block(List.of(), List.of(), Map.of(
-                    "a", null
-            ));
-        });
+        assertThrows(Exception.class, () -> new Block(List.of(), List.of(), Map.of(
+                "a", null
+        )));
         assertThrows(Exception.class, () -> {
             Procedure p1 = new Procedure(List.of(), List.of());
             Procedure p2 = new Procedure(List.of(), List.of());
