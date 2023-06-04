@@ -1,10 +1,13 @@
 package macchiato;
 
 import macchiato.comparators.Equals;
+import macchiato.comparators.LessEqual;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.*;
 import macchiato.instructions.*;
+import macchiato.instructions.procedures.Procedure;
+import macchiato.instructions.procedures.ProcedureInvocation;
 import macchiato.parser.Parser;
 import macchiato.parser.ParserException;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -191,6 +195,41 @@ class MacchiatoTest {
             intermediateResults.add(result);
         }
         return result;
+    }
+
+    /**
+     * Test sprawdzający poprawność wyliczania silni procedurami (tail recursion)
+     */
+    @Test
+    void tailRec() throws MacchiatoException {
+        int max = 100;
+        int modulo = Integer.MAX_VALUE - 10;
+        LinkedList<Integer> intermediateResults = new LinkedList<>();
+        factorial(max, modulo, intermediateResults);
+        DebugHook debugHook = new PrintDebugHook(intermediateResults);
+        Procedure tailrec = new Procedure(List.of('i', 'f'), List.of(
+                new Assignment('f', new Modulo(new Multiply(new Modulo(new Variable('f'), new Constant(modulo)), new Variable('i')), new Constant(modulo))),
+                new Assignment('i', new Add(new Variable('i'), new Constant(1))),
+                new PrintStdOut('f'),
+                new IfStatement(new LessEqual(new Variable('i'), new Constant(max)),
+                        new ProcedureInvocation("tailrec", Map.of(
+                                'i', new Variable('i'),
+                                'f', new Variable('f')
+                        )),
+                        null
+                )
+        ));
+        MainBlock mainBlock = new MainBlock(List.of(), List.of(
+                new ProcedureInvocation("tailrec", Map.of(
+                        'i', new Constant(1),
+                        'f', new Constant(1)
+                ))
+            ),
+            Map.of(
+                    "tailrec", tailrec
+            )
+        );
+        mainBlock.debugExecute(debugHook);
     }
 
 }
