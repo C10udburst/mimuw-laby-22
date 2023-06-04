@@ -4,14 +4,16 @@ import macchiato.Variables;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.InvalidVariableNameException;
 import macchiato.exceptions.MacchiatoException;
+import macchiato.exceptions.UndeclaredProcedureException;
 import macchiato.exceptions.UndeclaredVariableException;
+import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Instruction {
     // region dane
     @Nullable protected Instruction parent;
-    @Nullable protected final Variables vars;
+    @Nullable protected Variables vars;
     // endregion dane
 
     // region techniczne
@@ -116,9 +118,20 @@ public abstract class Instruction {
      * @return nadrzędna instrukcja o podanej głębokości
      */
     public @Nullable Instruction getParent(int depth) {
-        if (depth == 0)  return this;
+        if (depth == 0) return this;
         if (parent == null)  return null;
         return parent.getParent(depth - 1);
+    }
+
+    /**
+     * Zwraca procedure o podanej nazwie, szuka w tym bloku i w blokach nadrzędnych.
+     * @param name nazwa szukanej procedury
+     * @return procedura o podanej nazwie lub null, jeśli nie znaleziono
+     */
+    public @NotNull Procedure getProcedure(String name) throws UndeclaredProcedureException {
+        if (parent == null)
+                throw new UndeclaredProcedureException(this, name);
+        return parent.getProcedure(name);
     }
 
     // endregion operacje na instrukcjach
