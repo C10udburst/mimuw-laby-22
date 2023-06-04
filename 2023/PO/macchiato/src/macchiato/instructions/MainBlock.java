@@ -3,9 +3,11 @@ package macchiato.instructions;
 import macchiato.Declaration;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
+import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Klasa reprezentująca blok główny programu.
@@ -21,9 +23,19 @@ public class MainBlock extends Block {
      * @param declarations deklaracje zmiennych.
      * @param instructions instrukcje.
      */
-    public MainBlock(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
-        super(declarations, instructions);
+    public MainBlock(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions, @NotNull Map<String, Procedure> procedures) {
+        super(declarations, instructions, procedures);
     }
+
+    public MainBlock(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
+        super(declarations, instructions, Map.of());
+    }
+
+    @Override
+    public String getShortName() {
+        return "main";
+    }
+
     // endregion techniczne
 
     /**
