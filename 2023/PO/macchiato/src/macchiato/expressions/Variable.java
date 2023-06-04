@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public class Variable extends Expression {
 
     // region dane
-    private final char name;
+    public final char name;
     // endregion
 
     // region techniczne
@@ -28,4 +28,8 @@ public class Variable extends Expression {
         return context.getVariable(name);
     }
     // endregion
+
+    public static Variable named(char name) {
+        return new Variable(name);
+    }
 }
