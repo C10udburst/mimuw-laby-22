@@ -1,5 +1,6 @@
 package macchiato.builder;
 
+import macchiato.comparators.Equals;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.exceptions.UndeclaredProcedureException;
@@ -48,6 +49,9 @@ public class BuilderTest {
         assertEquals(2 * 3 * 3 * 3, mainBlock.getVariable('a'));
     }
 
+    /**
+     * Test z polecenia.
+     */
     @Test
     void t2() throws MacchiatoException {
         var program = ProgramBuilder.create()
@@ -96,5 +100,21 @@ public class BuilderTest {
         assertEquals((5 * 11) % 3, ((Constant) expression).evaluate(ProgramBuilder.create().build()));
 
         assertThrows(ArithmeticException.class, () -> Modulo.of(Constant.of(5), Constant.of(0)));
+    }
+
+    @Test
+    void builderExceptions() {
+        ProgramBuilder builder = ProgramBuilder.create();
+        assertThrows(IllegalArgumentException.class, () -> builder.add(() -> null));
+        assertThrows(IllegalArgumentException.class, () -> builder.add(() -> new MainBlock(List.of(), List.of(), Map.of())));
+        assertThrows(IllegalArgumentException.class, () -> builder.add(builder));
+        assertThrows(IllegalArgumentException.class, () -> builder.forLoop('a', Constant.of(1), builder));
+        assertThrows(IllegalArgumentException.class, () -> builder.declareProcedure("a", List.of(), builder));
+        assertThrows(IllegalArgumentException.class, () -> builder.ifThen(Equals.of(Constant.of(1), Constant.of(1)), builder));
+        assertThrows(IllegalArgumentException.class, () -> builder.ifThenElse(Equals.of(Constant.of(1), Constant.of(1)), builder, builder));
+        assertThrows(IllegalArgumentException.class, () -> builder.ifThen(Equals.of(Constant.of(1), Constant.of(1)), () -> null));
+
+        assertThrows(Exception.class, () -> ProcedureBuilder.create().declareProcedure("a", List.of(), builder));
+        assertThrows(UnsupportedOperationException.class, () -> ProcedureBuilder.create().declareVariable('a', Constant.of(1)));
     }
 }
