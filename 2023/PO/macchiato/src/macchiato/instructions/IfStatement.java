@@ -21,7 +21,7 @@ public class IfStatement extends Instruction {
      * @param elseInstruction instrukcja, która ma być wykonana, jeśli warunek jest fałszywy
      */
     public IfStatement(@NotNull Comparator comparator, @NotNull Instruction thenInstruction, @Nullable Instruction elseInstruction) {
-        super(false);
+        super();
         this.comparator = comparator;
         this.thenInstruction = thenInstruction;
         this.elseInstruction = elseInstruction;
@@ -54,8 +54,7 @@ public class IfStatement extends Instruction {
 
     // region operacje
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
+    protected void internalExecute() throws MacchiatoException {
         if (comparator.execute(this)) {
             thenInstruction.execute();
         } else {
@@ -65,8 +64,7 @@ public class IfStatement extends Instruction {
     }
 
     @Override
-    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         debugger.beforeExecute(this);
         if (comparator.execute(this)) {
             thenInstruction.debugExecute(debugger);

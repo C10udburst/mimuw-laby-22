@@ -27,7 +27,7 @@ public class Block extends Instruction {
      * @param instructions instrukcje do wykonania
      */
     public Block(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions, @NotNull Map<String, Procedure> procedures) {
-        super(true);
+        super();
 
         this.declarations = declarations;
         this.instructions = instructions;
@@ -49,8 +49,6 @@ public class Block extends Instruction {
         // ustawia ten blok jako nadrzędny dla wszystkich procedur
         for (Procedure procedure : procedures.values())
             procedure.setParent(this);
-
-        assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
     }
 
     public Block(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
@@ -99,16 +97,14 @@ public class Block extends Instruction {
 
     // region operacje
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
+    protected void internalExecute() throws MacchiatoException {
         declareVariables();
         for (Instruction instruction : instructions)
             instruction.execute();
     }
 
     @Override
-    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         declareVariables();
         debugger.beforeExecute(this);
         for (Instruction instruction : instructions)
@@ -120,9 +116,8 @@ public class Block extends Instruction {
      * @throws MacchiatoException jeśli wystąpi błąd podczas deklaracji
      */
     protected void declareVariables() throws MacchiatoException {
-        assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
         for (Declaration declaration : declarations) // ustala wartości zmiennych
-            vars.declare(declaration.getName(), declaration.execute(this));
+            vars.peek().declare(declaration.getName(), declaration.execute(this));
     }
 
     @Override

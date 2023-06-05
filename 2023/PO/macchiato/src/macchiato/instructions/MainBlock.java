@@ -1,6 +1,7 @@
 package macchiato.instructions;
 
 import macchiato.Declaration;
+import macchiato.Variables;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.procedures.Procedure;
@@ -40,7 +41,6 @@ public class MainBlock extends Block {
     // endregion techniczne
 
     /**
-     * Wykonuje blok główny. Po bezbłędnym wykonaniu wypisuje na standardowe wyjście wartości wszystkich zmiennych w głównym bloku.
      * Jeśli wystąpi błąd, wypisuje błąd i wartości wszystkich zmiennych w bloku, w którym wystąpił.
      */
     @Override
@@ -50,14 +50,25 @@ public class MainBlock extends Block {
         } catch (MacchiatoException e) {
             System.err.println("An error occured: " + e.getMessage());
             System.out.println(e.context.dumpVars());
-        } finally {
-            System.out.println(dumpVars());
         }
     }
 
     @Override
     public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
+        vars.push(new Variables(this));
+        internalDebugExecute(debugger);
+        // nie robimy popa, bo to debugger może chcieć zobaczyć wartości zmiennych po wykonaniu
+    }
+
+    @Override
+    protected void internalExecute() throws MacchiatoException {
+        super.internalExecute();
+        System.out.println(dumpVars());
+    }
+
+    @Override
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        super.internalDebugExecute(debugger);
         System.out.println(dumpVars());
     }
 }

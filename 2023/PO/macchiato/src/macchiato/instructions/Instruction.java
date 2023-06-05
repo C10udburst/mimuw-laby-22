@@ -15,15 +15,14 @@ import java.util.*;
 public abstract class Instruction implements InstructionLike {
     // region dane
     @Nullable protected Instruction parent;
-    @Nullable protected Variables vars;
+    @NotNull protected final Stack<Variables> vars = new Stack<>();
     // endregion dane
 
     // region techniczne
     /**
      * Tworzy instrukcję.
      */
-    public Instruction(boolean hasVariables) {
-        vars = hasVariables ? new Variables(this) : null;
+    public Instruction() {
     }
 
     // wymuszenie implementacji metody toString() w klasach dziedziczących
@@ -69,14 +68,15 @@ public abstract class Instruction implements InstructionLike {
      */
     public int getVariable(char name) throws InvalidVariableNameException, UndeclaredVariableException {
         try {
-            if (vars == null) // nie ma zmiennych w tym bloku
-                throw new UndeclaredVariableException(name, this);
-            return vars.get(name);
+            if (!vars.isEmpty()) {
+                return vars.peek().get(name);
+            }
         } catch (UndeclaredVariableException e) {
-            if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana
-                throw e;
-            return parent.getVariable(name); // szukaj w nadrzędnym bloku
+            // nie ma takiej zmiennej w tym bloku, szukaj w nadrzędnym
         }
+        if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana
+            throw new UndeclaredVariableException(name, this);
+        return parent.getVariable(name);
     }
 
     /**
@@ -88,36 +88,53 @@ public abstract class Instruction implements InstructionLike {
      */
     public void setVariable(char name, int value) throws InvalidVariableNameException, UndeclaredVariableException {
         try {
-            if (vars == null) // nie ma zmiennych w tym bloku
-                throw new UndeclaredVariableException(name, this);
-            vars.set(name, value);
+            if (!vars.isEmpty()) {
+                vars.peek().set(name, value);
+                return;
+            }
         } catch (UndeclaredVariableException e) {
-            if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana
-                throw e;
-            parent.setVariable(name, value); // szukaj w nadrzędnym bloku
+            // nie ma takiej zmiennej w tym bloku, szukaj w nadrzędnym
         }
+        if (parent == null) // nie ma nadrzędnego bloku, więc zmienna nie została zadeklarowana
+            throw new UndeclaredVariableException(name, this);
+        parent.setVariable(name, value);
     }
     // endregion operacje na zmiennych
 
     // region operacje na instrukcjach
     /**
-     * Wykonuje instrukcję.
+     * Wykonuje instrukcję, większość instrukcji nie powinna nadpisywać tej metody, tylko {@link #internalExecute()}.
      * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
      */
     public void execute() throws MacchiatoException {
-        if (vars != null)
-            vars.reset();
+        vars.push(new Variables(this));
+        internalExecute();
+        vars.pop();
     }
 
     /**
-     * Wykonuje instrukcję w trybie debugowania.
+     * Rzeczywista implementacja wykonywania instrukcji.
+     * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
+     */
+    protected abstract void internalExecute() throws MacchiatoException;
+
+    /**
+     * Wykonuje instrukcję w trybie debugowania. Większość instrukcji nie powinna nadpisywać tej metody, tylko {@link #internalDebugExecute(DebugHook)}.
      * @param debugger obiekt, który ma zostać powiadomiony o wykonaniu instrukcji
      * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
      */
     public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        if (vars != null)
-            vars.reset();
+        vars.push(new Variables(this));
+        internalDebugExecute(debugger);
+        vars.pop();
     }
+
+    /**
+     * Rzeczywista implementacja wykonywania instrukcji w trybie debugowania.
+     * @param debugger obiekt, który ma zostać powiadomiony o wykonaniu instrukcji
+     * @throws MacchiatoException jeśli wystąpi błąd podczas wykonywania instrukcji
+     */
+    protected abstract void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException;
 
     /**
      * Zwraca nadrzędną instrukcję o podanej głębokości.
