@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public abstract class Instruction {
+public abstract class Instruction implements InstructionLike {
     // region dane
     @Nullable protected Instruction parent;
     @Nullable protected Variables vars;
@@ -28,6 +28,11 @@ public abstract class Instruction {
 
     // wymuszenie implementacji metody toString() w klasach dziedziczących
     public abstract String toString();
+
+    @Override
+    public Instruction toInstruction() {
+        return this;
+    }
 
     /**
      * @return Krótka nazwa instrukcji, używana przy wypisywaniu np. listy instrukcji w bloku.

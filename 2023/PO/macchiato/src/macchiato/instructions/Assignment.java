@@ -19,6 +19,9 @@ public class Assignment extends Instruction {
      */
     public Assignment(char variable, @NotNull Expression expression) {
         super(false);
+        if (!Character.isLetter(variable)) {
+            throw new IllegalArgumentException("Variable name must be a letter");
+        }
         this.variable = variable;
         this.expression = expression;
     }
