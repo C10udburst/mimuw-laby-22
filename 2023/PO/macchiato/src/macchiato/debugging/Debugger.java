@@ -11,22 +11,22 @@ import java.util.Iterator;
 
 public class Debugger implements DebugHook {
 
-    // region dane
-    protected enum LogLevel {
-
-        INFO("\u001B[0m"),
-        SUCCESS("\u001B[32m"),
-        WARN("\u001B[33m"),
-        ERROR("\u001B[31m")
-        ;
-
-        public final String color;
-
-        LogLevel(String s) {
-            this.color = s;
+    /**
+     * Uruchamia debugger na podanym kodzie. Wyświetla informacje o błędzie, jeśli wystąpił.
+     *
+     * @param start początek kodu.
+     */
+    public static void debug(@NotNull Instruction start) {
+        var debugger = new Debugger();
+        try {
+            start.debugExecute(debugger);
+        } catch (Exception e) {
+            debugger.handleError(e);
         }
+        debugger.onFinish(start);
     }
 
+    // region dane
     protected static final String ANSI_RESET = "\u001B[0m";
 
     private boolean debugging = true;
@@ -41,6 +41,7 @@ public class Debugger implements DebugHook {
 
     /**
      * Wywoływana przed wykonaniem instrukcji. Jeśli debugger jest w trybie debugowania, wyświetla informacje o instrukcji i czeka na komendę użytkownika.
+     *
      * @param instruction instrukcja, która zostanie wykonana.
      */
     @Override
@@ -54,17 +55,12 @@ public class Debugger implements DebugHook {
     }
 
     /**
-     * Uruchamia debugger na podanym kodzie. Wyświetla informacje o błędzie, jeśli wystąpił.
-     * @param start początek kodu.
+     * Sprawdza, czy debugger powinien zatrzymać program.
+     *
+     * @return true, jeśli debugger powinien zatrzymać program.
      */
-    public static void debug(@NotNull Instruction start) {
-        var debugger = new Debugger();
-        try {
-            start.debugExecute(debugger);
-        } catch (Exception e) {
-            debugger.handleError(e);
-        }
-        debugger.onFinish(start);
+    public boolean shouldBreak() {
+        return debugging && steps == 0;
     }
 
 
@@ -76,15 +72,8 @@ public class Debugger implements DebugHook {
     }
 
     /**
-     * Sprawdza, czy debugger powinien zatrzymać program.
-     * @return true, jeśli debugger powinien zatrzymać program.
-     */
-    public boolean shouldBreak() {
-        return debugging && steps == 0;
-    }
-
-    /**
      * Dodaje kroki do wykonania, zanim debugger wstrzyma program.
+     *
      * @param steps liczba kroków do wykonania.
      */
     public void addSteps(int steps) {
@@ -93,6 +82,7 @@ public class Debugger implements DebugHook {
 
     /**
      * Pobiera dane od użytkownika, argumenty oddzielone spacją.
+     *
      * @return dane od użytkownika.
      */
     protected String[] getUserInput() {
@@ -111,7 +101,8 @@ public class Debugger implements DebugHook {
 
     /**
      * Wypisuje wartościowanie oraz widoczne procedury do pliku.
-     * @param out plik, do którego zostanie zapisany wynik.
+     *
+     * @param out                plik, do którego zostanie zapisany wynik.
      * @param currentInstruction kontekst; instrukcja, która będzie wykonana jako następna.
      * @throws IOException jeśli nie udało się utworzyć pliku.
      */
@@ -148,11 +139,11 @@ public class Debugger implements DebugHook {
         bw.close();
     }
 
-
     /**
      * Obsługuje komendy użytkownika. Jeśli komenda nie jest rozpoznana, ponawia pobieranie danych.
+     *
      * @param currentInstruction instrukcja, która będzie wykonana jako następna.
-     * @param finished czy wykonywanie już się zakończyło
+     * @param finished           czy wykonywanie już się zakończyło
      */
     private void handleUserInput(@NotNull Instruction currentInstruction, boolean finished) {
         String[] input = getUserInput();
@@ -165,13 +156,13 @@ public class Debugger implements DebugHook {
         switch (input[0].codePointAt(0)) {
             case 'c': // (c)ontinue
                 if (finished)
-                    printConsole( "Program has already finished execution.", LogLevel.WARN);
+                    printConsole("Program has already finished execution.", LogLevel.WARN);
                 else
                     stopDebugging();
                 break;
             case 's': // (s)tep
                 if (finished)
-                    printConsole( "Program has already finished execution.", LogLevel.WARN);
+                    printConsole("Program has already finished execution.", LogLevel.WARN);
                 else
                     try {
                         int steps = Integer.parseInt(input[1]);
@@ -220,6 +211,7 @@ public class Debugger implements DebugHook {
 
     /**
      * Wywoływana po zakończeniu programu. Wyświetla komunikat o sukcesie lub błędzie.
+     *
      * @param mainBlock główny blok programu.
      */
     protected void onFinish(@NotNull Instruction mainBlock) {
@@ -229,7 +221,8 @@ public class Debugger implements DebugHook {
 
     /**
      * Wyświetla komunikat w konsoli. Jeśli poziom logowania jest ERROR, wyświetla go na konsoli błędów.
-     * @param message treść komunikatu.
+     *
+     * @param message  treść komunikatu.
      * @param logLevel poziom logowania.
      */
     protected void printConsole(String message, LogLevel logLevel) {
@@ -238,11 +231,26 @@ public class Debugger implements DebugHook {
 
     /**
      * Wyświetla komunikat o błędzie i ustawia flagę błędu.
+     *
      * @param e wyjątek.
      */
     public void handleError(Exception e) {
         if (e == null) return;
         printConsole(e.getMessage(), LogLevel.ERROR);
         didFail = true;
+    }
+
+    protected enum LogLevel {
+
+        INFO("\u001B[0m"),
+        SUCCESS("\u001B[32m"),
+        WARN("\u001B[33m"),
+        ERROR("\u001B[31m");
+
+        public final String color;
+
+        LogLevel(String s) {
+            this.color = s;
+        }
     }
 }

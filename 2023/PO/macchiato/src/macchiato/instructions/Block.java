@@ -7,7 +7,9 @@ import macchiato.exceptions.UndeclaredProcedureException;
 import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class Block extends Instruction {
     // region dane
@@ -17,8 +19,10 @@ public class Block extends Instruction {
     // endregion dane
 
     // region techniczne
+
     /**
-     * Tworzy blok instrukcji.
+     * Tworzy blok instrukcji. Należy użyć {@link macchiato.builder.BlockBuilder} zamiast konstruktora.
+     *
      * @param declarations deklaracje zmiennych, które mają być zadeklarowane w tym bloku przed wykonaniem instrukcji
      * @param instructions instrukcje do wykonania
      */

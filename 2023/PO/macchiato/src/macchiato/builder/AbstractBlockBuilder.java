@@ -16,9 +16,12 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBlockBuilder<T, U>> implements InstructionLike {
-    @NotNull protected final List<Instruction> instructions;
-    @NotNull protected final List<Declaration> declarations;
-    @NotNull protected final Map<String, Procedure> procedures;
+    @NotNull
+    protected final List<Instruction> instructions;
+    @NotNull
+    protected final List<Declaration> declarations;
+    @NotNull
+    protected final Map<String, Procedure> procedures;
 
     public AbstractBlockBuilder() {
         this.instructions = new ArrayList<>();
@@ -76,6 +79,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region declareVariable
+
     /**
      * @param declaration Deklaracja, która ma zostać dodana do bloku
      */
@@ -85,7 +89,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param v nazwa zmiennej
+     * @param v     nazwa zmiennej
      * @param value wartość zmiennej
      */
     public U declareVariable(char v, int value) {
@@ -93,7 +97,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param v nazwa zmiennej
+     * @param v          nazwa zmiennej
      * @param expression wyrażenie, które ma zostać przypisane do zmiennej
      */
     public U declareVariable(char v, Expression expression) {
@@ -101,7 +105,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param v nazwa zmiennej
+     * @param v          nazwa zmiennej
      * @param expression wyrażenie, które ma zostać przypisane do zmiennej
      */
     public U declareVariable(@NotNull Variable v, Expression expression) {
@@ -110,6 +114,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region declareProcedure
+
     /**
      * @param procedure procedura, która ma zostać dodana do bloku
      */
@@ -128,8 +133,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param name nazwa procedury
-     * @param args argumenty procedury
+     * @param name    nazwa procedury
+     * @param args    argumenty procedury
      * @param builder ciało procedury
      */
     public U declareProcedure(@NotNull String name, @NotNull List<Character> args, @NotNull ProcedureBuilder builder) {
@@ -137,8 +142,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param name nazwa procedury
-     * @param args argumenty procedury
+     * @param name         nazwa procedury
+     * @param args         argumenty procedury
      * @param instructions ciało procedury
      */
     public U declareProcedure(@NotNull String name, @NotNull List<Character> args, @NotNull List<InstructionLike> instructions) {
@@ -150,8 +155,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     }
 
     /**
-     * @param name nazwa procedury
-     * @param args argumenty procedury
+     * @param name         nazwa procedury
+     * @param args         argumenty procedury
      * @param instructions ciało procedury
      */
     public U declareProcedure(@NotNull String name, @NotNull List<Character> args, InstructionLike... instructions) {
@@ -160,8 +165,10 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region print
+
     /**
      * Dodaj instrukcję wypisującą wartość zmiennej v na standardowe wyjście
+     *
      * @param v nazwa zmiennej
      */
     public U print(char v) {
@@ -170,6 +177,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     /**
      * Dodaj instrukcję wypisującą wartość wyrażenia expression na standardowe wyjście
+     *
      * @param variable zmienna, której wartość ma zostać wypisana
      */
     public U print(@NotNull Variable variable) {
@@ -178,9 +186,11 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region assign
+
     /**
      * Dodaj instrukcję ustawiającą wartość zmiennej v na wartość wyrażenia expression
-     * @param v nazwa zmiennej
+     *
+     * @param v          nazwa zmiennej
      * @param expression wyrażenie, które ma zostać przypisane do zmiennej
      */
     public U assign(char v, Expression expression) {
@@ -189,7 +199,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     /**
      * Dodaj instrukcję ustawiającą wartość zmiennej variable na wartość wyrażenia expression
-     * @param variable zmienna, której wartość ma zostać ustawiona
+     *
+     * @param variable   zmienna, której wartość ma zostać ustawiona
      * @param expression wyrażenie, które ma zostać przypisane do zmiennej
      */
     public U assign(@NotNull Variable variable, Expression expression) {
@@ -198,7 +209,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     /**
      * Dodaj instrukcję ustawiającą wartość zmiennej v na wartość value
-     * @param v nazwa zmiennej
+     *
+     * @param v     nazwa zmiennej
      * @param value wartość, która ma zostać przypisana do zmiennej
      */
     public U assign(char v, int value) {
@@ -207,10 +219,12 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region ifThen
+
     /**
      * dodaj instrukcję warunkową do bloku
+     *
      * @param condition warunek instrukcji warunkowej
-     * @param then instrukcja, która ma zostać wykonana, jeśli warunek jest spełniony
+     * @param then      instrukcja, która ma zostać wykonana, jeśli warunek jest spełniony
      * @param otherwise instrukcja, która ma zostać wykonana, jeśli warunek nie jest spełniony
      */
     public U ifThenElse(@NotNull Comparator condition, @NotNull InstructionLike then, @Nullable InstructionLike otherwise) {
@@ -219,8 +233,9 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     /**
      * dodaj instrukcję warunkową do bloku
+     *
      * @param condition warunek instrukcji warunkowej
-     * @param then instrukcja, która ma zostać wykonana, jeśli warunek jest spełniony
+     * @param then      instrukcja, która ma zostać wykonana, jeśli warunek jest spełniony
      */
     public U ifThen(@NotNull Comparator condition, @NotNull InstructionLike then) {
         return ifThenElse(condition, then, null);
@@ -228,11 +243,13 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region forLoop
+
     /**
      * dodaj pętle iterującą po zmiennej iterator od 0 do to
+     *
      * @param iterator nazwa zmiennej, która będzie iteratorem pętli
-     * @param to wyrażenie, które określa, do jakiej wartości ma iterować pętla
-     * @param body instrukcja, która ma zostać wykonana w każdej iteracji pętli
+     * @param to       wyrażenie, które określa, do jakiej wartości ma iterować pętla
+     * @param body     instrukcja, która ma zostać wykonana w każdej iteracji pętli
      */
     public U forLoop(char iterator, Expression to, @NotNull InstructionLike body) {
         return add(new ForLoop(iterator, to, body.toInstruction()));
@@ -240,9 +257,10 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     /**
      * dodaj pętle iterującą po zmiennej iterator od 0 do to
+     *
      * @param iterator nazwa zmiennej, która będzie iteratorem pętli
-     * @param to wyrażenie, które określa, do jakiej wartości ma iterować pętla
-     * @param body instrukcja, która ma zostać wykonana w każdej iteracji pętli
+     * @param to       wyrażenie, które określa, do jakiej wartości ma iterować pętla
+     * @param body     instrukcja, która ma zostać wykonana w każdej iteracji pętli
      */
     public U forLoop(@NotNull Variable iterator, Expression to, @NotNull InstructionLike body) {
         return forLoop(iterator.name, to, body);
@@ -250,8 +268,10 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     // endregion
 
     // region invoke
+
     /**
      * dodaj inwokację procedury
+     *
      * @param name nazwa procedury
      * @param args argumenty procedury
      */

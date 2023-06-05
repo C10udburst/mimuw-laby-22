@@ -48,6 +48,7 @@ public class Procedure {
 
     /**
      * Wykonuje procedurę.
+     *
      * @param invoker instrukcja wywołująca procedurę
      * @throws MacchiatoException jeśli wystąpi błąd
      */
@@ -59,7 +60,8 @@ public class Procedure {
 
     /**
      * Wykonuje procedurę w trybie debugowania.
-     * @param invoker instrukcja wywołująca procedurę
+     *
+     * @param invoker  instrukcja wywołująca procedurę
      * @param debugger obiekt debugujący
      * @throws MacchiatoException jeśli wystąpi błąd
      */
@@ -71,6 +73,7 @@ public class Procedure {
 
     /**
      * Wylicza argumenty procedury.
+     *
      * @param invoker instrukcja wywołująca procedurę
      * @return zmienne z argumentami
      * @throws MacchiatoException jeśli wystąpi błąd

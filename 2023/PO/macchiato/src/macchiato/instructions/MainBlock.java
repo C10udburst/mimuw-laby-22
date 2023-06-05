@@ -19,7 +19,8 @@ public class MainBlock extends Block {
 
     // region techniczne
     /**
-     * Tworzy nowy blok główny.
+     * Tworzy nowy blok główny. Należy użyć {@link macchiato.builder.ProgramBuilder} zamiast konstruktora.
+     *
      * @param declarations deklaracje zmiennych.
      * @param instructions instrukcje.
      */

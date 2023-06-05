@@ -6,7 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class DivideByZeroException extends MacchiatoException {
 
-    @NotNull public final Expression expression;
+    @NotNull
+    public final Expression expression;
 
     public DivideByZeroException(@NotNull Expression expression, @NotNull Instruction context) {
         super("Division by zero in expression: " + expression + ".", context);

@@ -15,6 +15,9 @@ public class ProcedureBlock extends Block {
     @NotNull
     protected final Stack<Variables> varStack = new Stack<>();
 
+    /**
+     * Należy używać tylko w {@link Procedure} oraz twożyc jedynie za pomocą {@link macchiato.builder.ProcedureBuilder}.
+     */
     public ProcedureBlock(@NotNull List<Instruction> instructions) {
         super(List.of(), instructions);
     }
@@ -37,12 +40,13 @@ public class ProcedureBlock extends Block {
     }
 
     @Override
-    protected void declareVariables()  {
+    protected void declareVariables() {
         pop();
     }
 
     /**
      * Wrzuca na stos aktualny stan zmiennych i ustawia nowy.
+     *
      * @param next nowy stan zmiennych
      */
     protected void push(Variables next) {
