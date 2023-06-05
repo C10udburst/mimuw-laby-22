@@ -18,7 +18,7 @@ public class ProcedureInvocation extends Instruction {
     private final Map<Character, Expression> arguments;
 
     public ProcedureInvocation(@NotNull String name, @NotNull Map<Character, Expression> arguments) {
-        super(false);
+        super();
         this.name = name;
         this.arguments = arguments;
     }
@@ -39,15 +39,13 @@ public class ProcedureInvocation extends Instruction {
     }
 
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
+    protected void internalExecute() throws MacchiatoException {
         Procedure procedure = getProcedure(name);
         procedure.execute(this);
     }
 
     @Override
-    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         debugger.beforeExecute(this);
         Procedure procedure = getProcedure(name);
         procedure.debugExecute(this, debugger);
