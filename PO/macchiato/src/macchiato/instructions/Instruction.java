@@ -10,6 +10,8 @@ import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
+
 public abstract class Instruction {
     // region dane
     @Nullable protected Instruction parent;
@@ -132,6 +134,16 @@ public abstract class Instruction {
         if (parent == null)
                 throw new UndeclaredProcedureException(this, name);
         return parent.getProcedure(name);
+    }
+
+    /**
+     * Zwraca zbiór nazw zadeklarowanych procedur w tym bloku i w blokach nadrzędnych.
+     * @return zbiór nazw zadeklarowanych procedur
+     */
+    public @NotNull HashSet<String> declaredProcedures() {
+        if (parent == null)
+            return new HashSet<>();
+        return parent.declaredProcedures();
     }
 
     // endregion operacje na instrukcjach

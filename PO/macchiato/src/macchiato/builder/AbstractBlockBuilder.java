@@ -2,6 +2,7 @@ package macchiato.builder;
 
 import macchiato.Declaration;
 import macchiato.comparators.Comparator;
+import macchiato.expressions.Constant;
 import macchiato.expressions.Expression;
 import macchiato.expressions.Variable;
 import macchiato.instructions.*;
@@ -73,6 +74,14 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     public U declareVariable(@NotNull Declaration declaration) {
         declarations.add(declaration);
         return (U) this;
+    }
+
+    /**
+     * @param v nazwa zmiennej
+     * @param value wartość zmiennej
+     */
+    public U declareVariable(char v, int value) {
+        return declareVariable(Declaration.of(v, Constant.of(value)));
     }
 
     /**
