@@ -53,9 +53,8 @@ public class Procedure {
      * @throws MacchiatoException jeśli wystąpi błąd
      */
     public void execute(ProcedureInvocation invoker) throws MacchiatoException {
-        block.push(makeVars(invoker));
+        block.setArgs(makeVars(invoker));
         block.execute();
-        block.pop();
     }
 
     /**
@@ -66,9 +65,8 @@ public class Procedure {
      * @throws MacchiatoException jeśli wystąpi błąd
      */
     public void debugExecute(ProcedureInvocation invoker, DebugHook debugger) throws MacchiatoException {
-        block.push(makeVars(invoker));
+        block.setArgs(makeVars(invoker));
         block.debugExecute(debugger);
-        block.pop();
     }
 
     /**
