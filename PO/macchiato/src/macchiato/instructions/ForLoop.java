@@ -20,7 +20,7 @@ public class ForLoop extends Instruction {
      * @param body ciało pętli
      */
     public ForLoop(char iteratorName, @NotNull Expression end, @NotNull Instruction body) {
-        super(true);
+        super();
         this.iteratorName = iteratorName;
         this.end = end;
         this.body = body;
@@ -41,30 +41,25 @@ public class ForLoop extends Instruction {
 
     // region operacje
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
-        assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
-        vars.declare(iteratorName, 0);
+    protected void internalExecute() throws MacchiatoException {
+        vars.peek().declare(iteratorName, 0);
         int endValue = end.evaluate(this);
         for (int i = 0; i < endValue; i++) {
-            vars.set(iteratorName, i);
+            vars.peek().set(iteratorName, i);
             body.execute();
         }
     }
 
     @Override
-    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
-
-        assert vars != null; // nie powinno się zdarzyć, bo konstruktor tworzy nowe zmienne
-        vars.declare(iteratorName, 0);
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
+        vars.peek().declare(iteratorName, 0);
 
         debugger.beforeExecute(this);
 
         int endValue = end.evaluate(this); // koniec pętli liczymy tylko raz
 
         for (int i = 0; i < endValue; i++) {
-            vars.set(iteratorName, i);
+            vars.peek().set(iteratorName, i);
             body.debugExecute(debugger);
         }
     }
