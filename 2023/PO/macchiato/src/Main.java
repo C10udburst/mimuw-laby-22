@@ -1,3 +1,6 @@
+import macchiato.builder.BlockBuilder;
+import macchiato.builder.ProcedureBuilder;
+import macchiato.builder.ProgramBuilder;
 import macchiato.debugging.Debugger;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.*;
@@ -23,35 +26,29 @@ public class Main {
      * Domyślne zachowanie programu, gdy nie podano argumentów, wykonuje kod z polecenia.
      */
     private static void defaultBehaviour() {
-        String source = """
-                    n = (30)
-                do
-                    for: k = 0..(n 1 -)
-                        block
-                            p = (1)
-                            k = (k 2 +)
-                        do {
-                            for: i = 0..(k 2 -)
-                                block
-                                    i = (i 2 +)
-                                do {
-                                    if: (k i %) = (0)
-                                        set: p = (0)
-                                }
-                            if: (p) = (1)
-                                print: k
-                        }
-                """.stripIndent().trim();
-        // Parsuj
-        Parser parser = new Parser(source);
-        MainBlock mainBlock = null;
-        try {
-            mainBlock = parser.parse();
-        } catch (ParserException | MacchiatoException ex) {
-            assert false; // nie powinno się zdarzyć, bo source jest poprawny
-        }
-        assert mainBlock != null;
-        Debugger.debug(mainBlock);
+        Debugger.debug(ProgramBuilder.create()
+                .declareVariable('a', 0)
+                .declareVariable('b', 1)
+                .declareVariable('c', 2)
+                .declareProcedure("a", ProcedureBuilder.create()
+                        .buildProcedure('a', 'b')
+                )
+                .declareProcedure("b", ProcedureBuilder.create()
+                        .buildProcedure('b', 'c')
+                )
+                .declareProcedure("c", ProcedureBuilder.create()
+                        .buildProcedure('c', 'a')
+                )
+                .add(BlockBuilder.create()
+                        .declareProcedure("z", ProcedureBuilder.create()
+                                .buildProcedure('a', 'b')
+                        )
+                        .declareProcedure("a", ProcedureBuilder.create()
+                                .buildProcedure('z', 'x')
+                        )
+                )
+                .build()
+        );
     }
 
     /**
