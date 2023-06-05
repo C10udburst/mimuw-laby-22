@@ -1,12 +1,13 @@
 package macchiato.debugging;
 
+import macchiato.exceptions.UndeclaredProcedureException;
 import macchiato.instructions.Instruction;
+import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class Debugger implements DebugHook {
 
@@ -108,6 +109,45 @@ public class Debugger implements DebugHook {
         }
     }
 
+    /**
+     * Wypisuje wartościowanie oraz widoczne procedury do pliku.
+     * @param out plik, do którego zostanie zapisany wynik.
+     * @param currentInstruction kontekst; instrukcja, która będzie wykonana jako następna.
+     * @throws IOException jeśli nie udało się utworzyć pliku.
+     */
+    private void dump(File out, @NotNull Instruction currentInstruction) throws IOException {
+        if (!out.createNewFile())
+            throw new IOException("File already exists.");
+
+        BufferedWriter bw = new BufferedWriter(new FileWriter(out));
+
+        // procedury
+        bw.write("Procedures:\n");
+        for (String name : currentInstruction.declaredProcedures()) {
+            Procedure procedure;
+            try {
+                procedure = currentInstruction.getProcedure(name);
+            } catch (UndeclaredProcedureException e) {
+                assert false; // nie powinno się zdarzyć
+                continue;
+            }
+            bw.write("\t");
+            bw.write(name + "(");
+            for (Iterator<Character> it = procedure.getArguments(); it.hasNext(); ) {
+                bw.write(it.next());
+                if (it.hasNext())
+                    bw.write(", ");
+            }
+            bw.write(")\n");
+        }
+
+        // zmienne
+        bw.write("Variables:\n\t");
+        bw.write(currentInstruction.dumpVars());
+        bw.flush();
+        bw.close();
+    }
+
 
     /**
      * Obsługuje komendy użytkownika. Jeśli komenda nie jest rozpoznana, ponawia pobieranie danych.
@@ -156,6 +196,17 @@ public class Debugger implements DebugHook {
                         printConsole(requested.dumpVars(), LogLevel.INFO);
                 } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                     printConsole("Invalid depth.", LogLevel.ERROR);
+                    handleUserInput(currentInstruction, finished);
+                }
+                break;
+            case 'm': // (m)emory, dump
+                try {
+                    dump(new File(input[1]), currentInstruction);
+                } catch (IOException e) {
+                    printConsole("IOException: " + e.getMessage(), LogLevel.ERROR);
+                    handleUserInput(currentInstruction, finished);
+                } catch (IndexOutOfBoundsException e) {
+                    printConsole("No file name provided.", LogLevel.ERROR);
                     handleUserInput(currentInstruction, finished);
                 }
                 break;

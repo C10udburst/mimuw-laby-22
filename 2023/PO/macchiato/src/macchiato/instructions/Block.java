@@ -7,8 +7,7 @@ import macchiato.exceptions.UndeclaredProcedureException;
 import macchiato.instructions.procedures.Procedure;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Block extends Instruction {
     // region dane
@@ -128,5 +127,13 @@ public class Block extends Instruction {
         if (procedure != null) return procedure;
         return super.getProcedure(name);
     }
+
+    @Override
+    public @NotNull HashSet<String> declaredProcedures() {
+        HashSet<String> declared = super.declaredProcedures();
+        declared.addAll(procedures.keySet());
+        return declared;
+    }
+
     // endregion operacje
 }
