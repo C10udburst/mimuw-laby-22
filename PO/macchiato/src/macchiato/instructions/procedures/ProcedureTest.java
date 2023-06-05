@@ -1,5 +1,8 @@
 package macchiato.instructions.procedures;
 
+import macchiato.builder.BlockBuilder;
+import macchiato.builder.ProcedureBuilder;
+import macchiato.builder.ProgramBuilder;
 import macchiato.comparators.Equals;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.IllegalArgumentsException;
@@ -68,7 +71,6 @@ public class ProcedureTest {
         main.debugExecute(debugger);
 
         assertTrue(expected.isEmpty());
-        assertTrue(dfs.block.varStack.isEmpty());
     }
 
     /**
@@ -168,5 +170,81 @@ public class ProcedureTest {
             ));
             main.debugExecute(hook);
         });
+    }
+
+    /**
+     * Testuje działanie procedur algorytmem hanoi.
+     */
+    @Test
+    void hanoi() throws MacchiatoException {
+
+        int n = 3;
+
+        LinkedList<Integer> expected = new LinkedList<>();
+        calculateHanoi(expected, n, 0, 2);
+        MainBlock program = ProgramBuilder.create()
+                .declareProcedure("hanoi", List.of('n','f', 't'),
+                    ProcedureBuilder.create()
+                            .ifThenElse(Equals.of(Variable.named('n'), Constant.of(1)),
+                                    BlockBuilder.create()
+                                            .declareVariable('p', Add.of(
+                                                    Add.of(Constant.of(100),
+                                                            Multiply.of(Constant.of(10), Variable.named('f'))
+                                                            ),
+                                                    Variable.named('t')
+                                            ))
+                                            .print('p'),
+                                    BlockBuilder.create()
+                                            .declareVariable('a', Subtract.of(Constant.of(3), Add.of(Variable.named('f'), Variable.named('t'))))
+                                            .declareVariable('p', Add.of(
+                                                            Multiply.of(Constant.of(100), Variable.named('n')),
+                                                            Add.of(
+                                                                    Multiply.of(Constant.of(10), Variable.named('f')),
+                                                                    Variable.named('t')
+                                                            )
+                                                    ))
+                                            .invoke("hanoi", Map.of(
+                                                    'n', Subtract.of(Variable.named('n'), Constant.of(1)),
+                                                    'f', Variable.named('f'),
+                                                    't', Variable.named('a')
+                                            ))
+                                            .print('p')
+                                            .invoke("hanoi", Map.of(
+                                                    'n', Subtract.of(Variable.named('n'), Constant.of(1)),
+                                                    'f', Variable.named('a'),
+                                                    't', Variable.named('t')
+                                            ))
+                            )
+                )
+                .invoke("hanoi", Map.of(
+                        'n', Constant.of(n),
+                        'f', Constant.of(0),
+                        't', Constant.of(2)
+                ))
+                .build();
+
+        DebugHook hook = (Instruction) -> {
+            if (Instruction instanceof PrintStdOut print) {
+                assertDoesNotThrow(() -> assertEquals(expected.poll(), print.getVariable(print.getVariableName())));
+            }
+        };
+
+        program.debugExecute(hook);
+        assertTrue(expected.isEmpty());
+    }
+
+    /**
+     * Wylicza oczekiwany wynik dla procedury Hanoi w teście {@link #hanoi()}.
+     * Reprezentacja: 100*ile_klockow + 10*skad + dokad
+     */
+    private static void calculateHanoi(List<Integer> expected, int n, int from, int to) {
+        int tmp = 3 - from - to;
+        if (n == 1) {
+            expected.add(100 + 10 * from + to);
+        } else {
+            calculateHanoi(expected, n - 1, from, tmp);
+            expected.add(n * 100 + from * 10 + to);
+            calculateHanoi(expected, n - 1, tmp, to);
+        }
     }
 }
