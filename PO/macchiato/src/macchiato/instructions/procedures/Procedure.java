@@ -7,6 +7,7 @@ import macchiato.exceptions.MacchiatoException;
 import macchiato.instructions.Instruction;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class Procedure {
@@ -81,5 +82,9 @@ public class Procedure {
             vars.declare(argument, invoker.evaluateArgument(argument));
         }
         return vars;
+    }
+
+    public Iterator<Character> getArguments() {
+        return arguments.iterator();
     }
 }
