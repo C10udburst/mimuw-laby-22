@@ -17,6 +17,7 @@ public abstract class Expression {
     /**
      * Zwraca priorytet wyrażenia, czyli kolejność wykonywania operacji.
      * Im większy priorytet, tym wyrażenie jest wykonywane wcześniej w zwykłej notacji.
+     *
      * @return priorytet wyrażenia
      */
     public int priority() {
@@ -25,6 +26,7 @@ public abstract class Expression {
     // endregion
 
     // region operacje
+
     /**
      * Oblicza wartość wyrażenia dla podanej wartości zmiennej.
      *

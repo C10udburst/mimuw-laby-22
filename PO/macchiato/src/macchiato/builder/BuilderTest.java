@@ -93,7 +93,7 @@ public class BuilderTest {
                 Modulo.of(Variable.named('z'), Constant.of(1))
         );
         assertInstanceOf(Constant.class, expression);
-        assertEquals((5*11)%3, ((Constant) expression).evaluate(ProgramBuilder.create().build()));
+        assertEquals((5 * 11) % 3, ((Constant) expression).evaluate(ProgramBuilder.create().build()));
 
         assertThrows(ArithmeticException.class, () -> Modulo.of(Constant.of(5), Constant.of(0)));
     }

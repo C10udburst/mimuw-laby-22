@@ -2,7 +2,10 @@ package macchiato.instructions.procedures;
 
 import macchiato.comparators.Equals;
 import macchiato.debugging.DebugHook;
-import macchiato.exceptions.*;
+import macchiato.exceptions.IllegalArgumentsException;
+import macchiato.exceptions.MacchiatoException;
+import macchiato.exceptions.MissingArgumentException;
+import macchiato.exceptions.UndeclaredProcedureException;
 import macchiato.expressions.*;
 import macchiato.instructions.*;
 import org.junit.jupiter.api.Test;

@@ -29,6 +29,7 @@ public abstract class Comparator {
 
     /**
      * Zwraca priorytet operatora, używany przy wypisywaniu.
+     *
      * @return symbol porównania
      */
     protected abstract String symbol();
@@ -36,8 +37,10 @@ public abstract class Comparator {
     // endregion techniczne
 
     // region operacje
+
     /**
      * Wykonuje porównanie.
+     *
      * @return wynik porównania
      * @throws MacchiatoException jeśli wystąpi błąd podczas ewaluacji wyrażeń
      */
@@ -47,7 +50,8 @@ public abstract class Comparator {
 
     /**
      * Porównuje dwie liczby.
-     * @param left lewa liczba
+     *
+     * @param left  lewa liczba
      * @param right prawa liczba
      * @return wynik porównania
      */
