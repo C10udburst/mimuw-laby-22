@@ -27,7 +27,7 @@ public class BuilderTest {
                                 .assign('a', Multiply.of(Variable.named('a'), Variable.named('b')))
                 )
                 .print('a')
-                .print('b')
+                .add(() -> new PrintStdOut('a'))
                 .build();
         LinkedList<Class<? extends Instruction>> expected = new LinkedList<>(List.of(
                 MainBlock.class,

@@ -16,6 +16,9 @@ public class PrintStdOut extends Instruction {
      */
     public PrintStdOut(char variable) {
         super(false);
+        if (!Character.isLetter(variable)) {
+            throw new IllegalArgumentException("Variable name must be a letter");
+        }
         this.variable = variable;
     }
     @Override
