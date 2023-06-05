@@ -51,20 +51,20 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
 
     // region add
 
+    @SuppressWarnings("unchecked")
     public U add(@NotNull Instruction instruction) {
-        if (instruction instanceof MainBlock)
-            throw new IllegalArgumentException("MainBlock cannot be added to another block");
-        if (instruction instanceof ProcedureBlock)
-            throw new IllegalArgumentException("ProcedureBlock can only be added to a Procedure");
-        this.instructions.add(instruction);
+        this.instructions.add(canBeChild(instruction));
         return (U) this;
     }
 
     /**
      * @param instructions Lista instrukcji, które mają zostać dodane do bloku
      */
+    @SuppressWarnings("unchecked")
     public U add(@NotNull List<InstructionLike> instructions) {
         for (InstructionLike instruction : instructions) {
+            if (instruction == this)
+                throw new IllegalArgumentException("Cannot add instruction to itself");
             add(instruction.toInstruction());
         }
         return (U) this;
@@ -83,6 +83,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     /**
      * @param declaration Deklaracja, która ma zostać dodana do bloku
      */
+    @SuppressWarnings("unchecked")
     public U declareVariable(@NotNull Declaration declaration) {
         declarations.add(declaration);
         return (U) this;
@@ -118,6 +119,7 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     /**
      * @param procedure procedura, która ma zostać dodana do bloku
      */
+    @SuppressWarnings("unchecked")
     public U declareProcedure(@NotNull String name, @NotNull Procedure procedure) {
         procedures.put(name, procedure);
         return (U) this;
@@ -149,7 +151,9 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
     public U declareProcedure(@NotNull String name, @NotNull List<Character> args, @NotNull List<InstructionLike> instructions) {
         List<Instruction> instructionsList = new ArrayList<>();
         for (InstructionLike instruction : instructions) {
-            instructionsList.add(instruction.toInstruction());
+            if (instruction == this)
+                throw new IllegalArgumentException("Cannot add instruction to itself");
+            instructionsList.add(canBeChild(instruction.toInstruction()));
         }
         return declareProcedure(name, args, new ProcedureBlock(instructionsList));
     }
@@ -228,7 +232,10 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
      * @param otherwise instrukcja, która ma zostać wykonana, jeśli warunek nie jest spełniony
      */
     public U ifThenElse(@NotNull Comparator condition, @NotNull InstructionLike then, @Nullable InstructionLike otherwise) {
-        return add(new IfStatement(condition, then.toInstruction(), otherwise == null ? null : otherwise.toInstruction()));
+        if (then == this || otherwise == this)
+            throw new IllegalArgumentException("Instruction cannot be added to itself");
+        Instruction otherwiseInstruction = otherwise == null ? null : otherwise.toInstruction();
+        return add(new IfStatement(condition, canBeChild(then.toInstruction()), otherwiseInstruction == null ? null : canBeChild(otherwiseInstruction)));
     }
 
     /**
@@ -238,6 +245,8 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
      * @param then      instrukcja, która ma zostać wykonana, jeśli warunek jest spełniony
      */
     public U ifThen(@NotNull Comparator condition, @NotNull InstructionLike then) {
+        if (then == this)
+            throw new IllegalArgumentException("Instruction cannot be added to itself");
         return ifThenElse(condition, then, null);
     }
     // endregion
@@ -252,7 +261,9 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
      * @param body     instrukcja, która ma zostać wykonana w każdej iteracji pętli
      */
     public U forLoop(char iterator, Expression to, @NotNull InstructionLike body) {
-        return add(new ForLoop(iterator, to, body.toInstruction()));
+        if (body == this)
+            throw new IllegalArgumentException("Instruction cannot be added to itself");
+        return add(new ForLoop(iterator, to, canBeChild(body.toInstruction())));
     }
 
     /**
@@ -277,6 +288,20 @@ public abstract class AbstractBlockBuilder<T extends Block, U extends AbstractBl
      */
     public U invoke(@NotNull String name, @NotNull Map<Character, Expression> args) {
         return add(new ProcedureInvocation(name, args));
+    }
+
+    /**
+     * Funkcja pomocnicza, sprawdzająca, czy instrukcja może być dzieckiem innej instrukcji
+     * @throws IllegalArgumentException jeśli instrukcja nie może być dzieckiem innej instrukcji
+     */
+    private static <T extends Instruction> T canBeChild(T instruction) {
+        if (instruction instanceof MainBlock)
+            throw new IllegalArgumentException("Main block cannot be a child of any instruction");
+        if (instruction instanceof ProcedureBlock)
+            throw new IllegalArgumentException("Procedure block can only be a child of a procedure");
+        if (instruction == null)
+            throw new IllegalArgumentException("Instruction cannot be null");
+        return instruction;
     }
     // endregion
 }

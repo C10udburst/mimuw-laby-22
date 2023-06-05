@@ -26,7 +26,7 @@ public class ProcedureTest {
      */
     @Test
     void treeTraverse() throws MacchiatoException {
-        int depth = 5;
+        int depth = 8;
 
         LinkedList<Integer> expected = new LinkedList<>();
         calculateDFS(expected, depth, 0);
@@ -178,7 +178,7 @@ public class ProcedureTest {
     @Test
     void hanoi() throws MacchiatoException {
 
-        int n = 3;
+        int n = 8;
 
         LinkedList<Integer> expected = new LinkedList<>();
         calculateHanoi(expected, n, 0, 2);
