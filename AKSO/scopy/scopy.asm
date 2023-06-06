@@ -7,11 +7,16 @@ SYS_READ equ 0
 SYS_WRITE equ 1
 SYS_CLOSE equ 3
 
-; rozmiary buforów
-READ_BUFFER equ 1084
-WRITE_BUFFER equ 573
+; ustawiamy rozmiar buforów tak aby wypełnić .bss całą stronę pamięci
+; https://github.com/torvalds/linux/blob/master/arch/x86/include/asm/page_types.h#L11
+; łącznie dostępne mamy 4096 bajtów, więc 4096 - 2 (na strażnika) = 4094
+; prawdobodobieństwo wystąpienia 's' lub 'S' to 2/256 = 1/128 a dodanie 's' to maksymalnie 3 bajty
+; więc na bufor do zapisu ustalam (1/128*3) ~ 2.3% miejsca, czyli 96 bajtów
+READ_BUFFER equ 3998
+WRITE_BUFFER equ 96
 
 ; bits/fcntl-linux.h
+; https://github.com/bminor/glibc/blob/master/bits/fcntl.h
 O_WRONLY equ 1o          ; tylko do zapisu
 O_CREAT equ 100o         ; utwórz nowy
 O_EXCL equ 200o          ; błąd jeśli istnieje
@@ -33,6 +38,8 @@ section .bss
 
 infile_buf: resb READ_BUFFER
 outfile_buf: resb WRITE_BUFFER
+
+; jeśli skończy sie miejsce w outfile_buf, to pozostałe, maksymalnie 2 bajty (druga część ns_count i 's' czy 'S') wpiszą się tu
 woverflow: resw 1
 
 section .text
@@ -106,7 +113,7 @@ _start:
 .read_buf_ok:
 
   ; w tym miejscu na pewno w infile został co najmniej jeden bajt
-  ; i na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
+  ; więc na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
   mov dl, [abs infile_buf + read_idx]
   cmp dl, 's'
   je .is_s                                 ; jeśli 's' to wpisz do bufora
