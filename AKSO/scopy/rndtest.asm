@@ -1,34 +1,7 @@
 %define syscall fakecall
 
 %macro fakecall 0
-%%fakecall:
-    cmp rax, 60 ; sys_exit
-    je %%exit
-    cmp rax, 3 ; sys_close
-    je %%fclose
-%%back:
-    rdrand r11
-    test r11, r11
-    jns %%syscall
-    mov qword [had_error], 1
-    mov rax, -1
-    jmp %%done
-%%syscall:
-    cmp rax, 2 ; sys_open
-    je %%fopen
-%%syscall_back:
-    db 0x0f, 0x05 ; syscall
-    jmp %%done
-%%exit:
-    sub qword [had_error], rdi
-    jmp _done
-%%fopen:
-    inc qword [counter]
-    jmp %%syscall_back
-%%fclose:
-    dec qword [counter]
-    jmp %%back
-%%done:
+    call _fakecall
 %endmacro
 
 %define _start start_scopy
@@ -50,6 +23,36 @@ section .text
 
 _start:
     jmp start_scopy
+
+_fakecall:
+    cmp rax, 60 ; sys_exit
+    je .exit
+    cmp rax, 3  ; sys_close
+    je .fclose
+.back:
+    rdrand r11
+    test r11, r11
+    jns .syscall
+    mov qword [had_error], 1
+    mov rax, -1
+    jmp .done
+.syscall:
+    cmp rax, 2  ; sys_open
+    je .fopen
+.syscall_back:
+    syscall
+    jmp .done
+.exit:
+    sub qword [had_error], rdi
+    jmp _done
+.fopen:
+    inc qword [counter]
+    jmp .syscall_back
+.fclose:
+    dec qword [counter]
+    jmp .back
+.done:
+    ret
 
 _done:
     mov rax, 60
