@@ -30,7 +30,7 @@ FMOD equ 664o            ; rw-r--r--
 %define write_idx      r10   ; obecny indeks w buforze outfile
 %define read_size      r12   ; rozmiar załadowanego kawałka infile
 %define ns_count       r13   ; licznik znaków != 's', 'S'
-%define ns_count_mod   r13w  ; ns_count % 2**16
+%define ns_count_mod   r13w  ; ns_count mod 2**16
 %define infile_id      r14   ; deskryptor pliku infile
 %define outfile_id     r15   ; deskryptor pliku outfile
 
@@ -88,8 +88,8 @@ _start:
   lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER              ; wczytaj rozmiar bufora do rdx
   syscall
-  test rax, rax
-  js .err_both_open                  ; jeśli rozmiar < 0 to wystąpił błąd
+  cmp rax, WRITE_BUFFER
+  jne .err_both_open                 ; jeśli rax != WRITE_BUFFER to wystąpił błąd
   mov ax, word [rel woverflow]       ; wczytaj strażnika
   mov word [rel outfile_buf], ax     ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER        ; przesuń write_idx do początku  
@@ -154,8 +154,8 @@ _start:
   lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov rdx, write_idx                 ; wczytaj rozmiar bufora do rdx
   syscall
-  test rax, rax                      ; rax < 0 => wystąpił błąd
-  js .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  cmp rax, write_idx                 ; jeśli rax != write_idx to wystąpił błąd
+  jne .err_both_open                 ; trzeba zamknąć oba pliki z błędem
 
 .no_write:
 
