@@ -10,6 +10,7 @@
 #include<syscall.h>
 #include<sys/ptrace.h>
 #include<assert.h>
+#include<iomanip>
 
 #define debug_enabled true
 #define dbg if(debug_enabled) cerr
@@ -289,8 +290,8 @@ class ZBufora : public Test {
         while(!correct.empty() && !output.empty()) {
             if(correct.front() != output.front()) {
                 cout << "Zle wyjscie" << endl;
-                dbg << "correct.front() = " << int(correct.front()) << endl;
-                dbg << "output.front()  = " << int(output.front()) << endl;
+                dbg << "correct.front() = " <<  hex << (int)correct.front() << endl;
+                dbg << "output.front()  = " <<  hex << (int)output.front() << endl;
                 return -1;
             }
             correct.pop();
@@ -562,15 +563,15 @@ void odmowy() {
 void niecalkowityodczyt() {
     faultyio(1, 1, 123'456);
     faultyio(10, 17, 654'321);
-    faultyio(100, 101, 111'111);
-    faultyio(33, 1, 3'333);
+    faultyio(100, 101, 111'111); // git
+    faultyio(33, 1, 3'333); // git
     faultyio(1, 59, 12'345);
     faultyio(4, 4, 111'111);
     faultyio(69, 70, 1'171'111);
 }
 
 int main() {
-    //poprawnosciowe();
-    //odmowy();
+    poprawnosciowe();
+    odmowy();
     niecalkowityodczyt();
 }

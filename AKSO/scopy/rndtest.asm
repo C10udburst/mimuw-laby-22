@@ -1,8 +1,4 @@
-%define syscall fakecall
-
-%macro fakecall 0
-    call _fakecall
-%endmacro
+%define call _fakecall
 
 %define _start start_scopy
 %define .text .code exec
