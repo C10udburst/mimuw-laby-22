@@ -8,7 +8,7 @@ HEX=hexyl #hexdump -C
 G_IN = ./testy/example1.in
 G_OUT = ./testy/example1.out
 
-SCOPY_VAR = faultyio.elf # scopy.elf
+SCOPY_VAR = scopy.elf
 
 .PHONY: clean dump test tester maletesty faultyio
 
