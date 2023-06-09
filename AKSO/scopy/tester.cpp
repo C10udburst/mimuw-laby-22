@@ -520,10 +520,10 @@ void faultyio(unsigned x1, unsigned x2, unsigned z) {
 
 void poprawnosciowe() {
     poprawnosciowy1();
-    //poprawnosciowy2();
+    poprawnosciowy2();
     poprawnosciowy3();
     poprawnosciowy4();
-    //poprawnosciowy5();
+    poprawnosciowy5();
     poprawnosciowy6();
     poprawnosciowy7();
 }

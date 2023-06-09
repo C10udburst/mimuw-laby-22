@@ -26,12 +26,13 @@ O_EXCL equ 200o          ; błąd jeśli istnieje
 FMOD equ 664o            ; rw-r--r--
 
 ; nazwy rejestrów, ich znaczenie praktycznie nie zmienia się
-%define read_idx   r9    ; obecny indeks w buforze infile
-%define write_idx  r10   ; obecny indeks w buforze outfile
-%define read_size  r12   ; rozmiar załadowanego kawałka infile
-%define ns_count   r13w  ; licznik znaków != 's', 'S'
-%define infile_id  r14   ; deskryptor pliku infile
-%define outfile_id r15   ; deskryptor pliku outfile
+%define read_idx       r9    ; obecny indeks w buforze infile
+%define write_idx      r10   ; obecny indeks w buforze outfile
+%define read_size      r12   ; rozmiar załadowanego kawałka infile
+%define ns_count       r13   ; licznik znaków != 's', 'S'
+%define ns_count_mod   r13w  ; ns_count % 2**16
+%define infile_id      r14   ; deskryptor pliku infile
+%define outfile_id     r15   ; deskryptor pliku outfile
 
 
 section .bss
@@ -123,10 +124,10 @@ _start:
   jmp .not_s
 .is_s:
   test ns_count, ns_count
-  jz .no_counter                                     ; jeśli ns_count == 0 to nie ma co wpisywać
-  mov word [abs outfile_buf + write_idx], ns_count   ; wpisz ns_count do bufora
-  xor ns_count, ns_count                             ; ns_count = 0
-  add write_idx, 2                                   ; ustaw następny bajt do zapisu (+2 bo word = 2)
+  jz .no_counter                                         ; jeśli ns_count == 0 to nie ma co wpisywać
+  mov word [abs outfile_buf + write_idx], ns_count_mod   ; wpisz ns_count do bufora
+  xor ns_count, ns_count                                 ; ns_count = 0
+  add write_idx, 2                                       ; ustaw następny bajt do zapisu (+2 bo word = 2)
 .no_counter:
   mov byte [abs outfile_buf + write_idx], dl         ; wpisz 's' albo 'S' do bufora
   inc write_idx                                      ; ustaw następny bajt do zapisu
@@ -137,10 +138,10 @@ _start:
 .read_done:
 
   test ns_count, ns_count
-  jz .no_last_counter                                 ; jeśli ns_count == 0 to nie ma co wpisywać
-  mov word [abs outfile_buf + write_idx], ns_count    ; wpisz ns_count do bufora
-  xor ns_count, ns_count                              ; ns_count = 0
-  add write_idx, 2                                    ; ustaw następny bajt do zapisu
+  jz .no_last_counter                                     ; jeśli ns_count == 0 to nie ma co wpisywać
+  mov word [abs outfile_buf + write_idx], ns_count_mod    ; wpisz ns_count do bufora
+  xor ns_count, ns_count                                  ; ns_count = 0
+  add write_idx, 2                                        ; ustaw następny bajt do zapisu
 
 .no_last_counter:
 

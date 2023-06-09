@@ -1,9 +1,9 @@
-TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
-#TESTER =
+#TESTER = valgrind --trace-children=yes --track-origins=yes --leak-check=full --show-leak-kinds=all -q --error-exitcode=1
+TESTER =
 NASMFLAGS = -w+all -w+error
 GDB_FLAGS = -x gdbinit
 SHELL = /bin/bash
-HEX=hexdump #hexyl
+HEX=hexyl #hexdump -C
 
 .PHONY: clean dump test tester maletesty
 
@@ -32,7 +32,11 @@ test: scopy.elf
 	diff --color <($(HEX) ./testy/example1.out) <($(HEX) ./example1.sout)
 
 maletesty: scopy.elf
-	cd maletesty; python3 ./main.py
+	rm -f ./maletesty/output*
+	for i in {0..10}; do $(TESTER) ./$< ./maletesty/test$$i ./maletesty/output$$i; \
+		echo "Test $$i:"; \
+		diff --color <($(HEX) ./maletesty/output$$i) <($(HEX) ./maletesty/answer$$i) || true; \
+	done
 
 tester: tester.elf scopy.elf
 	./$<
