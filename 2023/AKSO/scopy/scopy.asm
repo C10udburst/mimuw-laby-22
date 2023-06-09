@@ -82,14 +82,20 @@ _start:
   cmp write_idx, WRITE_BUFFER
   jb .write_buf_ok
   ; należy przesunąć bufor outfile
+  xor r8, r8                         ; będziemy używać r8 jako licznika zapisanych bajtów
+.write_loop:
   xor eax, eax
   mov al, SYS_WRITE
   mov rdi, outfile_id                ; wczytaj deskryptor outfile do rdi
-  lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
-  mov edx, WRITE_BUFFER              ; wczytaj rozmiar bufora do rdx
+  lea rsi, [abs outfile_buf + r8]    ; wczytaj adres bufora do rsi z przesunięciem o zapisane już bajty
+  mov rdx, WRITE_BUFFER
+  sub rdx, r8                        ; wczytaj rozmiar bufora z przesunięciem o zapisane już bajty
   syscall
-  cmp rax, WRITE_BUFFER
-  jne .err_both_open                 ; jeśli rax != WRITE_BUFFER to wystąpił błąd
+  test rax, rax
+  js .err_both_open                  ; jeśli rax < 0 to wystąpił błąd
+  add r8, rax                        ; dodajemy do licznika zapisanych bajtów ilość bajtów zapisanych w ostatnim wywołaniu
+  cmp r8, WRITE_BUFFER               ; jeśli zapisano mniej niż WRITE_BUFFER to trzeba próbować zapisać jeszcze raz
+  jb .write_loop
   mov ax, word [rel woverflow]       ; wczytaj strażnika
   mov word [rel outfile_buf], ax     ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER        ; przesuń write_idx do początku  
@@ -97,8 +103,6 @@ _start:
 
   cmp read_idx, read_size            ; jeśli read_idx >= read_size to należy wczytać kolejny kawałek pliku
   jb .read_buf_ok                    ; wpw. nie trzeba
-  cmp read_size, READ_BUFFER         ; jeśli read_size < READ_BUFFER to doszliśmy do końca pliku
-  jb .read_done                      ; wpw. należy przesunąć bufor infile
 
   xor eax, eax
   mov al, SYS_READ                   ; read(infile_id, infile_buf, READ_BUFFER)
@@ -114,7 +118,7 @@ _start:
 .read_buf_ok:
 
   ; w tym miejscu na pewno w infile został co najmniej jeden bajt
-  ; więc na pewno w buforze outfile (ze strażnikiem) są 3 wolne bajty
+  ; a w buforze outfile (ze strażnikiem) są 3 wolne bajty
   mov dl, [abs infile_buf + read_idx]
   cmp dl, 's'
   je .is_s                                 ; jeśli 's' to wpisz do bufora
@@ -148,14 +152,20 @@ _start:
   test write_idx, write_idx
   jz .no_write                       ; bufor zapisu jest pusty
 
+  xor r8, r8                         ; będziemy używać r8 jako licznika zapisanych bajtów
+.write_loop_last:
   xor eax, eax
   mov al, SYS_WRITE                  ; write(outfile_id, outfile_buf, write_idx)
   mov rdi, outfile_id                ; wczytaj deskryptor outfile do rdi
-  lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
-  mov rdx, write_idx                 ; wczytaj rozmiar bufora do rdx
+  lea rsi, [abs outfile_buf + r8]    ; wczytaj adres bufora do rsi z przesunięciem o zapisane już bajty
+  mov rdx, write_idx
+  sub rdx, r8                        ; wczytaj rozmiar bufora z przesunięciem o zapisane już bajty
   syscall
-  cmp rax, write_idx                 ; jeśli rax != write_idx to wystąpił błąd
-  jne .err_both_open                 ; trzeba zamknąć oba pliki z błędem
+  test rax, rax                      ; jeśli rax < 0 to wystąpił błąd
+  js .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  add r8, rax                        ; dodajemy do licznika zapisanych bajtów ilość bajtów zapisanych w ostatnim wywołaniu
+  cmp r8, write_idx                  ; jeśli zapisano mniej niż write_idx to trzeba próbować zapisać jeszcze raz
+  jb .write_loop_last
 
 .no_write:
 
