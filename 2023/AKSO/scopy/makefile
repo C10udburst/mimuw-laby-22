@@ -42,7 +42,7 @@ tester: tester.elf scopy.elf
 	./$<
 
 rndtest: rndtest.elf
-	for _ in {1..69}; do rm -f ./example1.sout; strace ./$<  ./testy/example1.in ./example1.sout || echo "ERROR!"; done
+	for _ in {1..69}; do rm -f ./example1.sout; strace ./$<  ./maletesty/test10 ./example1.sout || echo "ERROR!"; done
 
 gdb: scopy.elf
 	gdb $(GDB_FLAGS) -ex "break _start" $<

@@ -11,7 +11,7 @@
 #include<sys/ptrace.h>
 #include<assert.h>
 
-#define debug_enabled false
+#define debug_enabled true
 #define dbg if(debug_enabled) cerr
 
 using namespace std;
@@ -282,11 +282,15 @@ class ZBufora : public Test {
             return exit_code;
         if(correct.size() != output.size()) {
             cout << "Zle wyjscie" << endl;
+            dbg << "correct.size() = " << correct.size() << endl;
+            dbg << "output.size() = " << output.size() << endl;
             return -1;
         }
         while(!correct.empty() && !output.empty()) {
             if(correct.front() != output.front()) {
                 cout << "Zle wyjscie" << endl;
+                dbg << "correct.front() = " << int(correct.front()) << endl;
+                dbg << "output.front()  = " << int(output.front()) << endl;
                 return -1;
             }
             correct.pop();
@@ -502,6 +506,7 @@ void limited(unsigned x, unsigned y) {
 }
 
 void faultyio(unsigned x1, unsigned x2, unsigned z) {
+    dbg << "faultyio " << x1 << " " << x2 << " " << z << "\n";
     queue<char> data;
     unsigned seed = 0x303b62fb;
     for(int i = 0; i < z; i++) {
@@ -565,7 +570,7 @@ void niecalkowityodczyt() {
 }
 
 int main() {
-    poprawnosciowe();
-    odmowy();
+    //poprawnosciowe();
+    //odmowy();
     niecalkowityodczyt();
 }
