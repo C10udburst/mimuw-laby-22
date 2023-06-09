@@ -87,8 +87,8 @@ _start:
   lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov edx, WRITE_BUFFER              ; wczytaj rozmiar bufora do rdx
   syscall
-  cmp rax, -1                        ; rax == -1 => wystąpił błąd
-  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  test rax, rax
+  js .err_both_open                  ; jeśli rozmiar < 0 to wystąpił błąd
   mov ax, word [rel woverflow]       ; wczytaj strażnika
   mov word [rel outfile_buf], ax     ; wstaw strażnika do buforu
   sub write_idx, WRITE_BUFFER        ; przesuń write_idx do początku  
@@ -98,15 +98,15 @@ _start:
   jb .read_buf_ok                    ; wpw. nie trzeba
   cmp read_size, READ_BUFFER         ; jeśli read_size < READ_BUFFER to doszliśmy do końca pliku
   jb .read_done                      ; wpw. należy przesunąć bufor infile
-  
+
   xor eax, eax
   mov al, SYS_READ                   ; read(infile_id, infile_buf, READ_BUFFER)
   mov rdi, infile_id                 ; wczytaj deskryptor infile do rdi
   lea rsi, [rel infile_buf]          ; wczytaj adres bufora do rsi
   mov edx, READ_BUFFER               ; wczytaj rozmiar bufora do rdx
   syscall
-  cmp rax, -1                        ; rax == -1 => wystąpił błąd
-  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  test rax, rax
+  js .err_both_open                  ; jeśli rozmiar < 0 to wystąpił błąd
   jz .read_done                      ; jeśli rozmiar == 0 to plik się skończył 
   mov read_size, rax                 ; ustaw rozmiar wczytanej części pliku
   xor read_idx, read_idx             ; przesuń read_idx na początek buforu
@@ -153,8 +153,8 @@ _start:
   lea rsi, [rel outfile_buf]         ; wczytaj adres bufora do rsi
   mov rdx, write_idx                 ; wczytaj rozmiar bufora do rdx
   syscall
-  cmp rax, -1                        ; rax == -1 => wystąpił błąd
-  je .err_both_open                  ; trzeba zamknąć oba pliki z błędem
+  test rax, rax                      ; rax < 0 => wystąpił błąd
+  js .err_both_open                  ; trzeba zamknąć oba pliki z błędem
 
 .no_write:
 
