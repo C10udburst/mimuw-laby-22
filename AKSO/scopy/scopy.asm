@@ -8,15 +8,15 @@ SYS_WRITE equ 1
 SYS_CLOSE equ 3
 
 ; Ustawiamy rozmiar buforów tak aby wypełnić .bss całą stronę pamięci.
-; Źródło: https://github.com/torvalds/linux/blob/master/arch/x86/include/asm/page_types.h#L11.
 ; Łącznie dostępne mamy 4096 bajtów, więc 4096 - 2 (na strażnika) = 4094.
+; Źródło: https://github.com/torvalds/linux/blob/master/arch/x86/include/asm/page_types.h#L11.
 ; Prawdobodobieństwo wystąpienia 's' lub 'S' to 2/256 = 1/128, a dodanie 's' to maksymalnie 3 bajty.
 ; Więc na bufor do zapisu ustalam (1/128*3) ~ 2.3% miejsca, czyli 96 bajtów.
 READ_BUFFER equ 3998
 WRITE_BUFFER equ 96
 
 ; Definicje flag dla syscalla open:
-; Źródło: bits/fcntl-linux.h lub https://github.com/bminor/glibc/blob/master/bits/fcntl.h.
+; Źródło: bits/fcntl-linux.h.
 O_WRONLY equ 1o          ; tylko do zapisu
 O_CREAT equ 100o         ; utwórz nowy
 O_EXCL equ 200o          ; błąd jeśli istnieje
