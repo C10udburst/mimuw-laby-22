@@ -188,10 +188,10 @@ _start:
 ; metoda zapisuje r8 bajtów z bufora outfile_buf do pliku outfile
 
 .write_file:
-  set_syscall SYS_WRITE                             ; write(outfile_id, outfile_buf, r8)
   mov rdi, outfile_id                               ; wczytaj deskryptor outfile do rdi
   lea rsi, [rel outfile_buf]                        ; wczytaj adres bufora do rsi
 .write_loop:
+  set_syscall SYS_WRITE                             ; write(outfile_id, outfile_buf, r8)
   mov rdx, r8                                       ; wczytaj rozmiar bufora do zapisu do rdx
   syscall
   test rax, rax
