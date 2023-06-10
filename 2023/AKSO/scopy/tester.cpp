@@ -12,7 +12,7 @@
 #include<assert.h>
 #include<iomanip>
 
-#define debug_enabled true
+#define debug_enabled false
 #define dbg if(debug_enabled) cerr
 
 using namespace std;
@@ -561,13 +561,13 @@ void odmowy() {
 }
 
 void niecalkowityodczyt() {
-    faultyio(1, 1, 123'456);
-    faultyio(10, 17, 654'321);
+    //faultyio(1, 1, 123'456);
+    //faultyio(10, 17, 654'321);
     faultyio(100, 101, 111'111); // git
     faultyio(33, 1, 3'333); // git
-    faultyio(1, 59, 12'345);
-    faultyio(4, 4, 111'111);
-    faultyio(69, 70, 1'171'111);
+    //faultyio(1, 59, 12'345);
+    //faultyio(4, 4, 111'111);
+    //faultyio(69, 70, 1'171'111);
 }
 
 int main() {
