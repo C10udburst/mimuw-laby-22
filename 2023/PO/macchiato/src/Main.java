@@ -1,8 +1,11 @@
 import macchiato.builder.BlockBuilder;
-import macchiato.builder.ProcedureBuilder;
 import macchiato.builder.ProgramBuilder;
 import macchiato.debugging.Debugger;
 import macchiato.exceptions.MacchiatoException;
+import macchiato.expressions.Add;
+import macchiato.expressions.Constant;
+import macchiato.expressions.Subtract;
+import macchiato.expressions.Variable;
 import macchiato.instructions.*;
 import macchiato.parser.Parser;
 import macchiato.parser.ParserException;
@@ -12,6 +15,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) throws ParserException, MacchiatoException, IOException {
@@ -26,29 +31,22 @@ public class Main {
      * Domyślne zachowanie programu, gdy nie podano argumentów, wykonuje kod z polecenia.
      */
     private static void defaultBehaviour() {
-        Debugger.debug(ProgramBuilder.create()
-                .declareVariable('a', 0)
-                .declareVariable('b', 1)
-                .declareVariable('c', 2)
-                .declareProcedure("a", ProcedureBuilder.create()
-                        .buildProcedure('a', 'b')
+        Debugger.debug(ProgramBuilder
+                .create()
+                .declareVariable('x', Constant.of(101))
+                .declareVariable('y', Constant.of(1))
+                .declareProcedure("out", List.of('a'), new BlockBuilder()
+                        .assign('a', Add.of(Variable.named('a'), Variable.named('x')))
+                        .print('a')
                 )
-                .declareProcedure("b", ProcedureBuilder.create()
-                        .buildProcedure('b', 'c')
+                .assign('x', Subtract.of(Variable.named('x'), Variable.named('y')))
+                .invoke("out", Map.of('a', Variable.named('x'))) // x = 100, print(100+100)
+                .invoke("out", Map.of('a', Constant.of(100))) // print(100+100)
+                .add(new BlockBuilder()
+                        .declareVariable('x', Constant.of(10))
+                        .invoke("out", Map.of('a', Constant.of(100))) // print(100+10)
                 )
-                .declareProcedure("c", ProcedureBuilder.create()
-                        .buildProcedure('c', 'a')
-                )
-                .add(BlockBuilder.create()
-                        .declareProcedure("z", ProcedureBuilder.create()
-                                .buildProcedure('a', 'b')
-                        )
-                        .declareProcedure("a", ProcedureBuilder.create()
-                                .buildProcedure('z', 'x')
-                        )
-                )
-                .build()
-        );
+                .build());
     }
 
     /**

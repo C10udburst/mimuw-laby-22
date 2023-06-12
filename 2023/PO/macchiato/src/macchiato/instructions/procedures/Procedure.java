@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Klasa reprezentująca procedurę, zaimplementowano wiązanie dynamiczne zmiennych.
+ */
 public class Procedure {
 
     @NotNull
@@ -42,10 +45,6 @@ public class Procedure {
         return sb.toString();
     }
 
-    public void setParent(Instruction parent) {
-        block.setParent(parent);
-    }
-
     /**
      * Wykonuje procedurę.
      *
@@ -54,6 +53,7 @@ public class Procedure {
      */
     public void execute(ProcedureInvocation invoker) throws MacchiatoException {
         block.setArgs(makeVars(invoker));
+        block.setParent(invoker);
         block.execute();
     }
 
@@ -66,6 +66,7 @@ public class Procedure {
      */
     public void debugExecute(ProcedureInvocation invoker, DebugHook debugger) throws MacchiatoException {
         block.setArgs(makeVars(invoker));
+        block.setParent(invoker);
         block.debugExecute(debugger);
     }
 

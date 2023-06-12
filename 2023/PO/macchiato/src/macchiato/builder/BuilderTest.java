@@ -49,11 +49,8 @@ public class BuilderTest {
         assertEquals(2 * 3 * 3 * 3, mainBlock.getVariable('a'));
     }
 
-    /**
-     * Test z polecenia.
-     */
     @Test
-    void t2() throws MacchiatoException {
+    void t2() throws MacchiatoException { // Test z polecenia przed 10 VI 2023.
         var program = ProgramBuilder.create()
                 .declareVariable('x', Constant.of(57))
                 .declareVariable('y', Constant.of(15))
@@ -84,11 +81,40 @@ public class BuilderTest {
         assertTrue(expected.isEmpty());
     }
 
-    /**
-     * Testuje upraszczanie wyrażeń metodami statycznymi.
-     */
     @Test
-    void expressionSimplifier() {
+    void t3() throws MacchiatoException { // Test z polecenia z dnia 10 VI 2023.
+        var program = new ProgramBuilder()
+                .declareVariable('x', Constant.of(101))
+                .declareVariable('y', Constant.of(1))
+                .declareProcedure("out", List.of('a'), new BlockBuilder()
+                        .assign('a', Add.of(Variable.named('a'), Variable.named('x')))
+                        .print('a')
+                        .build()
+                )
+                .assign('x', Subtract.of(Variable.named('x'), Variable.named('y')))
+                .invoke("out", Map.of('a', Variable.named('x'))) // x = 100, print(100+100)
+                .invoke("out", Map.of('a', Constant.of(100))) // print(100+100)
+                .add(new BlockBuilder()
+                        .declareVariable('x', Constant.of(10))
+                        .invoke("out", Map.of('a', Constant.of(100))) // print(100+10)
+                        .build()
+                )
+                .build();
+        LinkedList<Integer> expected = new LinkedList<>(List.of(
+                100 + 100,
+                100 + 100,
+                100 + 10
+        ));
+        DebugHook hook = instruction -> assertDoesNotThrow(() -> {
+            if (instruction instanceof PrintStdOut stdOut) {
+                assertEquals(expected.removeFirst(), stdOut.getVariable(stdOut.getVariableName()));
+            }
+        });
+        program.debugExecute(hook);
+    }
+
+    @Test
+    void expressionSimplifier() { // Testuje upraszczanie wyrażeń metodami statycznymi.
         Expression expression = Add.of(
                 Add.of(
                         Modulo.of(Multiply.of(Constant.of(5), Constant.of(11)), Constant.of(3)),
