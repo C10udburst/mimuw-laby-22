@@ -13,7 +13,7 @@ public class ProcedureBlock extends Block {
     private Variables args;
 
     /**
-     * Należy używać tylko w {@link Procedure} oraz twożyc jedynie za pomocą {@link macchiato.builder.ProcedureBuilder}.
+     * Należy używać tylko w {@link Procedure} oraz tworzyć jedynie za pomocą {@link macchiato.builder.ProcedureBuilder}.
      */
     public ProcedureBlock(@NotNull List<Instruction> instructions) {
         super(List.of(), instructions);

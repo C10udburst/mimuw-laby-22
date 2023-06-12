@@ -44,11 +44,6 @@ public class Block extends Instruction {
         // ustawia ten blok jako nadrzędny dla wszystkich instrukcji
         for (Instruction instruction : instructions)
             instruction.parent = this;
-
-        // TODO: czy procedura powinna mieć dostęp do zmiennych bloku w którym się znajduje?
-        // ustawia ten blok jako nadrzędny dla wszystkich procedur
-        for (Procedure procedure : procedures.values())
-            procedure.setParent(this);
     }
 
     public Block(@NotNull List<Declaration> declarations, @NotNull List<Instruction> instructions) {
