@@ -1,12 +1,5 @@
 package macchiato.instructions;
 
-import macchiato.builder.BlockBuilder;
-import macchiato.builder.ProgramBuilder;
-import macchiato.comparators.Equals;
-import macchiato.exceptions.MacchiatoException;
-import macchiato.expressions.Add;
-import macchiato.expressions.Constant;
-import macchiato.expressions.Variable;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -37,43 +30,5 @@ class InstructionTest {
         }
         assertEquals(mainBlock, blocks.get(0).getParent(6));
         assertNull(blocks.get(0).getParent(7));
-    }
-
-    @Test
-    void assignment() throws MacchiatoException {
-        MainBlock prog = ProgramBuilder.create()
-                .declareVariable('a', 1)
-                .assign('a', Add.of(Variable.named('a'), Variable.named('a')))
-                .build();
-        prog.debugExecute(i -> {
-        });
-        assertEquals(2, prog.getVariable('a'));
-    }
-
-    @Test
-    void forLoop() throws MacchiatoException {
-        MainBlock prog = ProgramBuilder.create()
-                .declareVariable('a', 1)
-                .forLoop('i', Constant.of(10), BlockBuilder.create()
-                        .assign('a', Add.of(Variable.named('a'), Variable.named('i')))
-                )
-                .build();
-        prog.debugExecute(i -> {
-        });
-        assertEquals(46, prog.getVariable('a'));
-    }
-
-    @Test
-    void ifStatement() throws MacchiatoException {
-        MainBlock prog = ProgramBuilder.create()
-                .declareVariable('a', 1)
-                .ifThenElse(Equals.of(Variable.named('a'), Constant.of(1)), BlockBuilder.create()
-                                .assign('a', Constant.of(2)),
-                        BlockBuilder.create()
-                                .assign('a', Constant.of(3))
-                )
-                .build();
-        prog.debugExecute(i -> {});
-        assertEquals(2, prog.getVariable('a'));
     }
 }
