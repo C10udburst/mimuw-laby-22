@@ -23,10 +23,7 @@ public abstract class Plik {
         }
 
     }
-    public void wypiszWiersz(String wiersz) {
-        ileWierszy++;
-        ileZnaków += wiersz.length();
-    }
+    public abstract void wypiszWiersz(String wiersz);
     public  int ileWypisanoWierszy(){
         return ileWierszy;
     }

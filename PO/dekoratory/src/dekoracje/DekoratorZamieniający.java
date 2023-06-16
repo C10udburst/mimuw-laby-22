@@ -12,6 +12,5 @@ public class DekoratorZamieniający extends DekoratorAbstrakcyjny {
     @Override
     public void wypiszWiersz(String wiersz) {
         plik.wypiszWiersz(wiersz.replaceAll("\t", naCoZamienić));
-        super.wypiszWiersz(wiersz);
     }
 }

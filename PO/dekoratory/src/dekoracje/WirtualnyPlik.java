@@ -1,6 +1,6 @@
 package dekoracje;
 
-public class WirtualnyPlik extends Plik {
+public class WirtualnyPlik extends ZnakowyPlik {
 
     private final StringBuilder zawartość = new StringBuilder();
 

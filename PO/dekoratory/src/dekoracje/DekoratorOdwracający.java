@@ -9,6 +9,5 @@ public class DekoratorOdwracający extends DekoratorAbstrakcyjny {
     @Override
     public void wypiszWiersz(String wiersz) {
         plik.wypiszWiersz(new StringBuilder(wiersz).reverse().toString());
-        super.wypiszWiersz(wiersz);
     }
 }
