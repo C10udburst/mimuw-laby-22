@@ -9,6 +9,5 @@ public class DekoratorNumerujący extends DekoratorAbstrakcyjny{
     @Override
     public void wypiszWiersz(String wiersz) {
         plik.wypiszWiersz((plik.ileWypisanoWierszy() + 1) + ": " + wiersz);
-        super.wypiszWiersz(wiersz);
     }
 }

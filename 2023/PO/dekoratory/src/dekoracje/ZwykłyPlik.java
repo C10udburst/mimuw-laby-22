@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
-public class ZwykłyPlik extends Plik implements Closeable {
+public class ZwykłyPlik extends ZnakowyPlik implements Closeable {
     // dane
     PrintWriter plik;
     String nazwaWy;

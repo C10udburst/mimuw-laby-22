@@ -106,6 +106,8 @@ Colorless green ideas sleep furiously.
             assertTrue(linie[i].endsWith(count), "Błąd w linii: " + linie[i]);
         }
 
+        assertEquals("11: wodniw llams ym ta I ma ekawa yldaM*****", linie[10]);
+
         System.out.println(plik.pobierzZawartość());
     }
 }
