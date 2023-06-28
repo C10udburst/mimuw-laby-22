@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
  * Operator ::= "+" | "-" | "*" | "/" | "%"
  * </pre>
  */
+@Deprecated(since = "1.0.1")
 public class Parser {
     // Wzorce wyrażeń regularnych
     private static final Pattern CONDITION_PATTERN = Pattern.compile("\\( ?(?<exp1>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\) ?(?<sgn>=|<>|>|<|>=|<=) ?\\( ?(?<exp2>[a-z0-9+\\-/%*]+(?: [a-z0-9+\\-/%*])*) ?\\)");

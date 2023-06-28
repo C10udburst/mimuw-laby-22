@@ -1,18 +1,20 @@
 package macchiato;
 
+import macchiato.builder.BlockBuilder;
+import macchiato.builder.ProgramBuilder;
 import macchiato.comparators.Equals;
+import macchiato.comparators.LessEqual;
 import macchiato.debugging.DebugHook;
 import macchiato.exceptions.MacchiatoException;
 import macchiato.expressions.*;
 import macchiato.instructions.*;
-import macchiato.parser.Parser;
-import macchiato.parser.ParserException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -83,39 +85,19 @@ class MacchiatoTest {
                             print: k
                     }
          */
-        MainBlock mainBlock = new MainBlock(
-                List.of(
-                        new Declaration('n', new Constant(n)) // liczba liczb do sprawdzenia
-                ),
-                List.of(
-                        // for: k = 0..(n 1 -)
-                        new ForLoop('k', new Subtract(new Variable('n'), new Constant(1)),
-                                new Block(
-                                        List.of(
-                                                new Declaration('p', new Constant(1)), //
-                                                new Declaration('k', new Add(new Variable('k'), new Constant(2)))
-                                        ),
-                                        List.of(
-                                                new ForLoop('i', new Subtract(new Variable('k'), new Constant(2)),
-                                                        new Block(List.of(
-                                                                new Declaration('i', new Add(new Variable('i'), new Constant(2)))
-                                                        ), List.of(
-                                                                new IfStatement(
-                                                                        new Equals(new Modulo(new Variable('k'), new Variable('i')), new Constant(0)),
-                                                                        new Assignment('p', new Constant(0)),
-                                                                        null
-                                                                )
-                                                        ))
-                                                ),
-                                                new IfStatement(new Equals(new Variable('p'), new Constant(1)),
-                                                        new PrintStdOut('k'),
-                                                        null
-                                                )
-                                        )
+        MainBlock mainBlock = ProgramBuilder.create()
+                .declareVariable('n', n)
+                .forLoop('k', Subtract.of(Variable.named('n'), Constant.of(1)), BlockBuilder.create()
+                        .declareVariable('p',1)
+                        .declareVariable('k', Add.of(Variable.named('k'), Constant.of(2)))
+                        .forLoop('i', Subtract.of(Variable.named('k'), Constant.of(2)), BlockBuilder.create()
+                                .declareVariable('i', Add.of(Variable.named('i'), Constant.of(2)))
+                                .ifThen(Equals.of(Modulo.of(Variable.named('k'), Variable.named('i')), Constant.of(0)), BlockBuilder.create()
+                                        .assign('p', Constant.of(0))
                                 )
                         )
                 )
-        );
+                .build();
         DebugHook debugHook = new PrimePrintDebugHook();
         mainBlock.debugExecute(debugHook);
     }
@@ -160,26 +142,23 @@ class MacchiatoTest {
      * Test sprawdzający poprawność wyliczania silni
      */
     @Test
-    void moduloFactorial() throws MacchiatoException, ParserException {
+    void moduloFactorial() throws MacchiatoException {
         int max = 56;
         int modulo = Integer.MAX_VALUE - 10;
         LinkedList<Integer> intermediateResults = new LinkedList<>();
         int expected = factorial(max, modulo, intermediateResults);
         DebugHook debugHook = new PrintDebugHook(intermediateResults);
-        String src = String.format("""
-                n = (%d)
-                m = (%d)
-                f = (1)
-                do
-                    for: i = 0..(n)
-                        block
-                        do {
-                            set: f = (f m %% i 1 + * m %%)   :# f = ((f mod m)*(i+1)) mod m
-                            print: f
-                        }
-                """, max, modulo).stripIndent().trim();
-        Parser parser = new Parser(src);
-        MainBlock mainBlock = parser.parse();
+
+        MainBlock mainBlock = ProgramBuilder.create()
+                .declareVariable('n', max)
+                .declareVariable('m', modulo)
+                .declareVariable('f', 1)
+                .forLoop('i', Variable.named('n'), BlockBuilder.create()
+                        .assign('f', Modulo.of(Multiply.of(Modulo.of(Variable.named('f'), Variable.named('m')), Add.of(Variable.named('i'), Constant.of(1))), Variable.named('m')))
+                        .print('f')
+                )
+                .build();
+
         mainBlock.debugExecute(debugHook);
         assertEquals(expected, mainBlock.getVariable('f'));
     }
@@ -191,6 +170,36 @@ class MacchiatoTest {
             intermediateResults.add(result);
         }
         return result;
+    }
+
+    /**
+     * Test sprawdzający poprawność wyliczania silni procedurami (tail recursion)
+     */
+    @Test
+    void tailRec() throws MacchiatoException {
+        int max = 100;
+        int modulo = Integer.MAX_VALUE - 10;
+        LinkedList<Integer> intermediateResults = new LinkedList<>();
+        factorial(max, modulo, intermediateResults);
+        DebugHook debugHook = new PrintDebugHook(intermediateResults);
+
+        MainBlock mainBlock = ProgramBuilder.create()
+                .declareProcedure("tailrec", List.of('i', 'f'), BlockBuilder.create()
+                        .assign('f', Modulo.of(Multiply.of(Modulo.of(Variable.named('f'), Constant.of(modulo)), Variable.named('i')), Constant.of(modulo)))
+                        .assign('i', Add.of(Variable.named('i'), Constant.of(1)))
+                        .print('f')
+                        .ifThen(LessEqual.of(Variable.named('i'), Constant.of(max)), BlockBuilder.create()
+                                .invoke("tailrec", Map.of(
+                                        'i', Variable.named('i'),
+                                        'f', Variable.named('f')
+                                ))
+                        )
+                )
+                .build();
+
+        mainBlock.debugExecute(debugHook);
+
+
     }
 
 }

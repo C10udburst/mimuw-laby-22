@@ -18,7 +18,10 @@ public class Assignment extends Instruction {
      * @param expression wyrażenie, którego wartość przypisujemy
      */
     public Assignment(char variable, @NotNull Expression expression) {
-        super(false);
+        super();
+        if (!Character.isLetter(variable)) {
+            throw new IllegalArgumentException("Variable name must be a letter");
+        }
         this.variable = variable;
         this.expression = expression;
     }
@@ -37,14 +40,12 @@ public class Assignment extends Instruction {
 
     // region operacje
     @Override
-    public void execute() throws MacchiatoException {
-        super.execute();
+    protected void internalExecute() throws MacchiatoException {
         setVariable(variable, expression.evaluate(this));
     }
 
     @Override
-    public void debugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
-        super.debugExecute(debugger);
+    protected void internalDebugExecute(@NotNull DebugHook debugger) throws MacchiatoException {
         debugger.beforeExecute(this);
         setVariable(variable, expression.evaluate(this));
     }

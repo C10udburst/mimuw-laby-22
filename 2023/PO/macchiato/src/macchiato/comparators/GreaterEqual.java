@@ -17,4 +17,8 @@ public class GreaterEqual extends Comparator {
     public boolean compare(int left, int right) {
         return left >= right;
     }
+
+    public static GreaterEqual of(Expression left, Expression right) {
+        return new GreaterEqual(left, right);
+    }
 }

@@ -17,4 +17,8 @@ public class Equals extends Comparator {
     public boolean compare(int left, int right) {
         return left == right;
     }
+
+    public static Equals of(Expression left, Expression right) {
+        return new Equals(left, right);
+    }
 }
