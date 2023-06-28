@@ -1,0 +1,157 @@
+rsi = n
+rdi = x
+r8 = i
+r9
+rcx
+rdx
+rax = indeks poprzedniego zmienianego bloku
+r10 = wartość dodawana do obecnego bloku
+r11 = reszta do nowego bloku
+
+r11 = 0
+add [rdi], 0 ; ustalam SF na znak x[0]
+for (int r8 = 1; r8 < rsi; r8++) {
+    r10 = [rdi + r8]
+    [rdi + r8] = SF ? 0xFFF.. : 0
+
+    rax ++
+    if (rax < rsi)
+        [rdi + rax] += r11
+    
+    rax = 64*r8*r8/n:
+        rax = r8
+        rax *= r8
+        rax << 6
+        rax /= rsi
+
+    rcx = rax%8:
+        rcx = rax
+        rcx &= 0x7 ; trzy ostatnie bity
+    
+    rax = rax/8:
+        rax >> 3
+
+    test r10, r10
+    r11 = SF ? 0xFFF.. : 0
+
+    for (int r9=0;r9<rcx;r9++) {
+        r10 <<
+        r11 += CF;
+        r11 <<
+    }
+
+    [rdi + rax] += r10
+    r11 += CF
+}
+
+rsi = n
+rdi = x
+r8 = i
+r10 = x[i]
+r9 = sgn(y)
+rax = 64*r8*r8/rsi ∨ 64*r8*r8/(8*rsi)
+rdx = y[rax + 8]
+r11 = sgn(x[i]) ∨ sgn(x[i]) != sgn(y) 
+rcx
+
+
+add [rdi], 0
+r9 = SF ? 0x1: 0x0
+rdx = 0
+rax = 0
+for (int r8 = 1; r8 < rsi; r8++) {
+    r10 = [rdi + r8]
+    [rdi + r8] = 0
+
+    if (SF) {
+        neg r10
+        r11 = 0x1
+    } else {
+        r11 = 0x0
+    }
+
+    if (rdx > 0) {
+        rax+=8
+        [rdi + rax] += rdx
+        ; TODO: CF?
+    }
+
+    rax = 64*r8*r8/rsi:
+        rax = r8
+        rax *= r8
+        rax << 6
+        rax /= rsi
+    
+    rcx = rax%8:
+        rcx = rax
+        rcx &= 0x7 ; trzy ostatnie bity
+    
+    rax = rax/8:
+        rax >> 3
+
+    r11d ^= r9d ; 0 - ten sam znak, 1 - rożny znak
+
+    rdx = 0
+    while rcx-- {
+        rdx << 1
+        r10 << 1
+        rdx += CF ? 1 : 0
+    }
+
+
+    if (r11 = 0) {
+        [rdi + rax] += r10
+        rdx += CF ? 1 : 0
+    } else {
+        if (rdx > 0) {
+            r9 ^= 0x1 ; y = -y
+            if (r10 > [rdi + rax]) {
+                r10 -= [rdi + rax]
+                [rdi + rax] = r10
+                goto .sub
+            } else {
+                rdx--
+                neg [rdi + rax]
+                [rdi + rax] += r10
+                goto .sub
+            }
+        }
+        else {
+            if (r10 > [rdi + rax]) {
+                r9 ^= 0x1 ; y = -y
+                r10 -= [rdi+rax]
+                [rdi + rax] = r10
+                goto .sub
+            }
+            else {
+                [rdi + rax] -= r10
+            }
+        }
+    }
+
+    .sub:
+        rcx = rax
+        if rcx == 0
+            jmp .sub_skip
+        rcx--
+        if rcx == 0
+            jmp .sub_end
+    .sub_loop:
+        if [rdi + rcx] == 0
+            break
+        xor [rdi + rcx], 0xFFF..
+        loop .sub_loop
+    .sub_end:
+        rcx++
+    .sub_skip:
+        [rdi+rcx]++
+    
+
+}
+
+
+
+
+100000000
+ 11010101
+   101011

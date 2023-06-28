@@ -1,0 +1,22 @@
+#set debuginfod enabled on
+set disassembly-flavor intel
+layout asm
+layout regs
+#tui window height regs -3
+define pt
+  set $size = $arg0
+  set $ptr = (long long*) $arg1
+  set $i = 0
+  while $i < $size
+    printf "[%d] 0x%16llx %4lld\n", $i, *$ptr, *$ptr
+    set $ptr++
+    set $i++
+  end
+end
+define px
+    pt $rsi $rdi
+end
+define spx
+    si
+    px
+end

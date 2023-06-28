@@ -1,0 +1,8 @@
+*.o
+*.so
+*.a
+*.elf
+*.dot
+**/mmap_address.bin
+**/*.ipch
+**/.nfs*
