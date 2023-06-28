@@ -23,6 +23,8 @@ public class Declaration {
      * @param expression wyrażenie, które staje się wartością zmiennej
      */
     public Declaration(char name, @NotNull Expression expression) {
+        if (!Character.isLetter(name))
+            throw new IllegalArgumentException("Variable name must be a letter");
         this.name = name;
         this.expression = expression;
     }
@@ -42,5 +44,9 @@ public class Declaration {
      */
     public char getName() {
         return name;
+    }
+
+    public static Declaration of(char name, @NotNull Expression expression) {
+        return new Declaration(name, expression);
     }
 }
