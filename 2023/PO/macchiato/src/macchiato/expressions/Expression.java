@@ -26,7 +26,6 @@ public abstract class Expression {
     // endregion
 
     // region operacje
-
     /**
      * Oblicza wartość wyrażenia dla podanej wartości zmiennej.
      *

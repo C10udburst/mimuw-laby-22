@@ -7,7 +7,6 @@ public class MacchiatoException extends Exception {
 
     @NotNull
     public final Instruction context;
-
     public MacchiatoException(String s, @NotNull Instruction context) {
         super(s);
         this.context = context;

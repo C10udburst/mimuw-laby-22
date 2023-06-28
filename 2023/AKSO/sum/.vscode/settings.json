@@ -1,0 +1,12 @@
+{
+    "debug.allowBreakpointsEverywhere": true,
+    "files.associations": {
+        "*.json5": "jsonc",
+        "numeric": "c",
+        "ratio": "c",
+        "*.tcc": "c",
+        "assert.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
+    }
+}
